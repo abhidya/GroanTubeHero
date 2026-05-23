@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -458,6 +459,14 @@ if remotes:FindFirstChild("OpenSongSelect") then
         openSongSelect()
     end)
 end
+
+-- Client-side safety net: if the server prompt connection is missing or delayed,
+-- pressing E on the START SONG prompt still opens song select for the local player.
+ProximityPromptService.PromptTriggered:Connect(function(prompt)
+    if prompt and prompt.Parent and prompt.Parent.Name == "StartPrompt" then
+        openSongSelect()
+    end
+end)
 
 replayButton.Activated:Connect(function()
     startSong(state.lastSongId)

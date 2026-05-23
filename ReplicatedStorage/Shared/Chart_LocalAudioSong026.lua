@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong026",
-    Title = "W W - OIIA OIIA Spinning Cat",
+    Title = "026 - W_W_-_OIIA_OIIA_Spinning_Cat [IxX_QHay02M]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://113488492392375", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 134.64,

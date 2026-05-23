@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong027",
-    Title = "Forrest Frank Torey D Shaun - HEAVEN ON THIS EARTH Official Lyric Video",
+    Title = "027 - Forrest_Frank_Torey_D_Shaun_-_HEAVEN_ON_THIS_EARTH_Official_Lyric_Video [EgwKah0xTLA]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://95072275934787", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 182.94,

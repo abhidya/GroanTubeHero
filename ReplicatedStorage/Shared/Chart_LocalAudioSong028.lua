@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong028",
-    Title = "Tattletale Parent s Revenge",
+    Title = "028 - Tattletale_Parent_s_Revenge [bbvAlz_OJps]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://106332886612699", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 159.67,

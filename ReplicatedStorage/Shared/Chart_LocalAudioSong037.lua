@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong037",
-    Title = "Smtve - Surrender Official Song",
+    Title = "037 - Smtve_-_Surrender_Official_Song [qndc5Aqlvrl]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://110816296946347", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 301.09,

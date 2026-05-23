@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong024",
-    Title = "It s Going Down Now",
+    Title = "024 - It_s_Going_Down_Now [2KuWjZD6PBA]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://83852324307786", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 186.09,

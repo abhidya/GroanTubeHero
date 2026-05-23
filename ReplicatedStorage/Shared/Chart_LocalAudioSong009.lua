@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong009",
-    Title = "Alex Warren - Ordinary Official Video",
+    Title = "009 - Alex_Warren_-_Ordinary_Official_Video [u2ah9tWTkmk]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://114879462382629", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 186.94,

@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong002",
     Title = "Rick Astley - Never Gonna Give You Up Official Video 4K Remaster",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://136427349747057", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://123250613451575", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 213.04,

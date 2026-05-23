@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong011",
-    Title = "Teddy Swims - Lose Control The Village Sessions",
+    Title = "011 - Teddy_Swims_-_Lose_Control_The_Village_Sessions [9gWlIIr2Asw]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://79540754120972", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 209.26,

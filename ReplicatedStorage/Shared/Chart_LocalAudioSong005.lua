@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong005",
-    Title = "DECORATE UR LIFE - cybr.grl Official Lyric Video",
+    Title = "005 - DECORATE_UR_LIFE_-_cybr.grl_Official_Lyric_Video [heoGS9vZetY]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://79520562603276", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 220.93,

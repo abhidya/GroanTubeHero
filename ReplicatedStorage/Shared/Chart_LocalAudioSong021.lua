@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong021",
-    Title = "feat.",
+    Title = "021 - feat. [UsjsYMo3O1Q]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://126333278426112", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 125.05,

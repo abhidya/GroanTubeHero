@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong016",
-    Title = "Haschak Sisters - Anything You Can Do I Can Do Better",
+    Title = "016 - Haschak_Sisters_-_Anything_You_Can_Do_I_Can_Do_Better [BHXGZCz2JqA]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://85250456635453", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 189.74,

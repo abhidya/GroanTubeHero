@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong022",
-    Title = "sam gellaitry - assumptions official audio",
+    Title = "022 - sam_gellaitry_-_assumptions_official_audio [T9Ybj8nrtQw]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://106528615212538", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 217.75,

@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong008",
-    Title = "Flawed Mangoes - Dramamine Visualizer",
+    Title = "008 - Flawed_Mangoes_-_Dramamine_Visualizer [UeSDvg5xsWI]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://136427349747057", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 205.46,

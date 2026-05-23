@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong015",
-    Title = "Spoiled Cover",
+    Title = "015 - Spoiled_Cover [BvJAIENfrHk]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://124710958187139", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 151.66,

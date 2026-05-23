@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong038",
-    Title = "Smtve - Love Me Not Official Song",
+    Title = "038 - Smtve_-_Love_Me_Not_Official_Song [fSujB0dgCyk]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://123250613451575", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 370.00,

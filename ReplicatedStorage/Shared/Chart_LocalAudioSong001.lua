@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong001",
-    Title = "Thick of it Thomas the train remix extended music",
+    Title = "001 - Thick_of_it_Thomas_the_train_remix_extended_music [-arkKErUdLs]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://79520562603276", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://88732368986241", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 212.04,

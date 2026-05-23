@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong017",
-    Title = "Allison - Girl Like Me 2 Music Video",
+    Title = "017 - Allison_-_Girl_Like_Me_2_Music_Video [jd4sOzvMPxU]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://124141495592252", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 183.14,

@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong033",
-    Title = "Firecracker and Deep - Up Where We Belong",
+    Title = "033 - Firecracker_and_Deep_-_Up_Where_We_Belong [jeR8Fsu-M30]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://124277336634227", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 272.61,

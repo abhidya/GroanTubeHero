@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong014",
     Title = "Huntrix s What It Sounds Like Song - K-Pop Demon Hunters Clip 2025",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://124141495592252", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 354.38,

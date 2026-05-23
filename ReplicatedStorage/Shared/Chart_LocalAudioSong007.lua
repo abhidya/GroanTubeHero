@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong007",
     Title = "Instupendo - Comfort Chain",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://106332886612699", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 184.96,

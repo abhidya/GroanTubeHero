@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong018",
-    Title = "Sneak Out Music Video",
+    Title = "018 - Sneak_Out_Music_Video [RQiCSYyvO30]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://110643356044045", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 151.57,

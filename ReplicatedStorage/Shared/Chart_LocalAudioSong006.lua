@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong006",
     Title = "MONTAGEM HIKARI",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://125477950442630", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 89.99,

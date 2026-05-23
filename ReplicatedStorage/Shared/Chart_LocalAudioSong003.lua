@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong003",
     Title = "Scatman ski-ba-bop-ba-dop-bop Official Video HD - Scatman John",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://125477950442630", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://110816296946347", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 210.88,

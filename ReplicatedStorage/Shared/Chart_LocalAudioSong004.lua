@@ -6,7 +6,7 @@ return {
     Id = "LocalAudioSong004",
     Title = "HALCALI SUMMER Official Music Video",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://134823949062877", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 239.55,

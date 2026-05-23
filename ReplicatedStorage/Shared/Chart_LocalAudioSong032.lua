@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong032",
-    Title = "Legends Never Die Tribute to Timeless Icons",
+    Title = "032 - Legends_Never_Die_Tribute_to_Timeless_Icons [KKCGMRHn3gQ]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://125477950442630", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 79.03,

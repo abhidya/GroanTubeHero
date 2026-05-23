@@ -4,9 +4,9 @@ end
 
 return {
     Id = "LocalAudioSong039",
-    Title = "Smtve - You re the Poison I Keep Choosing Still Official Song",
+    Title = "039 - Smtve_-_You_re_the_Poison_I_Keep_Choosing_Still_Official_Song [gGcpYIhlHAA]",
     Artist = "Original / Rights-Cleared Local Audio",
-    AudioId = "rbxassetid://0", -- Roblox audio asset you own/have rights to use
+    AudioId = "rbxassetid://94864877299221", -- Roblox audio asset you own/have rights to use
     BPM = 120,
     Offset = 0,
     Duration = 183.51,
