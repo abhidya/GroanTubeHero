@@ -239,6 +239,10 @@ local function wireRemotes(context)
     context.Remotes.EquipItem.OnServerEvent:Connect(function(player, payload)
         context.Services.StoreService:EquipItem(player, payload and payload.category, payload and payload.itemId)
     end)
+
+    context.Remotes.ReviveSong.OnServerEvent:Connect(function(player)
+        context.Services.SongSessionService:ReviveSong(player)
+    end)
 end
 
 local function makeClientReadmeString()

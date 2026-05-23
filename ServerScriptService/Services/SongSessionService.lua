@@ -67,8 +67,12 @@ function SongSessionService:_attachNotes(song)
 end
 
 function SongSessionService:_createSession(player, payload)
-    local song = SongCatalog.Get(payload.songId or Config.DefaultSongId)
+    local requestedSongId = payload.songId or Config.DefaultSongId
     local profile = self.context.Services.DataService:GetProfile(player)
+    if tostring(requestedSongId):match("^DownloadSong") and profile and not profile.VIP and not (profile.SongUnlocks and profile.SongUnlocks.Downloads) then
+        requestedSongId = Config.DefaultSongId
+    end
+    local song = SongCatalog.Get(requestedSongId)
     local sessionId = self:_buildSessionId(player, song.Id)
     local notesById, noteOrder = self:_attachNotes(song)
     local mode = payload.mode or Config.Modes.Career
@@ -92,6 +96,7 @@ function SongSessionService:_createSession(player, payload)
         judgedNotes = 0,
         modifiers = {},
         lastActionAt = now(),
+        reviveAvailable = profile and profile.VIP == true,
     }
 
     session.GetSongTime = function()
@@ -211,6 +216,9 @@ function SongSessionService:NoteHit(player, payload)
         combo = summaryState.combo,
         multiplier = summaryState.multiplier,
         hype = summaryState.hype,
+        hp = summaryState.hp,
+        downed = summaryState.downed,
+        lastDamage = summaryState.lastDamage,
         power = summaryState.power,
         visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
     })
@@ -221,12 +229,37 @@ function SongSessionService:NoteHit(player, payload)
         maxCombo = summaryState.maxCombo,
         multiplier = summaryState.multiplier,
         hype = summaryState.hype,
+        hp = summaryState.hp,
+        downed = summaryState.downed,
+        lastDamage = summaryState.lastDamage,
         power = summaryState.power,
         grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(summaryState)),
         hypeTier = Scoring.GetHypeTier(summaryState.hype),
     })
 
+    if summaryState.downed then
+        self:FinishSession(player)
+    end
+
     return true, judgement
+end
+
+function SongSessionService:ReviveSong(player)
+    local session = self:GetSession(player)
+    if not session or not session.songId then
+        return false, "NoSession"
+    end
+    local profile = self.context.Services.DataService:GetProfile(player)
+    if not profile then
+        return false, "NoProfile"
+    end
+    if not (profile.VIP or (profile.Tickets or 0) > 0) then
+        return false, "NeedTicketOrVIP"
+    end
+    if not profile.VIP then
+        self.context.Services.DataService:SpendCurrency(player, "Tickets", 1)
+    end
+    return self:StartSong(player, { songId = session.songId, mode = session.mode, venueId = session.venueId })
 end
 
 function SongSessionService:UseBuff(player, payload)
@@ -290,8 +323,9 @@ function SongSessionService:Update(dt)
                     if not note.hit and now() - session.startServerTime > note.time + Config.Judgement.AcceptWindow then
                         note.hit = true
                         session.judgedNotes = session.judgedNotes + 1
-                        session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", self.context.Services.DataService:GetProfile(session.player))
-                        self.context.Services.HypeService:ApplyMiss(session, self.context.Services.DataService:GetProfile(session.player))
+                        local profile = self.context.Services.DataService:GetProfile(session.player)
+                        session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", profile)
+                        self.context.Services.HypeService:ApplyMiss(session, profile)
                         self.context.Remotes.NoteJudged:FireClient(session.player, {
                             sessionId = session.id,
                             noteId = note.id,
@@ -302,6 +336,9 @@ function SongSessionService:Update(dt)
                             combo = session.stateData.combo,
                             multiplier = session.stateData.multiplier,
                             hype = session.stateData.hype,
+                            hp = session.stateData.hp,
+                            downed = session.stateData.downed,
+                            lastDamage = session.stateData.lastDamage,
                             power = session.stateData.power,
                             visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
                         })
@@ -311,10 +348,17 @@ function SongSessionService:Update(dt)
                             maxCombo = session.stateData.maxCombo,
                             multiplier = session.stateData.multiplier,
                             hype = session.stateData.hype,
+                            hp = session.stateData.hp,
+                            downed = session.stateData.downed,
+                            lastDamage = session.stateData.lastDamage,
                             power = session.stateData.power,
                             grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(session.stateData)),
                             hypeTier = Scoring.GetHypeTier(session.stateData.hype),
                         })
+                        if session.stateData.downed then
+                            self:FinishSession(session.player)
+                            break
+                        end
                     end
                 end
             end

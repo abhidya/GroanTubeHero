@@ -17,6 +17,56 @@ local Config = require(ReplicatedStorage.Shared.Config)
 
 local laneButtons = {}
 local buttonGui
+local controls
+local savedWalkSpeed
+local savedJumpPower
+local movementLocked = false
+
+pcall(function()
+    controls = require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
+end)
+
+local function setCharacterFrozen(frozen)
+    local character = player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then
+        return
+    end
+    if frozen then
+        savedWalkSpeed = savedWalkSpeed or humanoid.WalkSpeed
+        savedJumpPower = savedJumpPower or humanoid.JumpPower
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+    else
+        humanoid.WalkSpeed = savedWalkSpeed or 16
+        humanoid.JumpPower = savedJumpPower or 50
+        savedWalkSpeed = nil
+        savedJumpPower = nil
+    end
+end
+
+local function setMovementLocked(locked)
+    if movementLocked == locked then
+        return
+    end
+    movementLocked = locked
+    if controls then
+        if locked then
+            controls:Disable()
+        else
+            controls:Enable()
+        end
+    end
+    setCharacterFrozen(locked)
+end
+
+player.CharacterAdded:Connect(function()
+    task.defer(function()
+        if movementLocked then
+            setCharacterFrozen(true)
+        end
+    end)
+end)
 
 local function fireLane(lane, source)
     channel:Fire({
@@ -26,12 +76,17 @@ local function fireLane(lane, source)
     })
 end
 
+local function isSongActive()
+    local rhythmClient = playerGui:FindFirstChild("RhythmGui")
+    return rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("SongActive") == true
+end
+
 local function bindLane(name, lane)
     ContextActionService:BindAction(name, function(_, state)
         if state == Enum.UserInputState.Begin then
             fireLane(lane, "Keyboard")
         end
-        return Enum.ContextActionResult.Sink
+        return isSongActive() and Enum.ContextActionResult.Sink or Enum.ContextActionResult.Pass
     end, false, Enum.KeyCode[Config.Lanes[lane].key])
 end
 
@@ -53,7 +108,7 @@ local function createMobileButtons()
     for lane = 1, 4 do
         local button = Instance.new("TextButton")
         button.Name = "Lane" .. lane
-        button.Text = Config.Lanes[lane].key
+        button.Text = Config.Lanes[lane].symbol or Config.Lanes[lane].key
         button.Size = UDim2.new(0.22, 0, 0.12, 0)
         button.Position = UDim2.new(0.05 + ((lane - 1) * 0.23), 0, baseY, 0)
         button.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
@@ -96,5 +151,13 @@ channel.Event:Connect(function(payload, legacySource)
         if binder and binder:IsA("BindableEvent") then
             binder:Fire(payload)
         end
+    end
+end)
+
+
+task.spawn(function()
+    while true do
+        setMovementLocked(isSongActive())
+        task.wait(0.2)
     end
 end)

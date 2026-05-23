@@ -28,8 +28,8 @@ local gui=ensureScreenGui("StoreGui")
 gui.Enabled=true
 gui:ClearAllChildren()
 
-local openButton=button(gui,"Store / Upgrades",UDim2.new(0,190,0,46),UDim2.new(1,-210,1,-64),Color3.fromRGB(170,95,255))
-local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.5,0);panel.Size=UDim2.new(0,820,0,540);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
+local openButton=button(gui,"Store",UDim2.new(0,120,0,42),UDim2.new(1,-138,1,-58),Color3.fromRGB(170,95,255))
+local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.52,0);panel.Size=UDim2.new(0,760,0,500);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.BackgroundTransparency=.10;panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
 local title=label(panel,"Store & Upgrades",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
 local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
@@ -37,8 +37,8 @@ local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFra
 local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-224,1,-116);list.Position=UDim2.new(0,204,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Parent=panel
 
 local currentTab="Upgrades"
-local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={}}
-local tabs={"Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Tour Bus"}
+local snapshot={Coins=0,Fans=0,Tickets=0,VIP=false,SongUnlocks={},OwnedCosmetics={},Equipped={},Upgrades={}}
+local tabs={"VIP","Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Tour Bus"}
 local items={
     ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"NeonGroan","Deep Sewer Tube","A glowing drainpipe wail.",120,"Fans","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"},{"RomanticTubeDisaster","Romantic Disaster Tube","Melodrama, but tube-shaped.",140,"Fans","TubeSounds"}},
     ["Stage Effects"]={{"DefaultGlow","Default Glow","Plain but dependable.",0,"Coins","StageEffects"},{"PurpleRift","Confetti Burst","A neon pop on big hits.",160,"Fans","StageEffects"},{"ChromeSpark","Smoke Machine Fail","Mostly smoke. Some regret.",180,"Coins","StageEffects"}},
@@ -76,10 +76,13 @@ local function card(y,titleText,desc,cost,currency,badge,onBuy,onEquip,buyText,e
 end
 
 local function render()
-    wallet.Text=string.format("Coins %d • Fans %d • Tickets %d",snapshot.Coins or 0,snapshot.Fans or 0,snapshot.Tickets or 0)
+    wallet.Text=string.format("Coins %d • Fans %d • Tickets %d • VIP %s",snapshot.Coins or 0,snapshot.Fans or 0,snapshot.Tickets or 0,snapshot.VIP and "ON" or "OFF")
     title.Text="Store & Upgrades — "..currentTab
     clearList()
-    if currentTab=="Upgrades" then
+    if currentTab=="VIP" then
+        card(0,"VIP Pass","Benefits: unlocks every downloaded MP3 song, free revives, 25% less HP damage, and starter buffs. This prototype button grants VIP for testing.",0,"Coins",snapshot.VIP and "Active" or "Unlock",function() remotes.PurchaseItem:FireServer({category="VIP",itemId="VIPPass"}) end,nil,snapshot.VIP and "Unlocked" or "Unlock VIP",nil,true)
+        list.CanvasSize=UDim2.new(0,0,0,160)
+    elseif currentTab=="Upgrades" then
         for i,u in ipairs(upgrades) do
             local id,name,desc,cost,tag=table.unpack(u)
             local lvl=(snapshot.Upgrades and snapshot.Upgrades[id]) or 0

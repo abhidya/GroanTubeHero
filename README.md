@@ -42,3 +42,9 @@ python3 tools/generate_chart_from_audio.py ~/Downloads/my-original-song.mp3 \
 ```
 
 The generator uses a small hardcoded deterministic lane key (`GROAN_TUBE_EASY_KEY_V1`) so the same audio/timestamps produce stable D/F/J/K lane assignments.
+
+## Downloaded song import and audio pipeline
+
+`downloads/mp3/*.mp3` has been processed into `ReplicatedStorage/Shared/Chart_DownloadSong###.lua` modules and registered in `SongCatalog.lua`. Each generated chart keeps a `LocalAudioPath` for traceability and an `AudioId = "rbxassetid://0"` placeholder. Roblox clients cannot stream local MP3 files directly; after you upload rights-cleared audio to Roblox, put the uploaded `rbxassetid://...` on the chart and `RhythmClient` will pipe it through `SongAudioPipe` in sync with the server song start time.
+
+VIP unlocks downloaded-folder songs in-game, gives free revives, and reduces HP damage.

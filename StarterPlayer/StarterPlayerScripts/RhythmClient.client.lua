@@ -129,7 +129,12 @@ corner(highway, 18)
 stroke(highway, Color3.fromRGB(120, 210, 255), 3)
 
 local laneX = {0.125, 0.375, 0.625, 0.875}
-local laneKeys = {"D", "F", "J", "K"}
+local laneKeys = {
+    Config.Lanes[1].symbol or Config.Lanes[1].key,
+    Config.Lanes[2].symbol or Config.Lanes[2].key,
+    Config.Lanes[3].symbol or Config.Lanes[3].key,
+    Config.Lanes[4].symbol or Config.Lanes[4].key,
+}
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -167,7 +172,7 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local bottomHint = makeLabel(root, "BottomHint", "Hit <-  ->  ^  V  •  Movement locks while songs play  •  Survive with HP!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -202,23 +207,31 @@ end
 
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
-songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
-songSelect.Position = UDim2.new(0.5, 0, 0.5, 0)
-songSelect.Size = UDim2.new(0, 820, 0, 520)
+songSelect.AnchorPoint = Vector2.new(1, 0.5)
+songSelect.Position = UDim2.new(1, -18, 0.55, 0)
+songSelect.Size = UDim2.new(0, 520, 0, 560)
 songSelect.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
-songSelect.BackgroundTransparency = 0.02
+songSelect.BackgroundTransparency = 0.16
 songSelect.Visible = false
 songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
-makeLabel(songSelect, "Title", "Choose Your Cursed Groan", UDim2.new(1, -40, 0, 54), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-makeLabel(songSelect, "Subtitle", "Pick a placeholder song. All tracks run visually even if audio is missing.", UDim2.new(1, -40, 0, 32), UDim2.new(0, 20, 0, 70), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
-local songList = Instance.new("Frame")
+makeLabel(songSelect, "Title", "Song List", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+makeLabel(songSelect, "Subtitle", "VIP unlocks all downloaded tracks. Upload owned audio IDs to hear them in Roblox.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+local songList = Instance.new("ScrollingFrame")
 songList.Name = "SongCards"
 songList.BackgroundTransparency = 1
-songList.Size = UDim2.new(1, -40, 1, -120)
-songList.Position = UDim2.new(0, 20, 0, 108)
+songList.Size = UDim2.new(1, -40, 1, -116)
+songList.Position = UDim2.new(0, 20, 0, 104)
+songList.ScrollBarThickness = 8
+songList.CanvasSize = UDim2.new(0, 0, 0, 0)
+songList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 songList.Parent = songSelect
+local songGrid = Instance.new("UIGridLayout")
+songGrid.CellSize = UDim2.new(0, 220, 0, 210)
+songGrid.CellPadding = UDim2.new(0, 12, 0, 12)
+songGrid.SortOrder = Enum.SortOrder.LayoutOrder
+songGrid.Parent = songList
 
 local results = Instance.new("Frame")
 results.Name = "ResultsFrame"
@@ -234,7 +247,9 @@ stroke(results, Color3.fromRGB(255, 230, 120), 3)
 local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -120), UDim2.new(0, 20, 0, 20), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
 local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
-local upgradeButton = makeButton(results, "UpgradeButton", "Open Upgrades", UDim2.new(0, 190, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
+local upgradeButton = makeButton(results, "UpgradeButton", "Open Upgrades", UDim2.new(0, 160, 0, 48), UDim2.new(0, 330, 1, -70), Color3.fromRGB(255, 175, 70))
+local reviveButton = makeButton(results, "ReviveButton", "Revive", UDim2.new(0, 100, 0, 48), UDim2.new(0, 500, 1, -70), Color3.fromRGB(255, 95, 120))
+reviveButton.Visible = false
 
 local state = {
     active = false,
@@ -250,8 +265,37 @@ local state = {
     score = 0,
     combo = 0,
     hype = 0,
+    hp = 100,
+    downed = false,
     grade = "-",
 }
+
+local songSound = Instance.new("Sound")
+songSound.Name = "SongAudioPipe"
+songSound.Volume = 0.65
+songSound.Looped = false
+songSound.Parent = screenGui
+
+local function stopSongAudio()
+    songSound:Stop()
+    songSound.SoundId = ""
+end
+
+local function playSongAudio(song)
+    stopSongAudio()
+    local audioId = song and song.AudioId
+    if type(audioId) ~= "string" or audioId == "" or audioId == "rbxassetid://0" then
+        return
+    end
+    songSound.SoundId = audioId
+    local delaySeconds = math.max(0, (state.startServerTime or serverNow()) - serverNow())
+    task.delay(delaySeconds, function()
+        if state.active and state.song == song and songSound.SoundId == audioId then
+            songSound.TimePosition = math.max(0, serverNow() - (state.startServerTime or serverNow()))
+            songSound:Play()
+        end
+    end)
+end
 
 local function openStore(tab)
     local storeGui = playerGui:FindFirstChild("StoreGui")
@@ -296,9 +340,14 @@ local function updateHud(payload)
     state.score = payload.score or state.score
     state.combo = payload.combo or state.combo
     state.hype = payload.hype or state.hype
+    state.hp = payload.hp or state.hp
+    state.downed = payload.downed or false
     state.grade = payload.grade or state.grade
     scoreInfo.Text = string.format("Score %d\nCombo %d  Grade %s", state.score, state.combo, state.grade)
-    hypeInfo.Text = string.format("Hype %d\n%s", state.hype, payload.hypeTier or "Build the crowd")
+    hypeInfo.Text = string.format("HP %d  Hype %d\n%s", state.hp, state.hype, payload.hypeTier or "Build the crowd")
+    if payload.lastDamage and payload.lastDamage > 0 then
+        showJudgement("-" .. tostring(payload.lastDamage) .. " HP", Color3.fromRGB(255, 95, 120))
+    end
 end
 
 local function clearNotes()
@@ -329,6 +378,7 @@ local songMeta = {
 }
 
 local pendingStartToken = 0
+local playerSnapshot = { VIP = false, SongUnlocks = {} }
 local openSongSelect
 
 local function startSong(songId)
@@ -349,23 +399,32 @@ local function startSong(songId)
 end
 
 local function buildSongCards()
-    songList:ClearAllChildren()
+    for _, child in ipairs(songList:GetChildren()) do
+        if child:IsA("GuiObject") then
+            child:Destroy()
+        end
+    end
     for index, song in ipairs(SongCatalog.List()) do
-        local meta = songMeta[song.Id] or { difficulty = "Normal", description = "Placeholder groan chart.", reward = "Rewards after song" }
+        local meta = songMeta[song.Id] or { difficulty = tostring(song.Id):match("^DownloadSong") and "Imported" or "Normal", description = song.LocalAudioPath and "Generated from downloads/mp3." or "Placeholder groan chart.", reward = "Rewards after song" }
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
-        card.Size = UDim2.new(0.31, 0, 0.92, 0)
-        card.Position = UDim2.new((index - 1) * 0.345, 0, 0.03, 0)
+        card.LayoutOrder = index
+        card.Size = UDim2.new(0, 220, 0, 210)
         card.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
         card.Parent = songList
         corner(card, 18)
-        stroke(card, laneColors[index] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 34), UDim2.new(0, 10, 0, 72), laneColors[index] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Desc", meta.description .. "\n\nBest Grade: --\nBest Score: --\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 170), UDim2.new(0, 10, 0, 114), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
-        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 48), UDim2.new(0, 17, 1, -64), laneColors[index] or Color3.fromRGB(55, 145, 255))
+        stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
+        makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 46), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 60), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Desc", meta.description .. "\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 72), UDim2.new(0, 10, 0, 92), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
+        local locked = tostring(song.Id):match("^DownloadSong") and not (playerSnapshot.VIP or (playerSnapshot.SongUnlocks and playerSnapshot.SongUnlocks.Downloads))
+        local start = makeButton(card, "StartButton", locked and "VIP Unlock" or "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), locked and Color3.fromRGB(255, 175, 70) or (laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255)))
         start.Activated:Connect(function()
-            startSong(song.Id)
+            if locked then
+                openStore("VIP")
+            else
+                startSong(song.Id)
+            end
         end)
     end
 end
@@ -395,6 +454,10 @@ end)
 chooseButton.Activated:Connect(openSongSelect)
 upgradeButton.Activated:Connect(function()
     openStore("Upgrades")
+end)
+reviveButton.Activated:Connect(function()
+    results.Visible = false
+    remotes.ReviveSong:FireServer()
 end)
 
 inputBus.Event:Connect(function(payload)
@@ -452,6 +515,8 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     state.score = 0
     state.combo = 0
     state.hype = 0
+    state.hp = 100
+    state.downed = false
     state.grade = "-"
     state.lastSongId = payload.song.Id
     songSelect.Visible = false
@@ -462,7 +527,9 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
         createNote(note)
     end
     songInfo.Text = string.format("%s\n%s • %s", payload.song.Title, songMeta[payload.song.Id] and songMeta[payload.song.Id].difficulty or "Normal", payload.venueId or "School Stage")
-    updateHud({ score = 0, combo = 0, hype = 0, grade = "-", hypeTier = "Dead Room" })
+    screenGui:SetAttribute("SongActive", true)
+    updateHud({ score = 0, combo = 0, hype = 0, hp = 100, grade = "-", hypeTier = "Dead Room" })
+    playSongAudio(payload.song)
 end)
 
 remotes.NoteJudged.OnClientEvent:Connect(function(payload)
@@ -493,19 +560,27 @@ remotes.NoteJudged.OnClientEvent:Connect(function(payload)
 end)
 
 remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
+remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
+    if snapshot then
+        playerSnapshot = snapshot
+    end
+end)
 
 remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
+    screenGui:SetAttribute("SongActive", false)
+    stopSongAudio()
     noteLegend.Visible = true
     clearNotes()
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}
     local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
     resultsText.Text = string.format(
-        "%s\nGrade %s%s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\nNext: Buy Timing, Hype Gain, or Coin Bonus upgrades!",
+        "%s\nGrade %s%s   HP %d\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
         payload.song and payload.song.Title or "Song Complete",
         summary.grade or "-",
         newBest and "  NEW BEST!" or "",
+        summary.hp or 0,
         summary.score or 0,
         summary.accuracyPercent or 0,
         summary.perfect or 0,
@@ -516,10 +591,12 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         rewards.Fans or 0,
         rewards.Coins or 0,
         rewards.XP or 0,
-        rewards.Tickets or 0
+        rewards.Tickets or 0,
+        summary.downed and "HP hit 0. Revive with 1 Ticket, or VIP revives free and takes less damage." or "Next: Buy Timing, Hype Gain, Recovery, or Coin Bonus upgrades!"
     )
+    reviveButton.Visible = summary.downed == true
     results.Visible = true
-    songInfo.Text = "Song complete\nReplay, choose another song, or upgrade."
+    songInfo.Text = summary.downed and "Song failed — HP reached 0\nRevive, retry, or upgrade." or "Song complete\nReplay, choose another song, or upgrade."
 end)
 
 RunService.PreRender:Connect(function()
@@ -545,9 +622,4 @@ RunService.PreRender:Connect(function()
     end
 end)
 
--- Give new players a clear first action even before they walk to the prompt.
-task.delay(1.0, function()
-    if screenGui and not state.active then
-        openSongSelect()
-    end
-end)
+-- Song select now opens from the stage prompt or Choose Song button so it does not block the game/store view on spawn.

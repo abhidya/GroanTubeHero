@@ -9,10 +9,10 @@ Config.Modes = {
 }
 
 Config.Lanes = {
-    { index = 1, key = "Left", symbol = "←", name = "Left" },
-    { index = 2, key = "Down", symbol = "↓", name = "Down" },
-    { index = 3, key = "Up", symbol = "↑", name = "Up" },
-    { index = 4, key = "Right", symbol = "→", name = "Right" },
+    { index = 1, key = "Left", symbol = "<-", name = "Left" },
+    { index = 2, key = "Right", symbol = "->", name = "Right" },
+    { index = 3, key = "Up", symbol = "^", name = "Up" },
+    { index = 4, key = "Down", symbol = "V", name = "Down" },
 }
 
 Config.Judgement = {
