@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -130,7 +131,12 @@ corner(highway, 18)
 stroke(highway, Color3.fromRGB(120, 210, 255), 3)
 
 local laneX = {0.125, 0.375, 0.625, 0.875}
-local laneKeys = { "D", "F", "J", "K" }
+local laneKeys = {
+    Config.Lanes[1].symbol or Config.Lanes[1].key,
+    Config.Lanes[2].symbol or Config.Lanes[2].key,
+    Config.Lanes[3].symbol or Config.Lanes[3].key,
+    Config.Lanes[4].symbol or Config.Lanes[4].key,
+}
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -168,7 +174,7 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local bottomHint = makeLabel(root, "BottomHint", "Hit ←  →  ↑  ↓  •  Arrow keys are captured during songs  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -200,6 +206,16 @@ for lane = 1, 4 do
     local text = makeLabel(chip, "Text", string.format("%s  =  %s", laneKeys[lane], legendNames[lane]), UDim2.new(1, -32, 1, 0), UDim2.new(0, 32, 0, 0), Color3.fromRGB(235, 245, 255), Enum.Font.GothamBold)
     text.TextXAlignment = Enum.TextXAlignment.Left
 end
+
+local function setPerformanceUiVisible(visible)
+    topBar.Visible = visible
+    highway.Visible = visible
+    bottomHint.Visible = visible
+    noteLegend.Visible = visible
+    judgement.Visible = visible
+end
+
+setPerformanceUiVisible(false)
 
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
@@ -271,7 +287,7 @@ local songSound = Instance.new("Sound")
 songSound.Name = "SongAudioPipe"
 songSound.Volume = 0.65
 songSound.Looped = false
-songSound.Parent = screenGui
+songSound.Parent = SoundService
 
 local function stopSongAudio()
     songSound:Stop()
@@ -282,6 +298,7 @@ local function playSongAudio(song)
     stopSongAudio()
     local audioId = song and song.AudioId
     if type(audioId) ~= "string" or audioId == "" or audioId == "rbxassetid://0" then
+        songInfo.Text = songInfo.Text .. "\nVisual chart mode — no uploaded audio asset."
         return
     end
     songSound.SoundId = audioId
@@ -427,6 +444,7 @@ function openSongSelect()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
+    setPerformanceUiVisible(false)
     songInfo.Text = "Choose a song\nStart with Neon Groan if new."
 end
 
@@ -510,7 +528,7 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     pendingStartToken = pendingStartToken + 1
     state.active = true
     hudChooseButton.Visible = false
-    noteLegend.Visible = false
+    setPerformanceUiVisible(true)
     state.sessionId = payload.sessionId
     state.song = payload.song
     state.startServerTime = payload.startServerTime or serverNow()
@@ -575,7 +593,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
     hudChooseButton.Visible = true
     screenGui:SetAttribute("SongActive", false)
     stopSongAudio()
-    noteLegend.Visible = true
+    setPerformanceUiVisible(false)
     clearNotes()
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}
