@@ -1,0 +1,1 @@
+LocalScripts in this folder build the store UI at runtime.

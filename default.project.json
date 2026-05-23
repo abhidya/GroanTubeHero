@@ -1,0 +1,30 @@
+{
+  "name": "Groan Tube Hero",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Remotes": {
+        "$path": "ReplicatedStorage/Remotes"
+      },
+      "Shared": {
+        "$path": "ReplicatedStorage/Shared"
+      }
+    },
+    "ServerScriptService": {
+      "Services": {
+        "$path": "ServerScriptService/Services"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "StarterPlayer/StarterPlayerScripts"
+      }
+    },
+    "StarterGui": {
+      "$path": "StarterGui"
+    },
+    "Workspace": {
+      "$path": "Workspace"
+    }
+  }
+}

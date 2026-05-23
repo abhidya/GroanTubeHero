@@ -1,0 +1,1 @@
+LocalScripts in this folder build the upgrade UI at runtime.

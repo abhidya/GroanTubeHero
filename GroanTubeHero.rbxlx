@@ -1,0 +1,43 @@
+<roblox version="4">
+  <Item class="DataModel" referent="RBX0">
+    <Properties>
+      <string name="Name">Groan Tube Hero</string>
+    </Properties>
+    <Item class="ReplicatedStorage" referent="RBX1">
+      <Properties>
+        <string name="Name">ReplicatedStorage</string>
+      </Properties>
+    </Item>
+    <Item class="ServerScriptService" referent="RBX2">
+      <Properties>
+        <string name="Name">ServerScriptService</string>
+      </Properties>
+      <Item class="Script" referent="RBX3">
+        <Properties>
+          <string name="Name">GroanTubeHeroBootstrap.server.lua</string>
+          <bool name="Disabled">false</bool>
+          <ProtectedString name="Source"><![CDATA[--!strict
+-- Groan Tube Hero Studio bootstrap stub.
+-- The full Rojo source lives beside this place file in the repository.
+print("Groan Tube Hero is loaded. Open the source tree for the full game systems.")
+]]></ProtectedString>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="StarterPlayer" referent="RBX4">
+      <Properties>
+        <string name="Name">StarterPlayer</string>
+      </Properties>
+    </Item>
+    <Item class="StarterGui" referent="RBX5">
+      <Properties>
+        <string name="Name">StarterGui</string>
+      </Properties>
+    </Item>
+    <Item class="Workspace" referent="RBX6">
+      <Properties>
+        <string name="Name">Workspace</string>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

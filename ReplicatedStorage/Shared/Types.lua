@@ -1,0 +1,23 @@
+--!strict
+-- Reference-only structure notes for the project.
+--
+-- Profile = {
+--   Version, Level, XP, Fans, Coins, Tickets, GroanTokens,
+--   BestScores = { Career = { [songId] = { bestScore, bestGrade, bestCombo } }, Pure = { ... } },
+--   OwnedCosmetics = { TubeSounds = {}, StageEffects = {}, AvatarPoses = {}, AudiencePacks = {}, StageThemes = {}, Buffs = {} },
+--   Equipped = { TubeSounds, StageEffects, AvatarPoses, AudiencePacks, StageThemes },
+--   Upgrades = { Timing, HypeGain, Recovery, Stagecraft, Chaos, Focus, CoinBonus, AudiencePower },
+--   Missions = { Daily = {}, Weekly = {}, Completed = {}, ResetStamp = number },
+--   TourBus = { BiggerSpeakers, SnackStand, PracticeSeat, MerchBox, RoadCrew, NeonWrap },
+-- }
+--
+-- Session = {
+--   id, playerId, songId, mode, venueId, battleGroupId,
+--   song, notesById, noteOrder, noteStates,
+--   startServerTime, countdownEndTime, endServerTime,
+--   combo, maxCombo, score, perfect, good, miss, multiplier,
+--   hype, power, accuracyPoints, state, judgedNotes,
+--   buffs, attacks, audience, rewardFlags
+-- }
+
+return {}
