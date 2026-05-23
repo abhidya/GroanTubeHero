@@ -12,10 +12,29 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
-local inputFolder = playerGui:WaitForChild("GroanTubeHeroInput")
-local laneInput = inputFolder:WaitForChild("LaneInput")
+local inputFolder = playerGui:FindFirstChild("GroanTubeHeroInput") or Instance.new("Folder")
+inputFolder.Name = "GroanTubeHeroInput"
+inputFolder.Parent = playerGui
 
-local screenGui = playerGui:FindFirstChild("RhythmGui") or Instance.new("ScreenGui")
+local laneInput = inputFolder:FindFirstChild("LaneInput") or Instance.new("BindableEvent")
+laneInput.Name = "LaneInput"
+laneInput.Parent = inputFolder
+
+local function ensureScreenGui(name)
+    local existing = playerGui:FindFirstChild(name)
+    if existing and not existing:IsA("ScreenGui") then
+        existing:Destroy()
+        existing = nil
+    end
+    local gui = existing or Instance.new("ScreenGui")
+    gui.Name = name
+    gui.IgnoreGuiInset = true
+    gui.ResetOnSpawn = false
+    gui.Parent = playerGui
+    return gui
+end
+
+local screenGui = ensureScreenGui("RhythmGui")
 screenGui.Name = "RhythmGui"
 screenGui.IgnoreGuiInset = true
 screenGui.ResetOnSpawn = false
@@ -438,6 +457,12 @@ closeButton.Activated:Connect(function()
 end)
 
 inputBus.Event:Connect(function(payload)
+    if type(payload) == "number" then
+        payload = { lane = payload, source = "Legacy" }
+    end
+    if type(payload) ~= "table" or not payload.lane then
+        return
+    end
     if not songState.active then
         return
     end

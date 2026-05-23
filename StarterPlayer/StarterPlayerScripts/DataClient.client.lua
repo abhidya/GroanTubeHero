@@ -6,7 +6,12 @@ local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local ClientState = require(ReplicatedStorage.Shared.ClientState)
 
-local screenGui = playerGui:FindFirstChild("ProfileGui") or Instance.new("ScreenGui")
+local existing = playerGui:FindFirstChild("ProfileGui")
+if existing and not existing:IsA("ScreenGui") then
+    existing:Destroy()
+    existing = nil
+end
+local screenGui = existing or Instance.new("ScreenGui")
 screenGui.Name = "ProfileGui"
 screenGui.IgnoreGuiInset = true
 screenGui.ResetOnSpawn = false

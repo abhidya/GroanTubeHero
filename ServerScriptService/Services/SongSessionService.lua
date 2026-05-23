@@ -289,8 +289,32 @@ function SongSessionService:Update(dt)
                 for _, note in ipairs(session.noteOrder) do
                     if not note.hit and now() - session.startServerTime > note.time + Config.Judgement.AcceptWindow then
                         note.hit = true
+                        session.judgedNotes = session.judgedNotes + 1
                         session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", self.context.Services.DataService:GetProfile(session.player))
                         self.context.Services.HypeService:ApplyMiss(session, self.context.Services.DataService:GetProfile(session.player))
+                        self.context.Remotes.NoteJudged:FireClient(session.player, {
+                            sessionId = session.id,
+                            noteId = note.id,
+                            lane = note.lane,
+                            judgement = "Miss",
+                            offset = Config.Judgement.AcceptWindow,
+                            score = session.stateData.score,
+                            combo = session.stateData.combo,
+                            multiplier = session.stateData.multiplier,
+                            hype = session.stateData.hype,
+                            power = session.stateData.power,
+                            visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
+                        })
+                        self.context.Remotes.ScoreUpdate:FireClient(session.player, {
+                            score = session.stateData.score,
+                            combo = session.stateData.combo,
+                            maxCombo = session.stateData.maxCombo,
+                            multiplier = session.stateData.multiplier,
+                            hype = session.stateData.hype,
+                            power = session.stateData.power,
+                            grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(session.stateData)),
+                            hypeTier = Scoring.GetHypeTier(session.stateData.hype),
+                        })
                     end
                 end
             end

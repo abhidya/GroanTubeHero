@@ -5,7 +5,12 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
-local screenGui = playerGui:FindFirstChild("StoreGui") or Instance.new("ScreenGui")
+local existing = playerGui:FindFirstChild("StoreGui")
+if existing and not existing:IsA("ScreenGui") then
+    existing:Destroy()
+    existing = nil
+end
+local screenGui = existing or Instance.new("ScreenGui")
 screenGui.Name = "StoreGui"
 screenGui.IgnoreGuiInset = true
 screenGui.ResetOnSpawn = false

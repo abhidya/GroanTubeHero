@@ -19,7 +19,11 @@ local laneButtons = {}
 local buttonGui
 
 local function fireLane(lane, source)
-    channel:Fire(lane, source)
+    channel:Fire({
+        lane = lane,
+        source = source,
+        time = workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock(),
+    })
 end
 
 local function bindLane(name, lane)
@@ -74,14 +78,20 @@ ReplicatedStorage:GetAttributeChangedSignal("GroanTubeHeroReady"):Connect(functi
     end
 end)
 
-channel.Event:Connect(function(lane, source)
-    local rhythmClient = playerGui:FindFirstChild("RhythmGui")
-    if rhythmClient and rhythmClient:GetAttribute("AcceptInput") == true then
-        local payload = {
-            lane = lane,
-            source = source,
+channel.Event:Connect(function(payload, legacySource)
+    if type(payload) == "number" then
+        payload = {
+            lane = payload,
+            source = legacySource or "Legacy",
             time = workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock(),
         }
+    end
+    if type(payload) ~= "table" or not payload.lane then
+        return
+    end
+
+    local rhythmClient = playerGui:FindFirstChild("RhythmGui")
+    if rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("AcceptInput") == true then
         local binder = rhythmClient:FindFirstChild("InputBus")
         if binder and binder:IsA("BindableEvent") then
             binder:Fire(payload)
