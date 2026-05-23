@@ -175,7 +175,7 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit ←  →  ↑  ↓  •  Arrow keys are captured during songs  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Keep Stability alive  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -222,26 +222,63 @@ local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
 songSelect.AnchorPoint = Vector2.new(1, 0.5)
 songSelect.Position = UDim2.new(1, -18, 0.55, 0)
-songSelect.Size = UDim2.new(0, 520, 0, 560)
+songSelect.Size = UDim2.new(0, 620, 0, 650)
 songSelect.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
 songSelect.BackgroundTransparency = 0.16
 songSelect.Visible = false
 songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
-makeLabel(songSelect, "Title", "Song List", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-makeLabel(songSelect, "Subtitle", "Pick a stage song. Visual charts work even without uploaded audio assets.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local test charts are separated and not public-release content.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+local selectedDifficulty = "Easy"
+local selectedSegment = "30s"
+local selectedSection = "Intro"
+local difficultyButtons = {}
+local segmentButtons = {}
+local function refreshOptionButtons()
+    for id, button in pairs(difficultyButtons) do
+        button.BackgroundColor3 = (id == selectedDifficulty) and Color3.fromRGB(255, 185, 70) or Color3.fromRGB(45, 55, 85)
+    end
+    for id, button in pairs(segmentButtons) do
+        button.BackgroundColor3 = (id == selectedSegment) and Color3.fromRGB(80, 210, 140) or Color3.fromRGB(45, 55, 85)
+    end
+end
+
+local optionPanel = Instance.new("Frame")
+optionPanel.Name = "DifficultySegmentPicker"
+optionPanel.Size = UDim2.new(1, -40, 0, 92)
+optionPanel.Position = UDim2.new(0, 20, 0, 104)
+optionPanel.BackgroundColor3 = Color3.fromRGB(18, 22, 42)
+optionPanel.Parent = songSelect
+corner(optionPanel, 14)
+stroke(optionPanel, Color3.fromRGB(120, 220, 255), 1)
+makeLabel(optionPanel, "DiffLabel", "Difficulty", UDim2.new(0, 120, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 160), Enum.Font.GothamBlack)
+for i, id in ipairs(Config.DifficultyOrder or { "Easy", "Hard", "Extreme", "Brainrot" }) do
+    local button = makeButton(optionPanel, "Difficulty" .. id, id, UDim2.new(0, 96, 0, 28), UDim2.new(0, 112 + (i - 1) * 104, 0, 8), Color3.fromRGB(45, 55, 85))
+    difficultyButtons[id] = button
+    button.Activated:Connect(function() selectedDifficulty = id; refreshOptionButtons() end)
+end
+makeLabel(optionPanel, "SegLabel", "Segment", UDim2.new(0, 120, 0, 28), UDim2.new(0, 10, 0, 52), Color3.fromRGB(255, 245, 160), Enum.Font.GothamBlack)
+local segmentLabels = { ["20s"] = "20s Quick", ["30s"] = "30s Standard", ["40s"] = "40s Long", ["full"] = "Full" }
+for i, id in ipairs(Config.SegmentOrder or { "20s", "30s", "40s", "full" }) do
+    local button = makeButton(optionPanel, "Segment" .. id, segmentLabels[id] or id, UDim2.new(0, 116, 0, 28), UDim2.new(0, 112 + (i - 1) * 124, 0, 52), Color3.fromRGB(45, 55, 85))
+    segmentButtons[id] = button
+    button.Activated:Connect(function() selectedSegment = id; refreshOptionButtons() end)
+end
+refreshOptionButtons()
+
 local songList = Instance.new("ScrollingFrame")
 songList.Name = "SongCards"
 songList.BackgroundTransparency = 1
-songList.Size = UDim2.new(1, -40, 1, -116)
-songList.Position = UDim2.new(0, 20, 0, 104)
+songList.Size = UDim2.new(1, -40, 1, -220)
+songList.Position = UDim2.new(0, 20, 0, 204)
 songList.ScrollBarThickness = 8
 songList.CanvasSize = UDim2.new(0, 0, 0, 0)
 songList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 songList.Parent = songSelect
 local songGrid = Instance.new("UIGridLayout")
-songGrid.CellSize = UDim2.new(0, 220, 0, 210)
+songGrid.CellSize = UDim2.new(0, 270, 0, 250)
 songGrid.CellPadding = UDim2.new(0, 12, 0, 12)
 songGrid.SortOrder = Enum.SortOrder.LayoutOrder
 songGrid.Parent = songList
@@ -282,6 +319,10 @@ local state = {
     hp = 100,
     downed = false,
     grade = "-",
+    lastDifficulty = "Easy",
+    lastSegment = "30s",
+    lastSegmentSection = "Intro",
+    highwayTravelSeconds = Config.SongFlow.HighwayTravelSeconds,
 }
 
 local songSound = Instance.new("Sound")
@@ -306,7 +347,7 @@ local function playSongAudio(song)
     local delaySeconds = math.max(0, (state.startServerTime or serverNow()) - serverNow())
     task.delay(delaySeconds, function()
         if state.active and state.song == song and songSound.SoundId == audioId then
-            songSound.TimePosition = math.max(0, serverNow() - (state.startServerTime or serverNow()))
+            songSound.TimePosition = math.max(0, (song.SegmentStart or 0) + serverNow() - (state.startServerTime or serverNow()))
             songSound:Play()
         end
     end)
@@ -359,9 +400,10 @@ local function updateHud(payload)
     state.downed = payload.downed or false
     state.grade = payload.grade or state.grade
     scoreInfo.Text = string.format("Score %d\nCombo %d  Grade %s", state.score, state.combo, state.grade)
-    hypeInfo.Text = string.format("HP %d  Hype %d\n%s", state.hp, state.hype, payload.hypeTier or "Build the crowd")
+    local status = state.hp <= 0 and "Disaster" or state.hp < 40 and "Shaky" or "Stable"
+    hypeInfo.Text = string.format("Stability %d%%  Hype %d\n%s • %s", state.hp, state.hype, status, payload.hypeTier or "Build the crowd")
     if payload.lastDamage and payload.lastDamage > 0 then
-        showJudgement("-" .. tostring(payload.lastDamage) .. " HP", Color3.fromRGB(255, 95, 120))
+        showJudgement("-" .. tostring(payload.lastDamage) .. " Stability", Color3.fromRGB(255, 95, 120))
     end
 end
 
@@ -388,19 +430,51 @@ end
 
 local songMeta = {}
 
+local glitchOverlay = Instance.new("Frame")
+glitchOverlay.Name = "MissGlitchOverlay"
+glitchOverlay.BackgroundColor3 = Color3.fromRGB(255, 40, 90)
+glitchOverlay.BackgroundTransparency = 1
+glitchOverlay.Size = UDim2.fromScale(1, 1)
+glitchOverlay.ZIndex = 50
+glitchOverlay.Parent = root
+
+local function playMissGlitch()
+    if not Config.MissGlitch or not Config.MissGlitch.enabled then return end
+    local oldVolume = songSound.Volume
+    songSound.Volume = math.max(0, oldVolume * (Config.MissGlitch.volumeDuck or 0.2))
+    glitchOverlay.BackgroundTransparency = 0.68
+    local original = highway.Position
+    highway.Position = original + UDim2.new(0, math.random(-10, 10), 0, math.random(-6, 6))
+    TweenService:Create(glitchOverlay, TweenInfo.new(Config.MissGlitch.duration or 0.25), { BackgroundTransparency = 1 }):Play()
+    task.delay(Config.MissGlitch.duration or 0.25, function()
+        if songSound then songSound.Volume = oldVolume end
+        if highway then highway.Position = original end
+    end)
+end
+
 local pendingStartToken = 0
 local playerSnapshot = {}
 local openSongSelect
 
 local function startSong(songId)
     state.lastSongId = songId
+    state.lastDifficulty = selectedDifficulty
+    state.lastSegment = selectedSegment
+    state.lastSegmentSection = selectedSection
     results.Visible = false
     songSelect.Visible = false
     pendingStartToken = pendingStartToken + 1
     local token = pendingStartToken
     songInfo.Text = "Starting song...\n" .. tostring(songId)
     showJudgement("Starting...", Color3.fromRGB(255, 245, 150))
-    remotes.StartSongRequest:FireServer({ songId = songId, mode = state.lastMode, venueId = state.lastVenueId })
+    remotes.StartSongRequest:FireServer({
+        songId = songId,
+        difficulty = selectedDifficulty,
+        segmentLength = selectedSegment,
+        segmentStart = selectedSection,
+        mode = state.lastMode,
+        venueId = state.lastVenueId,
+    })
     task.delay(4, function()
         if token == pendingStartToken and not state.active and not results.Visible then
             songInfo.Text = "Start did not complete\nPick a song again or use the stage mic."
@@ -415,19 +489,23 @@ local function buildSongCards()
             child:Destroy()
         end
     end
-    for index, song in ipairs(SongCatalog.List()) do
-        local meta = songMeta[song.Id] or { difficulty = "Normal", description = "Stage performance chart.", reward = "Rewards after song" }
+    local displaySongs = {}
+    for _, song in ipairs(SongCatalog.List(false)) do table.insert(displaySongs, song) end
+    for _, song in ipairs(SongCatalog.ListLocalTests and SongCatalog.ListLocalTests() or {}) do table.insert(displaySongs, song) end
+    for index, song in ipairs(displaySongs) do
+        local isLocalTest = song.CatalogGroup == "LocalTest" or song.LocalTestOnly
+        local meta = songMeta[song.Id] or { difficulty = isLocalTest and "Local Test Chart" or "Public Demo", description = isLocalTest and "Imported placeholder chart — not for public release." or "Original Groan Tube Hero stage chart.", reward = "Difficulty × Segment" }
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
         card.LayoutOrder = index
-        card.Size = UDim2.new(0, 220, 0, 210)
+        card.Size = UDim2.new(0, 270, 0, 250)
         card.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
         card.Parent = songList
         corner(card, 18)
         stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 46), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 60), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Desc", meta.description .. "\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 72), UDim2.new(0, 10, 0, 92), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
+        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. song.Title, UDim2.new(1, -20, 0, 62), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 76), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 96), UDim2.new(0, 10, 0, 108), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
         local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
         start.Activated:Connect(function()
             startSong(song.Id)
@@ -442,7 +520,8 @@ function openSongSelect()
     songSelect.Visible = true
     results.Visible = false
     setPerformanceUiVisible(false)
-    songInfo.Text = "Choose a song\nPick any uploaded song to start."
+    refreshOptionButtons()
+    songInfo.Text = "Choose a song\nPick difficulty and 20s/30s/40s/Full segment."
 end
 
 local function consumeOpenSongSelectAttribute()
@@ -546,6 +625,10 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     state.downed = false
     state.grade = "-"
     state.lastSongId = payload.song.Id
+    state.lastDifficulty = payload.difficulty or payload.song.Difficulty or selectedDifficulty
+    state.lastSegment = payload.segmentLength or payload.song.SegmentLength or selectedSegment
+    state.lastSegmentSection = payload.segmentSection or payload.song.SegmentSection or selectedSection
+    state.highwayTravelSeconds = Config.SongFlow.HighwayTravelSeconds / math.max(0.75, ((payload.difficultyConfig and payload.difficultyConfig.noteSpeed) or 1))
     songSelect.Visible = false
     results.Visible = false
     clearNotes()
@@ -553,7 +636,7 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
         note.hit = false
         createNote(note)
     end
-    songInfo.Text = string.format("%s\n%s • %s", payload.song.Title, songMeta[payload.song.Id] and songMeta[payload.song.Id].difficulty or "Normal", payload.venueId or "School Stage")
+    songInfo.Text = string.format("%s\n%s • %s • %s", payload.song.Title, state.lastDifficulty, state.lastSegment, payload.venueId or "School Stage")
     screenGui:SetAttribute("SongActive", true)
     updateHud({ score = 0, combo = 0, hype = 0, hp = 100, grade = "-", hypeTier = "Dead Room" })
     playSongAudio(payload.song)
@@ -584,6 +667,9 @@ remotes.NoteJudged.OnClientEvent:Connect(function(payload)
         color = Color3.fromRGB(120, 180, 255)
     end
     showJudgement(payload.judgement or "Miss", color)
+    if payload.judgement == "Miss" then
+        playMissGlitch()
+    end
 end)
 
 remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
@@ -604,8 +690,11 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
     local rewards = payload.rewards or {}
     local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
     resultsText.Text = string.format(
-        "%s\nGrade %s%s   HP %d\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
+        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
         payload.song and payload.song.Title or "Song Complete",
+        summary.difficulty or state.lastDifficulty or "Easy",
+        summary.segmentLabel or state.lastSegment or "30s",
+        summary.segmentSection or "Intro",
         summary.grade or "-",
         newBest and "  NEW BEST!" or "",
         summary.hp or 0,
@@ -616,6 +705,9 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         summary.miss or 0,
         summary.maxCombo or 0,
         summary.hype or 0,
+        rewards.DifficultyMultiplier or summary.difficultyMultiplier or 1,
+        rewards.SegmentMultiplier or summary.segmentMultiplier or 1,
+        rewards.VenueFee or 0,
         rewards.Fans or 0,
         rewards.Coins or 0,
         rewards.XP or 0,
@@ -642,7 +734,7 @@ RunService.PreRender:Connect(function()
     for _, note in ipairs(state.notes) do
         local frame = state.noteFrames[note.id]
         if frame then
-            local progress = 1 - ((note.time - songTime) / Config.SongFlow.HighwayTravelSeconds)
+            local progress = 1 - ((note.time - songTime) / (state.highwayTravelSeconds or Config.SongFlow.HighwayTravelSeconds))
             frame.Visible = progress >= -0.05 and progress <= 1.08
             frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, math.clamp(progress, 0, 1) * 0.78, 0)
         end

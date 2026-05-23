@@ -7,8 +7,9 @@ Config.LevelCurve = {
 
 Config.Difficulty = {
     Easy = { baseFans = 45, baseCoins = 35, baseXP = 60, baseTickets = 0, rewardScale = 1.0 },
-    Medium = { baseFans = 70, baseCoins = 55, baseXP = 85, baseTickets = 1, rewardScale = 1.2 },
-    Hard = { baseFans = 100, baseCoins = 75, baseXP = 120, baseTickets = 1, rewardScale = 1.45 },
+    Hard = { baseFans = 90, baseCoins = 70, baseXP = 110, baseTickets = 1, rewardScale = 1.5 },
+    Extreme = { baseFans = 135, baseCoins = 105, baseXP = 165, baseTickets = 1, rewardScale = 2.25 },
+    Brainrot = { baseFans = 190, baseCoins = 145, baseXP = 220, baseTickets = 2, rewardScale = 3.0 },
 }
 
 Config.VenueFees = {
@@ -34,13 +35,8 @@ function Config.GetXPForLevel(level)
     return math.floor(Config.LevelCurve.BaseXP * ((level - 1) ^ Config.LevelCurve.Growth))
 end
 
-function Config.GetDifficultyProfile(songId)
-    if songId == "NeonGroan" then
-        return Config.Difficulty.Easy
-    elseif songId == "RomanticTubeDisaster" then
-        return Config.Difficulty.Medium
-    end
-    return Config.Difficulty.Hard
+function Config.GetDifficultyProfile(difficulty)
+    return Config.Difficulty[difficulty] or Config.Difficulty.Easy
 end
 
 return Config

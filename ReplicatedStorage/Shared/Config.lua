@@ -1,7 +1,7 @@
 local Config = {}
 
 Config.GameName = "Groan Tube Hero"
-Config.DefaultSongId = "LocalAudioSong001"
+Config.DefaultSongId = "NeonGroan"
 Config.Modes = {
     Career = "Career",
     Pure = "Pure",
@@ -9,10 +9,34 @@ Config.Modes = {
 }
 
 Config.Lanes = {
-    { index = 1, key = "Left", symbol = "←", name = "Left" },
-    { index = 2, key = "Right", symbol = "→", name = "Right" },
-    { index = 3, key = "Up", symbol = "↑", name = "Up" },
-    { index = 4, key = "Down", symbol = "↓", name = "Down" },
+    { index = 1, key = "D", symbol = "D", name = "D" },
+    { index = 2, key = "F", symbol = "F", name = "F" },
+    { index = 3, key = "J", symbol = "J", name = "J" },
+    { index = 4, key = "K", symbol = "K", name = "K" },
+}
+
+Config.Difficulties = {
+    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1 },
+    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3 },
+    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6 },
+    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10 },
+}
+Config.DifficultyOrder = { "Easy", "Hard", "Extreme", "Brainrot" }
+
+Config.SegmentLengths = {
+    Quick = { id = "20s", label = "20 sec", duration = 20, rewardMultiplier = 0.6 },
+    Standard = { id = "30s", label = "30 sec", duration = 30, rewardMultiplier = 1.0 },
+    Long = { id = "40s", label = "40 sec", duration = 40, rewardMultiplier = 1.25 },
+    Full = { id = "full", label = "Full", duration = nil, rewardMultiplier = 2.0 },
+}
+Config.SegmentOrder = { "20s", "30s", "40s", "full" }
+
+Config.MissGlitch = {
+    enabled = true,
+    duration = 0.25,
+    volumeDuck = 0.2,
+    screenShake = true,
+    lightFlicker = true,
 }
 
 Config.Judgement = {

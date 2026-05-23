@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local SongCatalog = require(ReplicatedStorage.Shared.SongCatalog)
 local Scoring = require(ReplicatedStorage.Shared.Scoring)
+local ChartService = require(ReplicatedStorage.Shared.ChartService)
 
 local SongSessionService = {}
 SongSessionService.__index = SongSessionService
@@ -67,33 +68,52 @@ function SongSessionService:_attachNotes(song)
 end
 
 function SongSessionService:_createSession(player, payload)
+    payload = type(payload) == "table" and payload or {}
     local requestedSongId = payload.songId or Config.DefaultSongId
     local profile = self.context.Services.DataService:GetProfile(player)
-    local song = SongCatalog.Get(requestedSongId)
+    local baseSong = SongCatalog.Get(requestedSongId) or SongCatalog.GetDefaultSong()
+    assert(baseSong, "No playable songs are available")
+
+    local difficulty = Config.Difficulties[payload.difficulty] and payload.difficulty or "Easy"
+    local segmentLength = payload.segmentLength or "30s"
+    local segmentStart = payload.segmentStart or "Intro"
+    local song = ChartService.BuildPlayableChart(baseSong, difficulty, segmentLength, segmentStart)
+
     local sessionId = self:_buildSessionId(player, song.Id)
     local notesById, noteOrder = self:_attachNotes(song)
-    local mode = payload.mode or Config.Modes.Career
+    local mode = Config.Modes[payload.mode] and payload.mode or Config.Modes.Career
     local venueId = payload.venueId or "SchoolStage"
+    local currentTime = now()
 
     local session = {
         id = sessionId,
         playerId = player.UserId,
         player = player,
         songId = song.Id,
+        baseSongId = baseSong.Id,
         song = song,
+        baseSong = baseSong,
+        difficulty = difficulty,
+        difficultyConfig = ChartService.GetDifficultyConfig(difficulty),
+        segmentLength = song.SegmentLength,
+        segmentLabel = song.SegmentLabel,
+        segmentStart = song.SegmentStart,
+        segmentSection = song.SegmentSection,
         mode = mode,
         venueId = venueId,
         notesById = notesById,
         noteOrder = noteOrder,
-        startServerTime = now() + Config.SongFlow.CountdownSeconds,
-        countdownEndTime = now() + Config.SongFlow.CountdownSeconds,
-        endServerTime = now() + Config.SongFlow.CountdownSeconds + (song.Duration or 30),
+        startServerTime = currentTime + Config.SongFlow.CountdownSeconds,
+        countdownEndTime = currentTime + Config.SongFlow.CountdownSeconds,
+        endServerTime = currentTime + Config.SongFlow.CountdownSeconds + (song.Duration or 30),
         state = "Countdown",
         stateData = self.context.Services.ScoreService:CreateState(song, mode),
         judgedNotes = 0,
         modifiers = {},
-        lastActionAt = now(),
+        lastActionAt = currentTime,
     }
+    session.stateData.difficulty = difficulty
+    session.stateData.segmentLength = song.SegmentLength
 
     session.GetSongTime = function()
         return now() - session.startServerTime
@@ -132,6 +152,12 @@ function SongSessionService:StartSong(player, payload)
         endServerTime = session.endServerTime,
         visuals = session.visuals,
         profile = self.context.Services.DataService:GetSnapshot(player),
+        difficulty = session.difficulty,
+        difficultyConfig = session.difficultyConfig,
+        segmentLength = session.segmentLength,
+        segmentLabel = session.segmentLabel,
+        segmentStart = session.segmentStart,
+        segmentSection = session.segmentSection,
     })
     self.context.Services.HypeService:ApplyStartBonus(session, profile or {})
     if self.context.Services.AudienceService then
@@ -233,9 +259,7 @@ function SongSessionService:NoteHit(player, payload)
         hypeTier = Scoring.GetHypeTier(summaryState.hype),
     })
 
-    if summaryState.downed then
-        self:FinishSession(player)
-    end
+    -- Stability hitting 0 enters Disaster Mode in the demo; the player can still finish.
 
     return true, judgement
 end
@@ -333,10 +357,8 @@ function SongSessionService:Update(dt)
                             grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(session.stateData)),
                             hypeTier = Scoring.GetHypeTier(session.stateData.hype),
                         })
-                        if session.stateData.downed then
-                            self:FinishSession(session.player)
-                            break
-                        end
+                        -- Do not hard-stop at 0 Stability; finish the selected segment/song.
+
                     end
                 end
             end

@@ -11,14 +11,6 @@ function EconomyService:Init(runtimeContext)
     self.context = runtimeContext
 end
 
-local function getSongDifficulty(songId)
-    if songId == "NeonGroan" then
-        return "Easy"
-    elseif songId == "RomanticTubeDisaster" then
-        return "Medium"
-    end
-    return "Hard"
-end
 
 function EconomyService:LevelFromXP(xp)
     local level = 1
@@ -34,10 +26,11 @@ function EconomyService:FinalizeSong(player, session, summary)
         return nil
     end
 
-    local songProfile = EconomyConfig.GetDifficultyProfile(session.songId)
     local venue, modifiers = self.context.Services.VenueService:GetRewardModifiers(session.venueId)
-    local difficulty = getSongDifficulty(session.songId)
-    local base = EconomyConfig.Difficulty[difficulty]
+    local difficulty = session.difficulty or summary.difficulty or "Easy"
+    local base = EconomyConfig.GetDifficultyProfile(difficulty)
+    local difficultyMultiplier = (session.song and session.song.DifficultyMultiplier) or (session.difficultyConfig and session.difficultyConfig.rewardMultiplier) or 1
+    local segmentMultiplier = (session.song and session.song.SegmentMultiplier) or 1
 
     local gradeMultiplier = 1
     if summary.grade == "S" then
@@ -62,7 +55,8 @@ function EconomyService:FinalizeSong(player, session, summary)
     local modeKey = session.mode or Config.Modes.Career
     profile.BestScores = profile.BestScores or {}
     profile.BestScores[modeKey] = profile.BestScores[modeKey] or {}
-    local bestRecord = profile.BestScores[modeKey][session.songId]
+    local bestKey = string.format("%s:%s:%s:%s", session.songId, difficulty, session.segmentLength or "30s", session.segmentSection or "Intro")
+    local bestRecord = profile.BestScores[modeKey][bestKey]
     if not bestRecord then
         firstClearBonus = Config.Economy.FirstClearBonus
     else
@@ -72,6 +66,16 @@ function EconomyService:FinalizeSong(player, session, summary)
     end
 
     self.context.Services.MissionService:RecordEvent(profile, "SongFinished", 1, { player = player })
+    self.context.Services.MissionService:RecordEvent(profile, "ClearDifficulty_" .. difficulty, 1, { player = player })
+    if session.segmentLength == "20s" then
+        self.context.Services.MissionService:RecordEvent(profile, "QuickRun20s", 1, { player = player })
+    elseif session.segmentLength == "30s" and difficulty == "Hard" then
+        self.context.Services.MissionService:RecordEvent(profile, "Hard30sClear", 1, { player = player })
+    elseif session.segmentLength == "40s" and difficulty == "Brainrot" and (summary.hp or 0) >= 30 then
+        self.context.Services.MissionService:RecordEvent(profile, "Brainrot40sSurvive", 1, { player = player })
+    elseif session.segmentLength == "full" then
+        self.context.Services.MissionService:RecordEvent(profile, "FullClear", 1, { player = player })
+    end
     if summary.grade == "A" or summary.grade == "S" then
         self.context.Services.MissionService:RecordEvent(profile, "SongGradeAOrHigher", 1, { player = player })
     end
@@ -85,9 +89,9 @@ function EconomyService:FinalizeSong(player, session, summary)
         self.context.Services.MissionService:RecordEvent(profile, "EncoreModeTriggered", 1, { player = player })
     end
 
-    local rewardFans = math.floor(base.baseFans * gradeMultiplier)
-    local rewardCoins = math.floor(base.baseCoins * gradeMultiplier)
-    local rewardXP = math.floor(base.baseXP * gradeMultiplier)
+    local rewardFans = math.floor(base.baseFans * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
+    local rewardCoins = math.floor(base.baseCoins * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
+    local rewardXP = math.floor(base.baseXP * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
     local rewardTickets = base.baseTickets or 0
 
     rewardFans = math.floor(rewardFans + hypeBonus + comboBonus * 0.5 + completionBonus)
@@ -127,6 +131,10 @@ function EconomyService:FinalizeSong(player, session, summary)
         XP = busModifiers.XP + missionBonus,
         Tickets = busModifiers.Tickets,
         GroanTokens = 0,
+        DifficultyMultiplier = difficultyMultiplier,
+        SegmentMultiplier = segmentMultiplier,
+        VenueFee = feeAmount,
+        GrossFans = rewardFans,
     }
 
     profile.SessionHistory = profile.SessionHistory or { Career = {}, Pure = {} }
@@ -138,10 +146,13 @@ function EconomyService:FinalizeSong(player, session, summary)
         hype = summary.hype,
         maxCombo = summary.maxCombo,
         time = os.time(),
+        difficulty = difficulty,
+        segmentLength = session.segmentLength,
+        segmentSection = session.segmentSection,
     })
 
-    profile.BestScores[modeKey][session.songId] = profile.BestScores[modeKey][session.songId] or {}
-    local best = profile.BestScores[modeKey][session.songId]
+    profile.BestScores[modeKey][bestKey] = profile.BestScores[modeKey][bestKey] or {}
+    local best = profile.BestScores[modeKey][bestKey]
     if summary.score > (best.bestScore or 0) then
         best.bestScore = summary.score
     end

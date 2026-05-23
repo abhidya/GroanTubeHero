@@ -78,7 +78,8 @@ end
 
 
 function ScoreService:GetMissDamage(profile, session)
-    local damage = 10
+    local diff = session and session.difficultyConfig
+    local damage = (diff and diff.hpDamageMiss) or 8
     local upgrades = profile.Upgrades or {}
     local levelReduction = math.min(0.15, math.max(0, ((profile.Level or 1) - 1) * 0.005))
     damage = damage * (1 - math.min(0.5, (upgrades.Recovery or 0) * 0.10))
@@ -118,6 +119,7 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         state.accuracyPoints = state.accuracyPoints + 100
         state.hype = math.min(100, state.hype + self:GetHypeOnHit(profile, mode, judgement, session))
         state.power = math.min(100, state.power + 3)
+        state.hp = math.min(100, (state.hp or 100) + 1)
         if state.combo % 10 == 0 then
             state.power = math.min(100, state.power + 10)
         end
@@ -133,6 +135,7 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         state.score = state.score + (50 * state.multiplier)
         state.accuracyPoints = state.accuracyPoints + 50
         state.hype = math.min(100, state.hype + self:GetHypeOnHit(profile, mode, judgement, session))
+        state.hp = math.min(100, (state.hp or 100) + 0.5)
         state.power = math.min(100, state.power + 1)
     elseif judgement == "Miss" then
         state.miss = state.miss + 1
@@ -200,9 +203,17 @@ function ScoreService:Finalize(session)
     summary.venueId = session.venueId
     summary.totalNotes = state.totalNotes
     summary.hp = state.hp or 0
+    summary.stability = summary.hp
     summary.downed = state.downed == true
     summary.revived = state.revived == true
-    summary.clear = state.miss < 5 and not summary.downed
+    summary.clear = state.miss < 5
+    summary.difficulty = session.difficulty or state.difficulty or "Easy"
+    summary.segmentLength = session.segmentLength or state.segmentLength or "30s"
+    summary.segmentLabel = session.segmentLabel or summary.segmentLength
+    summary.segmentStart = session.segmentStart or 0
+    summary.segmentSection = session.segmentSection or "Intro"
+    summary.difficultyMultiplier = session.song and session.song.DifficultyMultiplier or 1
+    summary.segmentMultiplier = session.song and session.song.SegmentMultiplier or 1
     summary.cleanedSection = state.sectionMisses == 0
     summary.battle = session.mode == Config.Modes.Battle
     return summary
