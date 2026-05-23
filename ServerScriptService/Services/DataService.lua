@@ -59,6 +59,10 @@ local function ensureDataShape(data)
     profile.SessionHistory = profile.SessionHistory or { Career = {}, Pure = {} }
     profile.SessionHistory.Career = profile.SessionHistory.Career or {}
     profile.SessionHistory.Pure = profile.SessionHistory.Pure or {}
+    profile.SongUnlocks = profile.SongUnlocks or { Downloads = false }
+    if profile.VIP then
+        profile.SongUnlocks.Downloads = true
+    end
 
     return profile
 end

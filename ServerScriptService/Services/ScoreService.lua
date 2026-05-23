@@ -27,6 +27,9 @@ function ScoreService:CreateState(song, mode)
         miss = 0,
         multiplier = 1,
         hype = 0,
+        hp = 100,
+        downed = false,
+        revived = false,
         power = 0,
         accuracyPoints = 0,
         sectionIndex = 1,
@@ -73,6 +76,28 @@ function ScoreService:GetHypeOnHit(profile, mode, judgement, session)
     return base
 end
 
+
+function ScoreService:GetMissDamage(profile, session)
+    local damage = 10
+    local upgrades = profile.Upgrades or {}
+    local levelReduction = math.min(0.15, math.max(0, ((profile.Level or 1) - 1) * 0.005))
+    damage = damage * (1 - math.min(0.5, (upgrades.Recovery or 0) * 0.10))
+    damage = damage * (1 - levelReduction)
+    if session.modifiers and session.modifiers.recoveryShield then
+        damage = damage * 0.75
+    end
+    if session.modifiers and session.modifiers.voiceCrack then
+        damage = damage * 1.25
+    end
+    if profile.VIP then
+        damage = damage * 0.75
+    end
+    if session.mode == Config.Modes.Battle then
+        damage = damage * 1.15
+    end
+    return math.max(1, math.floor(damage + 0.5))
+end
+
 function ScoreService:GetMissPenalty(profile, session)
     local penalty = 6
     penalty = math.max(2, penalty - (profile.Upgrades.Recovery or 0))
@@ -84,6 +109,7 @@ end
 
 function ScoreService:ApplyJudgement(session, note, judgement, profile)
     local state = session.stateData
+    state.lastDamage = 0
     state.noteIndex = state.noteIndex + 1
     local mode = session.mode
 
@@ -116,6 +142,13 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         state.sectionMisses = state.sectionMisses + 1
         state.score = state.score + 0
         state.hype = math.max(0, state.hype - self:GetMissPenalty(profile, session))
+        local damage = self:GetMissDamage(profile, session)
+        if session.modifiers and session.modifiers.deepBreath then
+            damage = math.max(1, math.floor(damage * 0.5))
+        end
+        state.hp = math.max(0, (state.hp or 100) - damage)
+        state.lastDamage = damage
+        state.downed = state.hp <= 0
         if session.modifiers and session.modifiers.deepBreath then
             session.modifiers.deepBreath = false
         else
@@ -169,7 +202,10 @@ function ScoreService:Finalize(session)
     summary.mode = session.mode
     summary.venueId = session.venueId
     summary.totalNotes = state.totalNotes
-    summary.clear = state.miss < 5
+    summary.hp = state.hp or 0
+    summary.downed = state.downed == true
+    summary.revived = state.revived == true
+    summary.clear = state.miss < 5 and not summary.downed
     summary.cleanedSection = state.sectionMisses == 0
     summary.battle = session.mode == Config.Modes.Battle
     return summary
