@@ -26,3 +26,19 @@ You can open either:
 - Placeholder AudioIds are used intentionally.
 - The game still runs visually if audio fails to load.
 - No external modules, HTTP, or asset imports are required.
+
+## Local chart generation for original / rights-cleared audio
+
+Use `tools/generate_chart_from_audio.py` only with audio you own or have explicit permission to use in Roblox. The tool reads a local WAV/MP3/OGG, estimates simple 4-lane note timings, and writes a Lua chart module. It does **not** copy, encode, import, or ship the audio file; `AudioId` stays `rbxassetid://0` until you upload an allowed Roblox audio asset yourself.
+
+Example:
+
+```bash
+python3 tools/generate_chart_from_audio.py ~/Downloads/my-original-song.mp3 \
+  --song-id MyOriginalGroan \
+  --title "My Original Groan" \
+  --difficulty easy \
+  --out ReplicatedStorage/Shared/Chart_MyOriginalGroan.lua
+```
+
+The generator uses a small hardcoded deterministic lane key (`GROAN_TUBE_EASY_KEY_V1`) so the same audio/timestamps produce stable D/F/J/K lane assignments.

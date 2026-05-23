@@ -169,6 +169,37 @@ judgement.TextTransparency = 1
 
 local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
+local noteLegend = Instance.new("Frame")
+noteLegend.Name = "AlwaysVisibleNoteLegend"
+noteLegend.Size = UDim2.new(0, 270, 0, 150)
+noteLegend.Position = UDim2.new(1, -292, 0, 104)
+noteLegend.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+noteLegend.BackgroundTransparency = 0.08
+noteLegend.Parent = root
+corner(noteLegend, 16)
+stroke(noteLegend, Color3.fromRGB(255, 230, 120), 2)
+makeLabel(noteLegend, "LegendTitle", "NOTES / KEYS", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
+local legendNames = { "Blue note", "Green note", "Gold note", "Pink note" }
+for lane = 1, 4 do
+    local chip = Instance.new("Frame")
+    chip.Name = "Lane" .. lane .. "Legend"
+    chip.Size = UDim2.new(1, -20, 0, 24)
+    chip.Position = UDim2.new(0, 10, 0, 34 + ((lane - 1) * 27))
+    chip.BackgroundTransparency = 1
+    chip.Parent = noteLegend
+
+    local dot = Instance.new("Frame")
+    dot.Name = "Color"
+    dot.Size = UDim2.new(0, 22, 0, 22)
+    dot.Position = UDim2.new(0, 0, 0, 1)
+    dot.BackgroundColor3 = laneColors[lane]
+    dot.Parent = chip
+    corner(dot, 7)
+
+    local text = makeLabel(chip, "Text", string.format("%s  =  %s", laneKeys[lane], legendNames[lane]), UDim2.new(1, -32, 1, 0), UDim2.new(0, 32, 0, 0), Color3.fromRGB(235, 245, 255), Enum.Font.GothamBold)
+    text.TextXAlignment = Enum.TextXAlignment.Left
+end
+
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
 songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -297,11 +328,24 @@ local songMeta = {
     MallBalladButWrong = { difficulty = "Hard", description = "Awkward pauses and cursed timing.", reward = "~100 Fans / 75 Coins / 120 XP" },
 }
 
+local pendingStartToken = 0
+local openSongSelect
+
 local function startSong(songId)
     state.lastSongId = songId
     results.Visible = false
     songSelect.Visible = false
+    pendingStartToken = pendingStartToken + 1
+    local token = pendingStartToken
+    songInfo.Text = "Starting song...\n" .. tostring(songId)
+    showJudgement("Starting...", Color3.fromRGB(255, 245, 150))
     remotes.StartSongRequest:FireServer({ songId = songId, mode = state.lastMode, venueId = state.lastVenueId })
+    task.delay(4, function()
+        if token == pendingStartToken and not state.active and not results.Visible then
+            songInfo.Text = "Start did not complete\nPick a song again or use the stage mic."
+            openSongSelect()
+        end
+    end)
 end
 
 local function buildSongCards()
@@ -328,11 +372,22 @@ end
 
 buildSongCards()
 
-local function openSongSelect()
+function openSongSelect()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
+    songInfo.Text = "Choose a song\nStart with Neon Groan if new."
 end
+
+local function consumeOpenSongSelectAttribute()
+    if screenGui:GetAttribute("OpenSongSelect") then
+        screenGui:SetAttribute("OpenSongSelect", false)
+        openSongSelect()
+    end
+end
+
+screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSelectAttribute)
+consumeOpenSongSelectAttribute()
 
 replayButton.Activated:Connect(function()
     startSong(state.lastSongId)
@@ -386,7 +441,9 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
         return
     end
 
+    pendingStartToken = pendingStartToken + 1
     state.active = true
+    noteLegend.Visible = false
     state.sessionId = payload.sessionId
     state.song = payload.song
     state.startServerTime = payload.startServerTime or serverNow()
@@ -439,6 +496,7 @@ remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
 
 remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
+    noteLegend.Visible = true
     clearNotes()
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}

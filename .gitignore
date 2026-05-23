@@ -1,3 +1,13 @@
 .idea/
 *.lock
 .DS_Store
+
+# Local-only audio/source media; do not commit copyrighted or personal files.
+downloads/
+*.mp3
+*.wav
+*.ogg
+*.webm
+*.jpg
+__pycache__/
+*.pyc

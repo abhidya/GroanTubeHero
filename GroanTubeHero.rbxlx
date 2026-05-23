@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <roblox version="4">
-<Item class="DataModel" referent="RBX0"><Properties><string name="Name">Groan Tube Hero</string></Properties><Item class="ReplicatedStorage" referent="RBX31"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX13"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX1"><Properties><string name="Name">StartSongRequest</string></Properties></Item><Item class="RemoteEvent" referent="RBX2"><Properties><string name="Name">StartSong</string></Properties></Item><Item class="RemoteEvent" referent="RBX3"><Properties><string name="Name">NoteHit</string></Properties></Item><Item class="RemoteEvent" referent="RBX4"><Properties><string name="Name">NoteJudged</string></Properties></Item><Item class="RemoteEvent" referent="RBX5"><Properties><string name="Name">ScoreUpdate</string></Properties></Item><Item class="RemoteEvent" referent="RBX6"><Properties><string name="Name">SongFinished</string></Properties></Item><Item class="RemoteEvent" referent="RBX7"><Properties><string name="Name">UseBuff</string></Properties></Item><Item class="RemoteEvent" referent="RBX8"><Properties><string name="Name">UseAttack</string></Properties></Item><Item class="RemoteEvent" referent="RBX9"><Properties><string name="Name">AudienceAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX10"><Properties><string name="Name">PurchaseItem</string></Properties></Item><Item class="RemoteEvent" referent="RBX11"><Properties><string name="Name">EquipItem</string></Properties></Item><Item class="RemoteEvent" referent="RBX12"><Properties><string name="Name">DataSnapshot</string></Properties></Item></Item><Item class="Folder" referent="RBX30"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX14"><Properties><string name="Name">AttackConfig</string><ProtectedString name="Source"><![CDATA[local AttackConfig = {}
+<Item class="DataModel" referent="RBX0"><Properties><string name="Name">Groan Tube Hero</string></Properties><Item class="ReplicatedStorage" referent="RBX31"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX13"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX1"><Properties><string name="Name">StartSongRequest</string></Properties></Item><Item class="RemoteEvent" referent="RBX2"><Properties><string name="Name">StartSong</string></Properties></Item><Item class="RemoteEvent" referent="RBX3"><Properties><string name="Name">NoteHit</string></Properties></Item><Item class="RemoteEvent" referent="RBX4"><Properties><string name="Name">NoteJudged</string></Properties></Item><Item class="RemoteEvent" referent="RBX5"><Properties><string name="Name">ScoreUpdate</string></Properties></Item><Item class="RemoteEvent" referent="RBX6"><Properties><string name="Name">SongFinished</string></Properties></Item><Item class="RemoteEvent" referent="RBX7"><Properties><string name="Name">UseBuff</string></Properties></Item><Item class="RemoteEvent" referent="RBX8"><Properties><string name="Name">UseAttack</string></Properties></Item><Item class="RemoteEvent" referent="RBX9"><Properties><string name="Name">AudienceAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX10"><Properties><string name="Name">PurchaseItem</string></Properties></Item><Item class="RemoteEvent" referent="RBX11"><Properties><string name="Name">EquipItem</string></Properties></Item><Item class="RemoteEvent" referent="RBX12"><Properties><string name="Name">DataSnapshot</string></Properties></Item></Item><Item class="Folder" referent="RBX30"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX14"><Properties><string name="Name">AttackConfig</string><ProtectedString name="Source">local AttackConfig = {}
 
 AttackConfig.Attacks = {
     VoiceCrack = { id = "VoiceCrack", cost = 30, cooldown = 12, battleOnly = true, description = "Opponent next miss costs extra Hype." },
@@ -18,7 +18,7 @@ function AttackConfig.Get(attackId)
 end
 
 return AttackConfig
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX15"><Properties><string name="Name">BuffConfig</string><ProtectedString name="Source"><![CDATA[local BuffConfig = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX15"><Properties><string name="Name">BuffConfig</string><ProtectedString name="Source">local BuffConfig = {}
 
 BuffConfig.CareerBuffs = {
     SecondWind = { id = "SecondWind", cost = 35, cooldown = 30, category = "Career", description = "First miss after 20 combo does not break combo." },
@@ -43,7 +43,7 @@ function BuffConfig.Get(buffId)
 end
 
 return BuffConfig
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX16"><Properties><string name="Name">Chart_MallBalladButWrong</string><ProtectedString name="Source"><![CDATA[local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX16"><Properties><string name="Name">Chart_MallBalladButWrong</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
     return {
         id = id,
         time = timeValue,
@@ -105,7 +105,7 @@ return {
         note("mbw-32", 37.0, 3, "Final Groan", "Final Pose", "Gold", "Encore"),
     },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX17"><Properties><string name="Name">Chart_NeonGroan</string><ProtectedString name="Source"><![CDATA[local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX17"><Properties><string name="Name">Chart_NeonGroan</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
     return {
         id = id,
         time = timeValue,
@@ -158,7 +158,7 @@ return {
         note("ng-24", 27.4, 4, "Final Groan", "Final Pose", "Gold", "Encore"),
     },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX18"><Properties><string name="Name">Chart_RomanticTubeDisaster</string><ProtectedString name="Source"><![CDATA[local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX18"><Properties><string name="Name">Chart_RomanticTubeDisaster</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
     return {
         id = id,
         time = timeValue,
@@ -216,7 +216,7 @@ return {
         note("rtd-28", 33.8, 3, "Final Groan", "Final Pose", "Gold", "Encore"),
     },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX19"><Properties><string name="Name">ClientState</string><ProtectedString name="Source"><![CDATA[local ClientState = {
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX19"><Properties><string name="Name">ClientState</string><ProtectedString name="Source">local ClientState = {
     snapshot = nil,
     session = nil,
     ui = nil,
@@ -247,7 +247,7 @@ function ClientState.GetUi()
 end
 
 return ClientState
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX20"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[local Config = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX20"><Properties><string name="Name">Config</string><ProtectedString name="Source">local Config = {}
 
 Config.GameName = "Groan Tube Hero"
 Config.DefaultSongId = "NeonGroan"
@@ -391,10 +391,10 @@ Config.DefaultProfile = {
 }
 
 function Config.Clamp(value, minValue, maxValue)
-    if value < minValue then
+    if value &lt; minValue then
         return minValue
     end
-    if value > maxValue then
+    if value &gt; maxValue then
         return maxValue
     end
     return value
@@ -412,7 +412,7 @@ function Config.DeepCopy(value)
 end
 
 return Config
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX21"><Properties><string name="Name">CosmeticConfig</string><ProtectedString name="Source"><![CDATA[local CosmeticConfig = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX21"><Properties><string name="Name">CosmeticConfig</string><ProtectedString name="Source">local CosmeticConfig = {}
 
 CosmeticConfig.Items = {
     TubeSounds = {
@@ -495,7 +495,7 @@ function CosmeticConfig.GetVisualProfile(equipped)
 end
 
 return CosmeticConfig
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX22"><Properties><string name="Name">EconomyConfig</string><ProtectedString name="Source"><![CDATA[local Config = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX22"><Properties><string name="Name">EconomyConfig</string><ProtectedString name="Source">local Config = {}
 
 Config.LevelCurve = {
     BaseXP = 120,
@@ -525,7 +525,7 @@ Config.VenueModifiers = {
 }
 
 function Config.GetXPForLevel(level)
-    if level <= 1 then
+    if level &lt;= 1 then
         return 0
     end
     return math.floor(Config.LevelCurve.BaseXP * ((level - 1) ^ Config.LevelCurve.Growth))
@@ -541,7 +541,7 @@ function Config.GetDifficultyProfile(songId)
 end
 
 return Config
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX23"><Properties><string name="Name">MissionConfig</string><ProtectedString name="Source"><![CDATA[local MissionConfig = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX23"><Properties><string name="Name">MissionConfig</string><ProtectedString name="Source">local MissionConfig = {}
 
 MissionConfig.Daily = {
     { id = "DailyPerfects", title = "Get 50 Perfects", event = "PerfectHit", target = 50, rewardFans = 120, rewardCoins = 80, rewardXP = 150 },
@@ -568,7 +568,7 @@ function MissionConfig.GetAll()
 end
 
 return MissionConfig
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX24"><Properties><string name="Name">ProjectReadme</string><ProtectedString name="Source"><![CDATA[return [[
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX24"><Properties><string name="Name">ProjectReadme</string><ProtectedString name="Source">return [[
 Groan Tube Hero test guide
 
 1. Start the game in Studio.
@@ -578,7 +578,7 @@ Groan Tube Hero test guide
 5. Try store, upgrades, missions, and audience actions.
 6. If audio fails to load, the rhythm gameplay still runs visually.
 ]]
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX25"><Properties><string name="Name">Scoring</string><ProtectedString name="Source"><![CDATA[local Config = require(script.Parent.Config)
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX25"><Properties><string name="Name">Scoring</string><ProtectedString name="Source">local Config = require(script.Parent.Config)
 
 local Scoring = {}
 
@@ -592,13 +592,13 @@ function Scoring.ResolveJudgement(offsetSeconds, timingBonusSeconds)
     local goodWindow = Config.Judgement.GoodWindow + (timingBonusSeconds or 0)
     local acceptWindow = Config.Judgement.AcceptWindow
 
-    if absValue <= perfectWindow then
+    if absValue &lt;= perfectWindow then
         return "Perfect"
     end
-    if absValue <= goodWindow then
+    if absValue &lt;= goodWindow then
         return "Good"
     end
-    if absValue <= acceptWindow then
+    if absValue &lt;= acceptWindow then
         return "Miss"
     end
     return "Reject"
@@ -620,13 +620,13 @@ function Scoring.GetMultiplier(combo)
 end
 
 function Scoring.GetGrade(percent)
-    if percent >= Config.ScoreGrades.S then
+    if percent &gt;= Config.ScoreGrades.S then
         return "S"
-    elseif percent >= Config.ScoreGrades.A then
+    elseif percent &gt;= Config.ScoreGrades.A then
         return "A"
-    elseif percent >= Config.ScoreGrades.B then
+    elseif percent &gt;= Config.ScoreGrades.B then
         return "B"
-    elseif percent >= Config.ScoreGrades.C then
+    elseif percent &gt;= Config.ScoreGrades.C then
         return "C"
     end
     return "D"
@@ -642,11 +642,11 @@ function Scoring.GetAccuracyPercent(state)
 end
 
 function Scoring.GetHypeTier(hypeValue)
-    if hypeValue <= Config.Hype.DeadRoom.max then
+    if hypeValue &lt;= Config.Hype.DeadRoom.max then
         return "Dead Room"
-    elseif hypeValue <= Config.Hype.UnsureCrowd.max then
+    elseif hypeValue &lt;= Config.Hype.UnsureCrowd.max then
         return "Unsure Crowd"
-    elseif hypeValue <= Config.Hype.IntoIt.max then
+    elseif hypeValue &lt;= Config.Hype.IntoIt.max then
         return "Into It"
     end
     return "Encore Mode"
@@ -654,11 +654,11 @@ end
 
 function Scoring.GetNoteWindowState(offsetSeconds)
     local absValue = math.abs(offsetSeconds)
-    if absValue <= Config.Judgement.PerfectWindow then
+    if absValue &lt;= Config.Judgement.PerfectWindow then
         return "Perfect"
-    elseif absValue <= Config.Judgement.GoodWindow then
+    elseif absValue &lt;= Config.Judgement.GoodWindow then
         return "Good"
-    elseif absValue <= Config.Judgement.AcceptWindow then
+    elseif absValue &lt;= Config.Judgement.AcceptWindow then
         return "Miss"
     end
     return "Reject"
@@ -684,7 +684,7 @@ function Scoring.BuildSummary(state)
 end
 
 return Scoring
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX26"><Properties><string name="Name">SongCatalog</string><ProtectedString name="Source"><![CDATA[local SongCatalog = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX26"><Properties><string name="Name">SongCatalog</string><ProtectedString name="Source">local SongCatalog = {}
 
 local NeonGroan = require(script.Parent.Chart_NeonGroan)
 local RomanticTubeDisaster = require(script.Parent.Chart_RomanticTubeDisaster)
@@ -717,7 +717,7 @@ function SongCatalog.GetDefaultSong()
 end
 
 return SongCatalog
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX27"><Properties><string name="Name">Types</string><ProtectedString name="Source"><![CDATA[--!strict
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX27"><Properties><string name="Name">Types</string><ProtectedString name="Source">--!strict
 -- Reference-only structure notes for the project.
 --
 -- Profile = {
@@ -740,7 +740,7 @@ return SongCatalog
 -- }
 
 return {}
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX28"><Properties><string name="Name">UpgradeConfig</string><ProtectedString name="Source"><![CDATA[local Config = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX28"><Properties><string name="Name">UpgradeConfig</string><ProtectedString name="Source">local Config = {}
 
 Config.Upgrades = {
     Timing = { max = 5, baseCost = 120, growth = 1.35, perLevel = { goodWindow = 0.01 } },
@@ -762,7 +762,7 @@ function Config.GetCost(upgradeId, currentLevel)
 end
 
 return Config
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX29"><Properties><string name="Name">VenueConfig</string><ProtectedString name="Source"><![CDATA[local VenueConfig = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX29"><Properties><string name="Name">VenueConfig</string><ProtectedString name="Source">local VenueConfig = {}
 
 VenueConfig.Venues = {
     SchoolStage = { id = "SchoolStage", name = "School Stage", fee = 0, difficulty = "Easy", fansMultiplier = 1.0, hypeBonus = 0, ticketChance = 0.05, description = "Beginner-friendly with no venue fee." },
@@ -785,7 +785,7 @@ function VenueConfig.ListIds()
 end
 
 return VenueConfig
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX47"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX46"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX32"><Properties><string name="Name">AntiExploitService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX47"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX46"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX32"><Properties><string name="Name">AntiExploitService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 
 local AntiExploitService = {}
@@ -822,12 +822,12 @@ end
 function AntiExploitService:CheckRate(player, bucketName, perSecond)
     local record = getBucket(player, bucketName)
     local current = now()
-    if current - record.start >= 1 then
+    if current - record.start &gt;= 1 then
         record.start = current
         record.count = 0
     end
     record.count = record.count + 1
-    return record.count <= perSecond
+    return record.count &lt;= perSecond
 end
 
 function AntiExploitService:ValidateNoteHit(player, payload, session)
@@ -854,16 +854,16 @@ function AntiExploitService:ValidateNoteHit(player, payload, session)
     -- Session boundaries are absolute server timestamps. Do not compare
     -- relative song time against these values or every hit will look early.
     local absoluteNow = now()
-    if absoluteNow < session.startServerTime then
+    if absoluteNow &lt; session.startServerTime then
         return false, "BeforeCountdown"
     end
-    if absoluteNow > session.endServerTime then
+    if absoluteNow &gt; session.endServerTime then
         return false, "AfterSongEnd"
     end
 
     local songTime = absoluteNow - session.startServerTime
     local offset = songTime - note.time
-    if math.abs(offset) > Config.Judgement.AcceptWindow then
+    if math.abs(offset) &gt; Config.Judgement.AcceptWindow then
         return false, "OutsideWindow"
     end
 
@@ -905,7 +905,7 @@ function AntiExploitService:ValidateAttack(player, payload, session)
 end
 
 return AntiExploitService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX33"><Properties><string name="Name">AudienceService</string><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX33"><Properties><string name="Name">AudienceService</string><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -928,7 +928,7 @@ local function isInAudienceZone(character, zonePart)
     end
     local localPoint = zonePart.CFrame:PointToObjectSpace(root.Position)
     local half = zonePart.Size * 0.5
-    return math.abs(localPoint.X) <= half.X and math.abs(localPoint.Y) <= half.Y + 5 and math.abs(localPoint.Z) <= half.Z
+    return math.abs(localPoint.X) &lt;= half.X and math.abs(localPoint.Y) &lt;= half.Y + 5 and math.abs(localPoint.Z) &lt;= half.Z
 end
 
 function AudienceService:RefreshWatcher(player)
@@ -975,7 +975,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
         hypeBoost = 1
         session.modifiers = session.modifiers or {}
         session.modifiers.clapChain = (session.modifiers.clapChain or 0) + 1
-        if session.modifiers.clapChain >= 3 then
+        if session.modifiers.clapChain &gt;= 3 then
             performer.stateData.hype = math.min(100, performer.stateData.hype + 4)
         end
     elseif action == "Cheer" then
@@ -986,7 +986,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
         rewardFans = 6
         rewardXP = 3
         hypeBoost = 4
-        if performer.stateData and performer.stateData.score and performer.stateData.score > 0 then
+        if performer.stateData and performer.stateData.score and performer.stateData.score &gt; 0 then
             local summary = self.context.Services.ScoreService:Finalize(performer)
             if summary.grade == "A" or summary.grade == "S" or summary.grade == "B" then
                 hypeBoost = hypeBoost + 3
@@ -1016,7 +1016,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
 end
 
 return AudienceService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX34"><Properties><string name="Name">BuffAttackService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX34"><Properties><string name="Name">BuffAttackService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local BuffConfig = require(ReplicatedStorage.Shared.BuffConfig)
@@ -1061,7 +1061,7 @@ function BuffAttackService:ApplyBuff(session, profile, buffId)
     local cooldowns = session.modifiers.cooldowns
     local nowTime = getNow()
     local readyAt = cooldowns[buffId] or 0
-    if nowTime < readyAt then
+    if nowTime &lt; readyAt then
         return false, "Cooldown"
     end
     cooldowns[buffId] = nowTime + (buff.cooldown or 0)
@@ -1119,7 +1119,7 @@ function BuffAttackService:ApplyAttack(sourcePlayer, targetPlayer, attackId)
     local nowTime = getNow()
     local cooldowns = sourceSession.modifiers.cooldowns
     local readyAt = cooldowns[attackId] or 0
-    if nowTime < readyAt then
+    if nowTime &lt; readyAt then
         return false, "Cooldown"
     end
     cooldowns[attackId] = nowTime + attack.cooldown
@@ -1164,23 +1164,23 @@ end
 
 function BuffAttackService:ShouldIgnoreCrowd(session)
     local mods = session.modifiers or {}
-    return mods.awkwardSilenceUntil and getNow() < mods.awkwardSilenceUntil
+    return mods.awkwardSilenceUntil and getNow() &lt; mods.awkwardSilenceUntil
 end
 
 function BuffAttackService:VisualModifiers(session)
     local mods = session.modifiers or {}
     local nowTime = getNow()
     return {
-        spotlightDrift = mods.spotlightDriftUntil and nowTime < mods.spotlightDriftUntil,
-        booWave = mods.booWaveUntil and nowTime < mods.booWaveUntil,
-        micFeedback = mods.micFeedbackUntil and nowTime < mods.micFeedbackUntil,
-        tomatoSplash = mods.tomatoSplashUntil and nowTime < mods.tomatoSplashUntil,
+        spotlightDrift = mods.spotlightDriftUntil and nowTime &lt; mods.spotlightDriftUntil,
+        booWave = mods.booWaveUntil and nowTime &lt; mods.booWaveUntil,
+        micFeedback = mods.micFeedbackUntil and nowTime &lt; mods.micFeedbackUntil,
+        tomatoSplash = mods.tomatoSplashUntil and nowTime &lt; mods.tomatoSplashUntil,
         tubeWarp = mods.tubeWarpNote == true,
     }
 end
 
 return BuffAttackService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX35"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX35"><Properties><string name="Name">DataService</string><ProtectedString name="Source">local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1385,16 +1385,16 @@ end
 
 function DataService:SpendCurrency(player, currency, amount)
     local profile = cache[player.UserId]
-    if not profile or amount <= 0 then
+    if not profile or amount &lt;= 0 then
         return false
     end
-    if currency == "Fans" and profile.Fans >= amount then
+    if currency == "Fans" and profile.Fans &gt;= amount then
         profile.Fans = profile.Fans - amount
-    elseif currency == "Coins" and profile.Coins >= amount then
+    elseif currency == "Coins" and profile.Coins &gt;= amount then
         profile.Coins = profile.Coins - amount
-    elseif currency == "Tickets" and profile.Tickets >= amount then
+    elseif currency == "Tickets" and profile.Tickets &gt;= amount then
         profile.Tickets = profile.Tickets - amount
-    elseif currency == "GroanTokens" and profile.GroanTokens >= amount then
+    elseif currency == "GroanTokens" and profile.GroanTokens &gt;= amount then
         profile.GroanTokens = profile.GroanTokens - amount
     else
         return false
@@ -1438,7 +1438,7 @@ function DataService:StartAutosave()
 end
 
 return DataService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX36"><Properties><string name="Name">EconomyService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX36"><Properties><string name="Name">EconomyService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
@@ -1462,7 +1462,7 @@ end
 
 function EconomyService:LevelFromXP(xp)
     local level = 1
-    while xp >= EconomyConfig.GetXPForLevel(level + 1) do
+    while xp &gt;= EconomyConfig.GetXPForLevel(level + 1) do
         level = level + 1
     end
     return level
@@ -1506,7 +1506,7 @@ function EconomyService:FinalizeSong(player, session, summary)
     if not bestRecord then
         firstClearBonus = Config.Economy.FirstClearBonus
     else
-        if summary.score > (bestRecord.bestScore or 0) then
+        if summary.score &gt; (bestRecord.bestScore or 0) then
             newBestBonus = Config.Economy.NewBestBonus
         end
     end
@@ -1515,10 +1515,10 @@ function EconomyService:FinalizeSong(player, session, summary)
     if summary.grade == "A" or summary.grade == "S" then
         self.context.Services.MissionService:RecordEvent(profile, "SongGradeAOrHigher", 1, { player = player })
     end
-    if summary.miss < 5 then
+    if summary.miss &lt; 5 then
         self.context.Services.MissionService:RecordEvent(profile, "SongClearUnder5Misses", 1, { player = player })
     end
-    if summary.hype >= 80 then
+    if summary.hype &gt;= 80 then
         self.context.Services.MissionService:RecordEvent(profile, "HypePeak", 1, { player = player })
     end
     if summary.grade == "S" then
@@ -1553,7 +1553,7 @@ function EconomyService:FinalizeSong(player, session, summary)
         Coins = rewardCoins,
         XP = rewardXP,
         Tickets = rewardTickets,
-    }, summary.miss > 0)
+    }, summary.miss &gt; 0)
 
     if summary.cleanedSection and session.modifiers and session.modifiers.encoreEnergy then
         busModifiers.Fans = math.floor(busModifiers.Fans * 1.1)
@@ -1582,13 +1582,13 @@ function EconomyService:FinalizeSong(player, session, summary)
 
     profile.BestScores[modeKey][session.songId] = profile.BestScores[modeKey][session.songId] or {}
     local best = profile.BestScores[modeKey][session.songId]
-    if summary.score > (best.bestScore or 0) then
+    if summary.score &gt; (best.bestScore or 0) then
         best.bestScore = summary.score
     end
-    if summary.maxCombo > (best.bestCombo or 0) then
+    if summary.maxCombo &gt; (best.bestCombo or 0) then
         best.bestCombo = summary.maxCombo
     end
-    if not best.bestGrade or summary.grade < best.bestGrade then
+    if not best.bestGrade or summary.grade &lt; best.bestGrade then
         best.bestGrade = summary.grade
     end
 
@@ -1599,7 +1599,7 @@ function EconomyService:FinalizeSong(player, session, summary)
 
     local oldLevel = profile.Level
     profile.Level = self:LevelFromXP(profile.XP)
-    if profile.Level > oldLevel then
+    if profile.Level &gt; oldLevel then
         rewards.LevelUp = profile.Level - oldLevel
     end
 
@@ -1612,7 +1612,7 @@ function EconomyService:FinalizeSong(player, session, summary)
 end
 
 return EconomyService
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX37"><Properties><string name="Name">GameBootstrap</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="Script" referent="RBX37"><Properties><string name="Name">GameBootstrap</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterPlayer = game:GetService("StarterPlayer")
@@ -1931,7 +1931,7 @@ ReplicatedStorage:SetAttribute("GroanTubeHeroReady", true)
 Workspace:SetAttribute("GroanTubeHeroReady", true)
 
 print("Groan Tube Hero ready", context.Readme)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX38"><Properties><string name="Name">HypeService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX38"><Properties><string name="Name">HypeService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Scoring = require(ReplicatedStorage.Shared.Scoring)
@@ -1970,7 +1970,7 @@ function HypeService:ApplyPerfect(session, profile, note)
     if session.modifiers and session.modifiers.tubeResonance then
         amount = amount + 1
     end
-    if profile.TourBus.BiggerSpeakers and profile.TourBus.BiggerSpeakers > 0 then
+    if profile.TourBus.BiggerSpeakers and profile.TourBus.BiggerSpeakers &gt; 0 then
         amount = amount + 1
     end
     return self:ApplyDelta(session, amount)
@@ -1983,7 +1983,7 @@ end
 
 function HypeService:ApplyMiss(session, profile)
     local penalty = 6 - (profile.Upgrades.Recovery or 0)
-    if penalty < 3 then
+    if penalty &lt; 3 then
         penalty = 3
     end
     return self:ApplyDelta(session, -penalty)
@@ -1994,7 +1994,7 @@ function HypeService:ApplyAudienceAction(session, amount)
 end
 
 return HypeService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX39"><Properties><string name="Name">MissionService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX39"><Properties><string name="Name">MissionService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MissionConfig = require(ReplicatedStorage.Shared.MissionConfig)
 
@@ -2024,7 +2024,7 @@ function MissionService:ResetIfNeeded(profile)
     self:EnsureProfile(profile)
     local nowStamp = os.time()
     local resetStamp = profile.Missions.ResetStamp or 0
-    if resetStamp == 0 or nowStamp - resetStamp >= 86400 then
+    if resetStamp == 0 or nowStamp - resetStamp &gt;= 86400 then
         profile.Missions.Daily = {}
         ensureProgress(profile.Missions.Daily, MissionConfig.Daily)
         profile.Missions.ResetStamp = nowStamp
@@ -2042,7 +2042,7 @@ function MissionService:RecordEvent(profile, eventName, amount, context)
                 local progress = store[definition.id]
                 if progress and not progress.claimed then
                     progress.progress = math.min(definition.target, (progress.progress or 0) + amount)
-                    if progress.progress >= definition.target then
+                    if progress.progress &gt;= definition.target then
                         progress.claimed = true
                         completeRewards.Fans = completeRewards.Fans + (definition.rewardFans or 0)
                         completeRewards.Coins = completeRewards.Coins + (definition.rewardCoins or 0)
@@ -2056,7 +2056,7 @@ function MissionService:RecordEvent(profile, eventName, amount, context)
     process("Daily", MissionConfig.Daily)
     process("Weekly", MissionConfig.Weekly)
     if self.context and self.context.Services and self.context.Services.DataService then
-        if completeRewards.Fans > 0 or completeRewards.Coins > 0 or completeRewards.XP > 0 then
+        if completeRewards.Fans &gt; 0 or completeRewards.Coins &gt; 0 or completeRewards.XP &gt; 0 then
             self.context.Services.DataService:Award(context.player, completeRewards)
         end
     end
@@ -2069,7 +2069,7 @@ function MissionService:GetSnapshot(profile)
 end
 
 return MissionService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX40"><Properties><string name="Name">ScoreService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX40"><Properties><string name="Name">ScoreService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Scoring = require(ReplicatedStorage.Shared.Scoring)
@@ -2194,15 +2194,15 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         end
     end
 
-    if state.combo > state.maxCombo then
+    if state.combo &gt; state.maxCombo then
         state.maxCombo = state.combo
     end
     adjustMultiplier(state)
-    if session.modifiers and session.modifiers.encoreSurgeNotes and session.modifiers.encoreSurgeNotes > 0 then
+    if session.modifiers and session.modifiers.encoreSurgeNotes and session.modifiers.encoreSurgeNotes &gt; 0 then
         state.score = math.floor(state.score * 1.2)
         session.modifiers.encoreSurgeNotes = session.modifiers.encoreSurgeNotes - 1
     end
-    if state.hype > 100 then
+    if state.hype &gt; 100 then
         state.hype = 100
     end
     if state.hype == 100 then
@@ -2222,7 +2222,7 @@ end
 function ScoreService:IsChorusSection(session, noteTime)
     local song = session.song
     for _, section in ipairs(song.Sections or {}) do
-        if section.name == "Chorus" and noteTime >= section.start and noteTime <= section.finish then
+        if section.name == "Chorus" and noteTime &gt;= section.start and noteTime &lt;= section.finish then
             return true
         end
     end
@@ -2240,14 +2240,14 @@ function ScoreService:Finalize(session)
     summary.mode = session.mode
     summary.venueId = session.venueId
     summary.totalNotes = state.totalNotes
-    summary.clear = state.miss < 5
+    summary.clear = state.miss &lt; 5
     summary.cleanedSection = state.sectionMisses == 0
     summary.battle = session.mode == Config.Modes.Battle
     return summary
 end
 
 return ScoreService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX41"><Properties><string name="Name">SongSessionService</string><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX41"><Properties><string name="Name">SongSessionService</string><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -2349,7 +2349,7 @@ function SongSessionService:_createSession(player, payload)
 
     local profileData = profile or {}
     self.context.Services.BuffAttackService:_ensureSessionState(session)
-    if profileData.Upgrades and profileData.Upgrades.Focus and profileData.Upgrades.Focus > 0 then
+    if profileData.Upgrades and profileData.Upgrades.Focus and profileData.Upgrades.Focus &gt; 0 then
         session.modifiers.focusReduction = profileData.Upgrades.Focus
     end
 
@@ -2430,11 +2430,11 @@ function SongSessionService:NoteHit(player, payload)
     end
 
     local missPenalty = self.context.Services.BuffAttackService:ApplyMissMitigation(session)
-    if judgement == "Miss" and missPenalty > 0 then
+    if judgement == "Miss" and missPenalty &gt; 0 then
         session.stateData.hype = math.min(100, session.stateData.hype + missPenalty)
     end
 
-    if session.modifiers and session.modifiers.tubeResonanceUntil and now() < session.modifiers.tubeResonanceUntil and judgement == "Perfect" then
+    if session.modifiers and session.modifiers.tubeResonanceUntil and now() &lt; session.modifiers.tubeResonanceUntil and judgement == "Perfect" then
         session.stateData.hype = math.min(100, session.stateData.hype + 2)
     end
     if session.modifiers and session.modifiers.cleanRunSection and session.stateData.sectionMisses == 0 then
@@ -2443,7 +2443,7 @@ function SongSessionService:NoteHit(player, payload)
 
     if session.song.Sections then
         for index, section in ipairs(session.song.Sections) do
-            if payload.songTime >= section.start and payload.songTime <= section.finish then
+            if payload.songTime &gt;= section.start and payload.songTime &lt;= section.finish then
                 session.currentSectionIndex = index
                 break
             end
@@ -2529,14 +2529,14 @@ end
 function SongSessionService:Update(dt)
     for userId, session in pairs(self.sessions) do
         if session.state ~= "Finished" then
-            if session.state == "Countdown" and now() >= session.startServerTime then
+            if session.state == "Countdown" and now() &gt;= session.startServerTime then
                 session.state = "Playing"
             end
-            if now() >= session.endServerTime or session.judgedNotes >= #session.noteOrder then
+            if now() &gt;= session.endServerTime or session.judgedNotes &gt;= #session.noteOrder then
                 self:FinishSession(session.player)
             else
                 for _, note in ipairs(session.noteOrder) do
-                    if not note.hit and now() - session.startServerTime > note.time + Config.Judgement.AcceptWindow then
+                    if not note.hit and now() - session.startServerTime &gt; note.time + Config.Judgement.AcceptWindow then
                         note.hit = true
                         session.judgedNotes = session.judgedNotes + 1
                         session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", self.context.Services.DataService:GetProfile(session.player))
@@ -2602,7 +2602,7 @@ function SongSessionService:RemoveSession(player)
 end
 
 return SongSessionService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX42"><Properties><string name="Name">StoreService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX42"><Properties><string name="Name">StoreService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local CosmeticConfig = require(ReplicatedStorage.Shared.CosmeticConfig)
@@ -2620,7 +2620,7 @@ end
 function StoreService:IsDebounced(player)
     local nowTime = os.clock()
     local last = self.lastRequest[player.UserId] or 0
-    if nowTime - last < Config.RateLimits.StoreDebounceSeconds then
+    if nowTime - last &lt; Config.RateLimits.StoreDebounceSeconds then
         return true
     end
     self.lastRequest[player.UserId] = nowTime
@@ -2660,7 +2660,7 @@ function StoreService:PurchaseItem(player, category, itemId)
 
     local price = item.price or 0
     local currency = item.currency or "Coins"
-    if price > 0 then
+    if price &gt; 0 then
         if not self.context.Services.DataService:SpendCurrency(player, currency, price) then
             return false, "InsufficientCurrency"
         end
@@ -2710,7 +2710,7 @@ function StoreService:GetCatalog()
 end
 
 return StoreService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX43"><Properties><string name="Name">TourBusService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX43"><Properties><string name="Name">TourBusService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local TourBusService = {}
 TourBusService.__index = TourBusService
@@ -2757,16 +2757,16 @@ function TourBusService:ApplyRewardModifiers(profile, rewards, isRetry)
         Tickets = rewards.Tickets,
     }
 
-    if (bus.BiggerSpeakers or 0) > 0 then
+    if (bus.BiggerSpeakers or 0) &gt; 0 then
         modified.XP = math.floor(modified.XP + (bus.BiggerSpeakers * 2))
     end
-    if (bus.SnackStand or 0) > 0 then
+    if (bus.SnackStand or 0) &gt; 0 then
         modified.Fans = math.floor(modified.Fans + bus.SnackStand * 2)
     end
-    if isRetry and (bus.PracticeSeat or 0) > 0 then
+    if isRetry and (bus.PracticeSeat or 0) &gt; 0 then
         modified.XP = math.floor(modified.XP * (1 + (bus.PracticeSeat * 0.05)))
     end
-    if (bus.MerchBox or 0) > 0 then
+    if (bus.MerchBox or 0) &gt; 0 then
         modified.Fans = math.floor(modified.Fans * (1 + (bus.MerchBox * 0.05)))
     end
 
@@ -2774,7 +2774,7 @@ function TourBusService:ApplyRewardModifiers(profile, rewards, isRetry)
 end
 
 return TourBusService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX44"><Properties><string name="Name">UpgradeService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX44"><Properties><string name="Name">UpgradeService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local UpgradeConfig = require(ReplicatedStorage.Shared.UpgradeConfig)
@@ -2797,7 +2797,7 @@ function UpgradeService:GetCost(profile, upgradeId)
     if not info then
         return nil
     end
-    if current >= info.max then
+    if current &gt;= info.max then
         return nil
     end
     return UpgradeConfig.GetCost(upgradeId, current)
@@ -2815,7 +2815,7 @@ function UpgradeService:PurchaseUpgrade(player, upgradeId)
     end
 
     local current = self:GetUpgradeLevel(profile, upgradeId)
-    if current >= info.max then
+    if current &gt;= info.max then
         return false, "CapReached"
     end
 
@@ -2868,7 +2868,7 @@ function UpgradeService:GetSessionBonus(profile, mode)
 end
 
 return UpgradeService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX45"><Properties><string name="Name">VenueService</string><ProtectedString name="Source"><![CDATA[local ReplicatedStorage = game:GetService("ReplicatedStorage")
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX45"><Properties><string name="Name">VenueService</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EconomyConfig = require(ReplicatedStorage.Shared.EconomyConfig)
 local VenueConfig = require(ReplicatedStorage.Shared.VenueConfig)
@@ -2903,7 +2903,7 @@ function VenueService:GetVenueName(venueId)
 end
 
 return VenueService
-]]></ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX56"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX54"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX48"><Properties><string name="Name">AudienceClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX56"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX54"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX48"><Properties><string name="Name">AudienceClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
@@ -2967,7 +2967,7 @@ local function updateVisibility()
     if zone and root then
         local localPoint = zone.CFrame:PointToObjectSpace(root.Position)
         local half = zone.Size * 0.5
-        watching = math.abs(localPoint.X) <= half.X and math.abs(localPoint.Y) <= half.Y + 5 and math.abs(localPoint.Z) <= half.Z
+        watching = math.abs(localPoint.X) &lt;= half.X and math.abs(localPoint.Y) &lt;= half.Y + 5 and math.abs(localPoint.Z) &lt;= half.Z
     end
     panel.Visible = watching and not UserInputService.TouchEnabled or watching
 end
@@ -2985,7 +2985,7 @@ remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
         title.Text = "Audience: " .. tostring(equipped.AudiencePacks)
     end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX49"><Properties><string name="Name">DataClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX49"><Properties><string name="Name">DataClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -3155,7 +3155,7 @@ end
 remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
     if snapshot then update(snapshot) end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX50"><Properties><string name="Name">InputController</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX50"><Properties><string name="Name">InputController</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -3255,7 +3255,7 @@ channel.Event:Connect(function(payload, legacySource)
         end
     end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX51"><Properties><string name="Name">RhythmClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX51"><Properties><string name="Name">RhythmClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -3426,6 +3426,37 @@ judgement.TextTransparency = 1
 
 local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
+local noteLegend = Instance.new("Frame")
+noteLegend.Name = "AlwaysVisibleNoteLegend"
+noteLegend.Size = UDim2.new(0, 270, 0, 150)
+noteLegend.Position = UDim2.new(1, -292, 0, 104)
+noteLegend.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+noteLegend.BackgroundTransparency = 0.08
+noteLegend.Parent = root
+corner(noteLegend, 16)
+stroke(noteLegend, Color3.fromRGB(255, 230, 120), 2)
+makeLabel(noteLegend, "LegendTitle", "NOTES / KEYS", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
+local legendNames = { "Blue note", "Green note", "Gold note", "Pink note" }
+for lane = 1, 4 do
+    local chip = Instance.new("Frame")
+    chip.Name = "Lane" .. lane .. "Legend"
+    chip.Size = UDim2.new(1, -20, 0, 24)
+    chip.Position = UDim2.new(0, 10, 0, 34 + ((lane - 1) * 27))
+    chip.BackgroundTransparency = 1
+    chip.Parent = noteLegend
+
+    local dot = Instance.new("Frame")
+    dot.Name = "Color"
+    dot.Size = UDim2.new(0, 22, 0, 22)
+    dot.Position = UDim2.new(0, 0, 0, 1)
+    dot.BackgroundColor3 = laneColors[lane]
+    dot.Parent = chip
+    corner(dot, 7)
+
+    local text = makeLabel(chip, "Text", string.format("%s  =  %s", laneKeys[lane], legendNames[lane]), UDim2.new(1, -32, 1, 0), UDim2.new(0, 32, 0, 0), Color3.fromRGB(235, 245, 255), Enum.Font.GothamBold)
+    text.TextXAlignment = Enum.TextXAlignment.Left
+end
+
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
 songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3554,11 +3585,24 @@ local songMeta = {
     MallBalladButWrong = { difficulty = "Hard", description = "Awkward pauses and cursed timing.", reward = "~100 Fans / 75 Coins / 120 XP" },
 }
 
+local pendingStartToken = 0
+local openSongSelect
+
 local function startSong(songId)
     state.lastSongId = songId
     results.Visible = false
     songSelect.Visible = false
+    pendingStartToken = pendingStartToken + 1
+    local token = pendingStartToken
+    songInfo.Text = "Starting song...\n" .. tostring(songId)
+    showJudgement("Starting...", Color3.fromRGB(255, 245, 150))
     remotes.StartSongRequest:FireServer({ songId = songId, mode = state.lastMode, venueId = state.lastVenueId })
+    task.delay(4, function()
+        if token == pendingStartToken and not state.active and not results.Visible then
+            songInfo.Text = "Start did not complete\nPick a song again or use the stage mic."
+            openSongSelect()
+        end
+    end)
 end
 
 local function buildSongCards()
@@ -3585,11 +3629,22 @@ end
 
 buildSongCards()
 
-local function openSongSelect()
+function openSongSelect()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
+    songInfo.Text = "Choose a song\nStart with Neon Groan if new."
 end
+
+local function consumeOpenSongSelectAttribute()
+    if screenGui:GetAttribute("OpenSongSelect") then
+        screenGui:SetAttribute("OpenSongSelect", false)
+        openSongSelect()
+    end
+end
+
+screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSelectAttribute)
+consumeOpenSongSelectAttribute()
 
 replayButton.Activated:Connect(function()
     startSong(state.lastSongId)
@@ -3616,7 +3671,7 @@ inputBus.Event:Connect(function(payload)
     for _, note in ipairs(state.notes) do
         if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
-            if delta < bestDelta then
+            if delta &lt; bestDelta then
                 bestDelta = delta
                 targetNote = note
             end
@@ -3643,7 +3698,9 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
         return
     end
 
+    pendingStartToken = pendingStartToken + 1
     state.active = true
+    noteLegend.Visible = false
     state.sessionId = payload.sessionId
     state.song = payload.song
     state.startServerTime = payload.startServerTime or serverNow()
@@ -3696,6 +3753,7 @@ remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
 
 remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
+    noteLegend.Visible = true
     clearNotes()
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}
@@ -3729,7 +3787,7 @@ RunService.PreRender:Connect(function()
         return
     end
     local songTime = serverNow() - state.startServerTime
-    if songTime < 0 then
+    if songTime &lt; 0 then
         judgement.TextTransparency = 0
         judgement.Text = tostring(math.ceil(-songTime))
         judgement.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -3738,7 +3796,7 @@ RunService.PreRender:Connect(function()
         local frame = state.noteFrames[note.id]
         if frame then
             local progress = 1 - ((note.time - songTime) / Config.SongFlow.HighwayTravelSeconds)
-            frame.Visible = progress >= -0.05 and progress <= 1.08
+            frame.Visible = progress &gt;= -0.05 and progress &lt;= 1.08
             frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, math.clamp(progress, 0, 1) * 0.78, 0)
         end
     end
@@ -3750,7 +3808,7 @@ task.delay(1.0, function()
         openSongSelect()
     end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX52"><Properties><string name="Name">StageFeedbackClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX52"><Properties><string name="Name">StageFeedbackClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
@@ -3857,7 +3915,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         updateStageColor(visuals.laneFlash or Color3.fromRGB(255, 255, 255))
     end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX53"><Properties><string name="Name">StoreClient</string><bool name="Disabled">false</bool><ProtectedString name="Source"><![CDATA[local Players = game:GetService("Players")
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX53"><Properties><string name="Name">StoreClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
@@ -3889,7 +3947,7 @@ gui:ClearAllChildren()
 
 local openButton=button(gui,"Store / Upgrades",UDim2.new(0,190,0,46),UDim2.new(1,-210,1,-64),Color3.fromRGB(170,95,255))
 local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.5,0);panel.Size=UDim2.new(0,820,0,540);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
-local title=label(panel,"Store & Upgrades",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
+local title=label(panel,"Store &amp; Upgrades",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
 local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
 local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,180,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
@@ -3922,7 +3980,7 @@ local function equipped(category,id)
     return snapshot.Equipped and snapshot.Equipped[category]==id
 end
 local function canAfford(currency,cost)
-    return cost<=0 or ((snapshot[currency] or 0) >= cost)
+    return cost&lt;=0 or ((snapshot[currency] or 0) &gt;= cost)
 end
 local function clearList() for _,c in ipairs(list:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end end
 local function card(y,titleText,desc,cost,currency,badge,onBuy,onEquip,buyText,equipText,affordable)
@@ -3936,14 +3994,14 @@ end
 
 local function render()
     wallet.Text=string.format("Coins %d • Fans %d • Tickets %d",snapshot.Coins or 0,snapshot.Fans or 0,snapshot.Tickets or 0)
-    title.Text="Store & Upgrades — "..currentTab
+    title.Text="Store &amp; Upgrades — "..currentTab
     clearList()
     if currentTab=="Upgrades" then
         for i,u in ipairs(upgrades) do
             local id,name,desc,cost,tag=table.unpack(u)
             local lvl=(snapshot.Upgrades and snapshot.Upgrades[id]) or 0
             local finalCost=math.floor(cost*(1.35^lvl))
-            card((i-1)*128,name,"Level "..lvl.." / 5\n"..desc,finalCost,"Coins",tag,function() remotes.PurchaseItem:FireServer({category="GameplayUpgrades",itemId=id}) end,nil,lvl>=5 and "Maxed" or "Buy Upgrade",nil,canAfford("Coins",finalCost))
+            card((i-1)*128,name,"Level "..lvl.." / 5\n"..desc,finalCost,"Coins",tag,function() remotes.PurchaseItem:FireServer({category="GameplayUpgrades",itemId=id}) end,nil,lvl&gt;=5 and "Maxed" or "Buy Upgrade",nil,canAfford("Coins",finalCost))
         end
         list.CanvasSize=UDim2.new(0,0,0,#upgrades*128+20)
     elseif currentTab=="Missions" then
@@ -3975,5 +4033,5 @@ gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Op
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
 render()
-]]></ProtectedString></Properties></Item></Item><Item class="StarterCharacterScripts" referent="RBX55"><Properties><string name="Name">StarterCharacterScripts</string></Properties></Item></Item><Item class="StarterGui" referent="RBX63"><Properties><string name="Name">StarterGui</string></Properties><Item class="Folder" referent="RBX57"><Properties><string name="Name">RhythmGui</string></Properties></Item><Item class="Folder" referent="RBX58"><Properties><string name="Name">AudienceGui</string></Properties></Item><Item class="Folder" referent="RBX59"><Properties><string name="Name">StoreGui</string></Properties></Item><Item class="Folder" referent="RBX60"><Properties><string name="Name">UpgradeGui</string></Properties></Item><Item class="Folder" referent="RBX61"><Properties><string name="Name">MissionsGui</string></Properties></Item><Item class="Folder" referent="RBX62"><Properties><string name="Name">ProfileGui</string></Properties></Item></Item><Item class="Workspace" referent="RBX68"><Properties><string name="Name">Workspace</string></Properties><Item class="Camera" referent="RBX64"><Properties><string name="Name">Camera</string></Properties></Item><Item class="Terrain" referent="RBX65"><Properties><string name="Name">Terrain</string></Properties></Item><Item class="Folder" referent="RBX66"><Properties><string name="Name">Stage</string></Properties></Item><Item class="Folder" referent="RBX67"><Properties><string name="Name">TourBus</string></Properties></Item></Item></Item>
+</ProtectedString></Properties></Item></Item><Item class="StarterCharacterScripts" referent="RBX55"><Properties><string name="Name">StarterCharacterScripts</string></Properties></Item></Item><Item class="StarterGui" referent="RBX63"><Properties><string name="Name">StarterGui</string></Properties><Item class="Folder" referent="RBX57"><Properties><string name="Name">RhythmGui</string></Properties></Item><Item class="Folder" referent="RBX58"><Properties><string name="Name">AudienceGui</string></Properties></Item><Item class="Folder" referent="RBX59"><Properties><string name="Name">StoreGui</string></Properties></Item><Item class="Folder" referent="RBX60"><Properties><string name="Name">UpgradeGui</string></Properties></Item><Item class="Folder" referent="RBX61"><Properties><string name="Name">MissionsGui</string></Properties></Item><Item class="Folder" referent="RBX62"><Properties><string name="Name">ProfileGui</string></Properties></Item></Item><Item class="Workspace" referent="RBX68"><Properties><string name="Name">Workspace</string></Properties><Item class="Camera" referent="RBX64"><Properties><string name="Name">Camera</string></Properties></Item><Item class="Terrain" referent="RBX65"><Properties><string name="Name">Terrain</string></Properties></Item><Item class="Folder" referent="RBX66"><Properties><string name="Name">Stage</string></Properties></Item><Item class="Folder" referent="RBX67"><Properties><string name="Name">TourBus</string></Properties></Item></Item></Item>
 </roblox>
