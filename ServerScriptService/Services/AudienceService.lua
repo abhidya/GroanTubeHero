@@ -88,7 +88,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
     elseif action == "Laugh" then
         rewardFans = 1
         rewardXP = 1
-        hypeBoost = -1
+        hypeBoost = 0
     elseif action == "Support" then
         rewardFans = 4
         rewardXP = 2

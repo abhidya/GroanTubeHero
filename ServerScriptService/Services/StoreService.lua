@@ -43,21 +43,8 @@ function StoreService:PurchaseItem(player, category, itemId)
     if category == "GameplayUpgrades" then
         return self.context.Services.UpgradeService:PurchaseUpgrade(player, itemId)
     end
-
-    if category == "VIP" and itemId == "VIPPass" then
-        if data.VIP then
-            return true, "AlreadyVIP"
-        end
-        data.VIP = true
-        data.SongUnlocks = data.SongUnlocks or {}
-        data.SongUnlocks.Downloads = true
-        data.OwnedCosmetics = data.OwnedCosmetics or {}
-        data.OwnedCosmetics.Buffs = data.OwnedCosmetics.Buffs or {}
-        data.OwnedCosmetics.Buffs.DeepBreath = true
-        data.OwnedCosmetics.Buffs.CrowdCall = true
-        self.context.Services.DataService:SavePlayer(player)
-        self.context.Services.DataService:UpdateProfile(player, function(profile) return profile end)
-        return true, "VIPUnlocked"
+    if category == "TourBus" then
+        return self.context.Services.TourBusService:PurchaseUpgrade(player, itemId)
     end
 
     local item = CosmeticConfig.Get(category, itemId)

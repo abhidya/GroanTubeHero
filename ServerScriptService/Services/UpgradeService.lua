@@ -80,8 +80,8 @@ function UpgradeService:GetSessionBonus(profile, mode)
 
     profile.Upgrades = profile.Upgrades or {}
     return {
-        goodWindow = (profile.Upgrades.Timing or 0) * 0.01,
-        hypeGain = (profile.Upgrades.HypeGain or 0) * 0.08,
+        goodWindow = (profile.Upgrades.Timing or 0) * 0.005,
+        hypeGain = (profile.Upgrades.HypeGain or 0) * 0.05,
         recovery = (profile.Upgrades.Recovery or 0) * 0.10,
         stagecraft = (profile.Upgrades.Stagecraft or 0) * 0.08,
         chaos = (profile.Upgrades.Chaos or 0) * 0.10,

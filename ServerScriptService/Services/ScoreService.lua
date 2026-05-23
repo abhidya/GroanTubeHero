@@ -89,9 +89,6 @@ function ScoreService:GetMissDamage(profile, session)
     if session.modifiers and session.modifiers.voiceCrack then
         damage = damage * 1.25
     end
-    if profile.VIP then
-        damage = damage * 0.75
-    end
     if session.mode == Config.Modes.Battle then
         damage = damage * 1.15
     end

@@ -69,9 +69,6 @@ end
 function SongSessionService:_createSession(player, payload)
     local requestedSongId = payload.songId or Config.DefaultSongId
     local profile = self.context.Services.DataService:GetProfile(player)
-    if tostring(requestedSongId):match("^DownloadSong") and profile and not profile.VIP and not (profile.SongUnlocks and profile.SongUnlocks.Downloads) then
-        requestedSongId = Config.DefaultSongId
-    end
     local song = SongCatalog.Get(requestedSongId)
     local sessionId = self:_buildSessionId(player, song.Id)
     local notesById, noteOrder = self:_attachNotes(song)
@@ -96,7 +93,6 @@ function SongSessionService:_createSession(player, payload)
         judgedNotes = 0,
         modifiers = {},
         lastActionAt = now(),
-        reviveAvailable = profile and profile.VIP == true,
     }
 
     session.GetSongTime = function()
@@ -242,24 +238,6 @@ function SongSessionService:NoteHit(player, payload)
     end
 
     return true, judgement
-end
-
-function SongSessionService:ReviveSong(player)
-    local session = self:GetSession(player)
-    if not session or not session.songId then
-        return false, "NoSession"
-    end
-    local profile = self.context.Services.DataService:GetProfile(player)
-    if not profile then
-        return false, "NoProfile"
-    end
-    if not (profile.VIP or (profile.Tickets or 0) > 0) then
-        return false, "NeedTicketOrVIP"
-    end
-    if not profile.VIP then
-        self.context.Services.DataService:SpendCurrency(player, "Tickets", 1)
-    end
-    return self:StartSong(player, { songId = session.songId, mode = session.mode, venueId = session.venueId })
 end
 
 function SongSessionService:UseBuff(player, payload)

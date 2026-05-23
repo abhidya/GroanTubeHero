@@ -116,6 +116,7 @@ local songInfo = makeLabel(topBar, "SongInfo", "Groan Tube Hero\nChoose a song a
 songInfo.TextXAlignment = Enum.TextXAlignment.Left
 local scoreInfo = makeLabel(topBar, "ScoreInfo", "Score 0\nCombo 0  Grade -", UDim2.new(0.30, 0, 1, -12), UDim2.new(0.35, 0, 0, 6), Color3.fromRGB(255, 240, 160), Enum.Font.GothamBlack)
 local hypeInfo = makeLabel(topBar, "HypeInfo", "Hype 0\nDead Room", UDim2.new(0.26, 0, 1, -12), UDim2.new(0.70, 0, 0, 6), Color3.fromRGB(120, 255, 180), Enum.Font.GothamBlack)
+local hudChooseButton = makeButton(root, "HudChooseSong", "Choose Song", UDim2.new(0, 170, 0, 42), UDim2.new(1, -190, 0, 96), Color3.fromRGB(170, 95, 255))
 
 local highway = Instance.new("Frame")
 highway.Name = "NoteHighway"
@@ -129,12 +130,7 @@ corner(highway, 18)
 stroke(highway, Color3.fromRGB(120, 210, 255), 3)
 
 local laneX = {0.125, 0.375, 0.625, 0.875}
-local laneKeys = {
-    Config.Lanes[1].symbol or Config.Lanes[1].key,
-    Config.Lanes[2].symbol or Config.Lanes[2].key,
-    Config.Lanes[3].symbol or Config.Lanes[3].key,
-    Config.Lanes[4].symbol or Config.Lanes[4].key,
-}
+local laneKeys = { "D", "F", "J", "K" }
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -172,7 +168,7 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit ←  →  ↑  ↓  •  Movement locks while songs play  •  Survive with HP!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -217,7 +213,7 @@ songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
 makeLabel(songSelect, "Title", "Song List", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-makeLabel(songSelect, "Subtitle", "VIP unlocks all downloaded tracks. Upload owned audio IDs to hear them in Roblox.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+makeLabel(songSelect, "Subtitle", "Pick a stage song. Visual charts work even without uploaded audio assets.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local songList = Instance.new("ScrollingFrame")
 songList.Name = "SongCards"
 songList.BackgroundTransparency = 1
@@ -244,12 +240,13 @@ results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
-local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -120), UDim2.new(0, 20, 0, 20), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -130), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
 local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
-local upgradeButton = makeButton(results, "UpgradeButton", "Open Upgrades", UDim2.new(0, 160, 0, 48), UDim2.new(0, 330, 1, -70), Color3.fromRGB(255, 175, 70))
-local reviveButton = makeButton(results, "ReviveButton", "Revive", UDim2.new(0, 100, 0, 48), UDim2.new(0, 500, 1, -70), Color3.fromRGB(255, 95, 120))
-reviveButton.Visible = false
+local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
+local upgradeButton = makeButton(results, "UpgradeButton", "Upgrades", UDim2.new(0, 120, 0, 48), UDim2.new(0, 456, 1, -70), Color3.fromRGB(255, 175, 70))
+local missionsButton = makeButton(results, "MissionsButton", "Missions", UDim2.new(0, 112, 0, 40), UDim2.new(0, 28, 1, -118), Color3.fromRGB(120, 200, 95))
+local busButton = makeButton(results, "TourBusButton", "Tour Bus", UDim2.new(0, 124, 0, 40), UDim2.new(0, 152, 1, -118), Color3.fromRGB(90, 210, 220))
 
 local state = {
     active = false,
@@ -378,7 +375,7 @@ local songMeta = {
 }
 
 local pendingStartToken = 0
-local playerSnapshot = { VIP = false, SongUnlocks = {} }
+local playerSnapshot = {}
 local openSongSelect
 
 local function startSong(songId)
@@ -405,7 +402,7 @@ local function buildSongCards()
         end
     end
     for index, song in ipairs(SongCatalog.List()) do
-        local meta = songMeta[song.Id] or { difficulty = tostring(song.Id):match("^DownloadSong") and "Imported" or "Normal", description = song.LocalAudioPath and "Generated from downloads/mp3." or "Placeholder groan chart.", reward = "Rewards after song" }
+        local meta = songMeta[song.Id] or { difficulty = "Normal", description = "Stage performance chart.", reward = "Rewards after song" }
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
         card.LayoutOrder = index
@@ -417,14 +414,9 @@ local function buildSongCards()
         makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 46), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 60), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Desc", meta.description .. "\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 72), UDim2.new(0, 10, 0, 92), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
-        local locked = tostring(song.Id):match("^DownloadSong") and not (playerSnapshot.VIP or (playerSnapshot.SongUnlocks and playerSnapshot.SongUnlocks.Downloads))
-        local start = makeButton(card, "StartButton", locked and "VIP Unlock" or "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), locked and Color3.fromRGB(255, 175, 70) or (laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255)))
+        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
         start.Activated:Connect(function()
-            if locked then
-                openStore("VIP")
-            else
-                startSong(song.Id)
-            end
+            startSong(song.Id)
         end)
     end
 end
@@ -447,17 +439,28 @@ end
 
 screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSelectAttribute)
 consumeOpenSongSelectAttribute()
+if remotes:FindFirstChild("OpenSongSelect") then
+    remotes.OpenSongSelect.OnClientEvent:Connect(function()
+        openSongSelect()
+    end)
+end
 
 replayButton.Activated:Connect(function()
     startSong(state.lastSongId)
 end)
 chooseButton.Activated:Connect(openSongSelect)
+hudChooseButton.Activated:Connect(openSongSelect)
 upgradeButton.Activated:Connect(function()
     openStore("Upgrades")
 end)
-reviveButton.Activated:Connect(function()
-    results.Visible = false
-    remotes.ReviveSong:FireServer()
+missionsButton.Activated:Connect(function()
+    openStore("Missions")
+end)
+storeButton.Activated:Connect(function()
+    openStore("Tube Sounds")
+end)
+busButton.Activated:Connect(function()
+    openStore("Tour Bus")
 end)
 
 inputBus.Event:Connect(function(payload)
@@ -506,6 +509,7 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
 
     pendingStartToken = pendingStartToken + 1
     state.active = true
+    hudChooseButton.Visible = false
     noteLegend.Visible = false
     state.sessionId = payload.sessionId
     state.song = payload.song
@@ -568,6 +572,7 @@ end)
 
 remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
+    hudChooseButton.Visible = true
     screenGui:SetAttribute("SongActive", false)
     stopSongAudio()
     noteLegend.Visible = true
@@ -592,11 +597,10 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         rewards.Coins or 0,
         rewards.XP or 0,
         rewards.Tickets or 0,
-        summary.downed and "HP hit 0. Revive with 1 Ticket, or VIP revives free and takes less damage." or "Next: Buy Timing, Hype Gain, Recovery, or Coin Bonus upgrades!"
+        "Next: Claim mission rewards, buy Timing, or upgrade the Tour Bus."
     )
-    reviveButton.Visible = summary.downed == true
     results.Visible = true
-    songInfo.Text = summary.downed and "Song failed — HP reached 0\nRevive, retry, or upgrade." or "Song complete\nReplay, choose another song, or upgrade."
+    songInfo.Text = summary.downed and "Song failed — stage stability hit 0\nRetry or buy upgrades." or "Song complete\nReplay, choose another song, or upgrade."
 end)
 
 RunService.PreRender:Connect(function()

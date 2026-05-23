@@ -9,10 +9,10 @@ Config.Modes = {
 }
 
 Config.Lanes = {
-    { index = 1, key = "Left", symbol = "←", name = "Left" },
-    { index = 2, key = "Right", symbol = "→", name = "Right" },
-    { index = 3, key = "Up", symbol = "↑", name = "Up" },
-    { index = 4, key = "Down", symbol = "↓", name = "Down" },
+    { index = 1, key = "D", symbol = "D", name = "Left" },
+    { index = 2, key = "F", symbol = "F", name = "InnerLeft" },
+    { index = 3, key = "J", symbol = "J", name = "InnerRight" },
+    { index = 4, key = "K", symbol = "K", name = "Right" },
 }
 
 Config.Judgement = {
@@ -81,8 +81,9 @@ Config.RemoteNames = {
     "AudienceAction",
     "PurchaseItem",
     "EquipItem",
+    "ClaimMission",
     "DataSnapshot",
-    "ReviveSong",
+    "OpenSongSelect",
 }
 
 Config.DefaultProfile = {
@@ -93,7 +94,6 @@ Config.DefaultProfile = {
     Coins = 0,
     Tickets = 0,
     GroanTokens = 0,
-    VIP = false,
     BestScores = {
         Career = {},
         Pure = {},
@@ -140,9 +140,6 @@ Config.DefaultProfile = {
     SessionHistory = {
         Career = {},
         Pure = {},
-    },
-    SongUnlocks = {
-        Downloads = false,
     },
 }
 

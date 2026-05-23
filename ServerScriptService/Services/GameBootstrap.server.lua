@@ -151,9 +151,12 @@ local function wirePrompt(context)
     local promptPart = stage:WaitForChild("StartPrompt")
     local prompt = promptPart:WaitForChild("ProximityPrompt")
     prompt.Triggered:Connect(function(player)
-        -- Prompt opens song select on the client; the server still starts songs only
-        -- after StartSongRequest and server-side validation.
-        context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
+        -- Dedicated song-select remote; keep StartSong fallback for older clients.
+        if context.Remotes.OpenSongSelect then
+            context.Remotes.OpenSongSelect:FireClient(player)
+        else
+            context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
+        end
     end)
 end
 
@@ -240,9 +243,12 @@ local function wireRemotes(context)
         context.Services.StoreService:EquipItem(player, payload and payload.category, payload and payload.itemId)
     end)
 
-    context.Remotes.ReviveSong.OnServerEvent:Connect(function(player)
-        context.Services.SongSessionService:ReviveSong(player)
-    end)
+    if context.Remotes.ClaimMission then
+        context.Remotes.ClaimMission.OnServerEvent:Connect(function(player, payload)
+            context.Services.MissionService:ClaimMission(player, payload and payload.missionId)
+        end)
+    end
+
 end
 
 local function makeClientReadmeString()
