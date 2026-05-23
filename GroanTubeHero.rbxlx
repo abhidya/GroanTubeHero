@@ -791,6 +791,9 @@ local context = nil
 local buckets = {}
 
 local function now()
+    if workspace.GetServerTimeNow then
+        return workspace:GetServerTimeNow()
+    end
     return os.clock()
 end
 
@@ -844,15 +847,18 @@ function AntiExploitService:ValidateNoteHit(player, payload, session)
         return false, "WrongLane"
     end
 
-    local currentTime = session:GetSongTime()
-    if currentTime < -0.05 then
+    -- Session boundaries are absolute server timestamps. Do not compare
+    -- relative song time against these values or every hit will look early.
+    local absoluteNow = now()
+    if absoluteNow < session.startServerTime then
         return false, "BeforeCountdown"
     end
-    if currentTime > (session.song.Duration or 0) + Config.Judgement.AcceptWindow then
+    if absoluteNow > session.endServerTime then
         return false, "AfterSongEnd"
     end
 
-    local offset = currentTime - note.time
+    local songTime = absoluteNow - session.startServerTime
+    local offset = songTime - note.time
     if math.abs(offset) > Config.Judgement.AcceptWindow then
         return false, "OutsideWindow"
     end
