@@ -385,11 +385,7 @@ local function createNote(note)
     state.noteFrames[note.id] = frame
 end
 
-local songMeta = {
-    NeonGroan = { difficulty = "Easy", description = "Learn the basics.", reward = "~45 Fans / 35 Coins / 60 XP" },
-    RomanticTubeDisaster = { difficulty = "Normal", description = "Dramatic groans and big chorus moments.", reward = "~70 Fans / 55 Coins / 85 XP" },
-    MallBalladButWrong = { difficulty = "Hard", description = "Awkward pauses and cursed timing.", reward = "~100 Fans / 75 Coins / 120 XP" },
-}
+local songMeta = {}
 
 local pendingStartToken = 0
 local playerSnapshot = {}
@@ -445,7 +441,7 @@ function openSongSelect()
     songSelect.Visible = true
     results.Visible = false
     setPerformanceUiVisible(false)
-    songInfo.Text = "Choose a song\nStart with Neon Groan if new."
+    songInfo.Text = "Choose a song\nPick any uploaded song to start."
 end
 
 local function consumeOpenSongSelectAttribute()

@@ -1,7 +1,7 @@
 local Config = {}
 
 Config.GameName = "Groan Tube Hero"
-Config.DefaultSongId = "NeonGroan"
+Config.DefaultSongId = "LocalAudioSong001"
 Config.Modes = {
     Career = "Career",
     Pure = "Pure",

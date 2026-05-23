@@ -3,13 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SongCatalog = {}
 
 local shared = ReplicatedStorage:WaitForChild("Shared")
-
-local baseCharts = {
-    require(shared:WaitForChild("Chart_NeonGroan")),
-    require(shared:WaitForChild("Chart_RomanticTubeDisaster")),
-    require(shared:WaitForChild("Chart_MallBalladButWrong")),
-}
-
 local songs = {}
 local seen = {}
 
@@ -19,10 +12,6 @@ local function addSong(song)
     end
     seen[song.Id] = true
     table.insert(songs, song)
-end
-
-for _, song in ipairs(baseCharts) do
-    addSong(song)
 end
 
 local generatedModules = {}
@@ -62,7 +51,7 @@ function SongCatalog.List()
 end
 
 function SongCatalog.GetDefaultSong()
-    return byId.NeonGroan or songs[1]
+    return songs[1]
 end
 
 return SongCatalog

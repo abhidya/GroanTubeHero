@@ -42,7 +42,7 @@ local currentTab="Upgrades"
 local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={},TourBus={},Missions={Daily={},Weekly={}}}
 local tabs={"Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Tour Bus"}
 local items={
-    ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"NeonGroan","Deep Sewer Tube","A glowing drainpipe wail.",120,"Fans","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"},{"RomanticTubeDisaster","Romantic Disaster Tube","Melodrama, but tube-shaped.",140,"Fans","TubeSounds"}},
+    ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"}},
     ["Stage Effects"]={{"DefaultGlow","Default Glow","Plain but dependable.",0,"Coins","StageEffects"},{"PurpleRift","Confetti Burst","A neon pop on big hits.",160,"Fans","StageEffects"},{"ChromeSpark","Smoke Machine Fail","Mostly smoke. Some regret.",180,"Coins","StageEffects"}},
     ["Poses"]={{"HeroPose","Mic Lean","Classic stage confidence.",0,"Coins","AvatarPoses"},{"CrookedBop","Knee Drop","Very committed. Maybe too much.",90,"Coins","AvatarPoses"},{"TubeLegend","Point at Crowd","Announce your cursed greatness.",150,"Fans","AvatarPoses"}},
     ["Audience"]={{"BasicCrowd","Confused Parents","Supportive but worried.",0,"Coins","AudiencePacks"},{"NeonFans","Hyper Kids","Maximum cheering chaos.",140,"Fans","AudiencePacks"},{"MallRegulars","Mall Food Court Crowd","They came for pretzels.",110,"Coins","AudiencePacks"}},
