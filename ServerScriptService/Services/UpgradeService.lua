@@ -54,6 +54,9 @@ function UpgradeService:PurchaseUpgrade(player, upgradeId)
 
     profile.Upgrades[upgradeId] = current + 1
     self.context.Services.DataService:SavePlayer(player)
+    self.context.Services.DataService:UpdateProfile(player, function(updatedProfile)
+        return updatedProfile
+    end)
     return true, {
         upgradeId = upgradeId,
         level = profile.Upgrades[upgradeId],

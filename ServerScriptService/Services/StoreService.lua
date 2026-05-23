@@ -63,6 +63,9 @@ function StoreService:PurchaseItem(player, category, itemId)
     end
     data.OwnedCosmetics[category][itemId] = true
     self.context.Services.DataService:SavePlayer(player)
+    self.context.Services.DataService:UpdateProfile(player, function(profile)
+        return profile
+    end)
     return true, "Purchased"
 end
 
@@ -83,6 +86,9 @@ function StoreService:EquipItem(player, category, itemId)
     data.Equipped = data.Equipped or {}
     data.Equipped[category] = itemId
     self.context.Services.DataService:SavePlayer(player)
+    self.context.Services.DataService:UpdateProfile(player, function(profile)
+        return profile
+    end)
     return true, "Equipped"
 end
 

@@ -53,8 +53,12 @@ function Scoring.GetGrade(percent)
 end
 
 function Scoring.GetAccuracyPercent(state)
+    -- Accuracy/grade must measure judgement quality, not multiplied score.
+    -- Combo multipliers and buffs can push score above the base perfect total,
+    -- but the results screen should still cap a clean run at 100% accuracy.
     local totalPossible = math.max(1, state.totalNotes * Config.Judgement.PerfectScore)
-    return (state.score / totalPossible) * 100
+    local points = state.accuracyPoints or state.score or 0
+    return clamp((points / totalPossible) * 100, 0, 100)
 end
 
 function Scoring.GetHypeTier(hypeValue)

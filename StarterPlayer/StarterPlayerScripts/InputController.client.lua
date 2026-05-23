@@ -68,9 +68,9 @@ local function createMobileButtons()
     return buttonGui
 end
 
-if UserInputService.TouchEnabled then
-    createMobileButtons()
-end
+-- Always create the four large lane buttons. Desktop players get visible hints,
+-- mobile players get tappable controls outside the Roblox thumbstick/jump area.
+createMobileButtons()
 
 ReplicatedStorage:GetAttributeChangedSignal("GroanTubeHeroReady"):Connect(function()
     if UserInputService.TouchEnabled and not buttonGui then

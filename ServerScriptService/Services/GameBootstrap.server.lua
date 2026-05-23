@@ -4,6 +4,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local StarterPlayer = game:GetService("StarterPlayer")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local ProjectReadme = require(ReplicatedStorage.Shared.ProjectReadme)
@@ -48,8 +49,8 @@ end
 
 local function createBillboard(part, text)
     local gui = part:FindFirstChildOfClass("BillboardGui") or Instance.new("BillboardGui")
-    gui.Size = UDim2.new(0, 200, 0, 50)
-    gui.StudsOffset = Vector3.new(0, 3, 0)
+    gui.Size = UDim2.new(0, 260, 0, 70)
+    gui.StudsOffset = Vector3.new(0, 4, 0)
     gui.AlwaysOnTop = true
     gui.Parent = part
     local label = gui:FindFirstChildOfClass("TextLabel") or Instance.new("TextLabel")
@@ -57,8 +58,9 @@ local function createBillboard(part, text)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.Text = text
     label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
+    label.Font = Enum.Font.GothamBlack
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextStrokeTransparency = 0.35
     label.Parent = gui
 end
 
@@ -77,19 +79,19 @@ local function buildMap()
     local startPromptPart = ensurePart(stage, "StartPrompt", Vector3.new(4, 1, 4), CFrame.new(-16, 4.5, -8), Color3.fromRGB(80, 170, 255), Enum.Material.Neon)
     startPromptPart.CanCollide = false
     local prompt = startPromptPart:FindFirstChildOfClass("ProximityPrompt") or Instance.new("ProximityPrompt")
-    prompt.ActionText = "Start Song"
-    prompt.ObjectText = "Groan Tube Hero"
+    prompt.ActionText = "Choose Song"
+    prompt.ObjectText = "START SONG"
     prompt.HoldDuration = 0.5
-    prompt.MaxActivationDistance = 12
+    prompt.MaxActivationDistance = 18
     prompt.Parent = startPromptPart
-    createBillboard(startPromptPart, "Start Prompt")
+    createBillboard(startPromptPart, "START SONG")
 
     local storeKiosk = ensurePart(stage, "StoreKiosk", Vector3.new(5, 8, 5), CFrame.new(14, 7, -6), Color3.fromRGB(120, 255, 180), Enum.Material.SmoothPlastic)
-    createBillboard(storeKiosk, "Store Kiosk")
+    createBillboard(storeKiosk, "STORE")
     local upgradeKiosk = ensurePart(stage, "UpgradeKiosk", Vector3.new(5, 8, 5), CFrame.new(20, 7, -6), Color3.fromRGB(255, 220, 120), Enum.Material.SmoothPlastic)
-    createBillboard(upgradeKiosk, "Upgrade Kiosk")
+    createBillboard(upgradeKiosk, "UPGRADES")
     local missionBoard = ensurePart(stage, "MissionBoard", Vector3.new(6, 9, 1), CFrame.new(26, 7.5, -6), Color3.fromRGB(220, 220, 255), Enum.Material.Wood)
-    createBillboard(missionBoard, "Mission Board")
+    createBillboard(missionBoard, "MISSIONS")
 
     local microphone = ensurePart(stage, "MicrophoneStand", Vector3.new(1, 8, 1), CFrame.new(0, 7, -2), Color3.fromRGB(60, 60, 60), Enum.Material.Metal)
     microphone.CanCollide = false
@@ -113,7 +115,7 @@ local function buildMap()
 
     local venueSigns = ensureFolder(stage, "VenueSigns")
     local sign = ensurePart(venueSigns, "MainSign", Vector3.new(24, 6, 1), CFrame.new(0, 13, -12), Color3.fromRGB(70, 70, 90), Enum.Material.SmoothPlastic)
-    createBillboard(sign, "Groan Tube Hero")
+    createBillboard(sign, "GROAN TUBE HERO")
 
     local crowd = ensureFolder(stage, "Crowd")
     for i = 1, 8 do
@@ -132,7 +134,16 @@ local function buildMap()
         wheel.Shape = Enum.PartType.Cylinder
         wheel.CanCollide = false
     end
-    createBillboard(busBase, "Tour Bus")
+    createBillboard(busBase, "TOUR BUS")
+
+    local pathFolder = ensureFolder(stage, "SpawnPath")
+    for i = 1, 7 do
+        local pad = ensurePart(pathFolder, "ArrowPad" .. i, Vector3.new(5, 0.25, 3), CFrame.new(-34 + i * 4, 3.2, -10 + i), Color3.fromRGB(255, 230, 80), Enum.Material.Neon)
+        pad.CanCollide = false
+        pad.Transparency = 0.15
+    end
+    local audienceSign = ensurePart(stage, "AudienceSign", Vector3.new(8, 5, 1), CFrame.new(-22, 6.5, 18), Color3.fromRGB(80, 170, 255), Enum.Material.SmoothPlastic)
+    createBillboard(audienceSign, "AUDIENCE ZONE")
 end
 
 local function wirePrompt(context)
@@ -140,7 +151,9 @@ local function wirePrompt(context)
     local promptPart = stage:WaitForChild("StartPrompt")
     local prompt = promptPart:WaitForChild("ProximityPrompt")
     prompt.Triggered:Connect(function(player)
-        context.Services.SongSessionService:StartDefaultSong(player)
+        -- Prompt opens song select on the client; the server still starts songs only
+        -- after StartSongRequest and server-side validation.
+        context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
     end)
 end
 
@@ -232,6 +245,35 @@ local function makeClientReadmeString()
     return ProjectReadme
 end
 
+
+local function startStageAtmosphere()
+    local stage = Workspace:FindFirstChild("Stage")
+    if not stage then return end
+    local spotlights = stage:FindFirstChild("Spotlights")
+    local speakerStacks = stage:FindFirstChild("SpeakerStacks")
+    task.spawn(function()
+        while true do
+            if spotlights then
+                for index, lightBase in ipairs(spotlights:GetChildren()) do
+                    local light = lightBase:FindFirstChildOfClass("SpotLight")
+                    if light then
+                        light.Color = Color3.fromHSV((os.clock() * 0.06 + index * 0.17) % 1, 0.65, 1)
+                        light.Brightness = 2 + math.sin(os.clock() * 1.5 + index) * 0.6
+                    end
+                end
+            end
+            if speakerStacks then
+                for _, speaker in ipairs(speakerStacks:GetChildren()) do
+                    if speaker:IsA("BasePart") then
+                        speaker.Size = Vector3.new(3, 8 + math.sin(os.clock() * 3) * 0.25, 3)
+                    end
+                end
+            end
+            task.wait(0.12)
+        end
+    end)
+end
+
 local context = {
     Remotes = {},
     Services = {},
@@ -262,6 +304,7 @@ end)
 
 context.Services.DataService:StartAutosave()
 startServices(context)
+startStageAtmosphere()
 
 RunService.Heartbeat:Connect(function(dt)
     context.Services.SongSessionService:Update(dt)

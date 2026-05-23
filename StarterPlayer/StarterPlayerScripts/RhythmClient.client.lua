@@ -2,23 +2,17 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local SongCatalog = require(ReplicatedStorage.Shared.SongCatalog)
-local ClientState = require(ReplicatedStorage.Shared.ClientState)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
-local inputFolder = playerGui:FindFirstChild("GroanTubeHeroInput") or Instance.new("Folder")
-inputFolder.Name = "GroanTubeHeroInput"
-inputFolder.Parent = playerGui
-
-local laneInput = inputFolder:FindFirstChild("LaneInput") or Instance.new("BindableEvent")
-laneInput.Name = "LaneInput"
-laneInput.Parent = inputFolder
+local function serverNow()
+    return workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock()
+end
 
 local function ensureScreenGui(name)
     local existing = playerGui:FindFirstChild(name)
@@ -34,18 +28,20 @@ local function ensureScreenGui(name)
     return gui
 end
 
-local screenGui = ensureScreenGui("RhythmGui")
-screenGui.Name = "RhythmGui"
-screenGui.IgnoreGuiInset = true
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
-screenGui:SetAttribute("AcceptInput", true)
+local inputFolder = playerGui:FindFirstChild("GroanTubeHeroInput") or Instance.new("Folder")
+inputFolder.Name = "GroanTubeHeroInput"
+inputFolder.Parent = playerGui
+local laneInput = inputFolder:FindFirstChild("LaneInput") or Instance.new("BindableEvent")
+laneInput.Name = "LaneInput"
+laneInput.Parent = inputFolder
 
-local inputBus = screenGui:FindFirstChild("InputBus") or Instance.new("BindableEvent")
+local screenGui = ensureScreenGui("RhythmGui")
+screenGui:SetAttribute("AcceptInput", true)
+screenGui:ClearAllChildren()
+
+local inputBus = Instance.new("BindableEvent")
 inputBus.Name = "InputBus"
 inputBus.Parent = screenGui
-
-ClientState.SetUi(screenGui)
 
 local root = Instance.new("Frame")
 root.Name = "Root"
@@ -53,407 +49,297 @@ root.BackgroundTransparency = 1
 root.Size = UDim2.fromScale(1, 1)
 root.Parent = screenGui
 
-local topBar = Instance.new("Frame")
-topBar.Name = "TopBar"
-topBar.Size = UDim2.new(1, 0, 0, 60)
-topBar.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
-topBar.BackgroundTransparency = 0.15
-topBar.Parent = root
+local scale = Instance.new("UIScale")
+scale.Name = "ResponsiveScale"
+scale.Scale = 1
+scale.Parent = root
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.BackgroundTransparency = 1
-titleLabel.Size = UDim2.new(0.45, 0, 1, 0)
-titleLabel.Position = UDim2.new(0.02, 0, 0, 0)
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextScaled = true
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.Text = "Groan Tube Hero"
-titleLabel.Parent = topBar
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 12)
+    c.Parent = parent
+    return c
+end
 
-local statusLabel = Instance.new("TextLabel")
-statusLabel.BackgroundTransparency = 1
-statusLabel.Size = UDim2.new(0.48, 0, 1, 0)
-statusLabel.Position = UDim2.new(0.5, 0, 0, 0)
-statusLabel.Font = Enum.Font.GothamBold
-statusLabel.TextScaled = true
-statusLabel.TextColor3 = Color3.fromRGB(160, 220, 255)
-statusLabel.Text = "Ready"
-statusLabel.Parent = topBar
+local function stroke(parent, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color or Color3.fromRGB(120, 220, 255)
+    s.Thickness = thickness or 2
+    s.Transparency = 0.15
+    s.Parent = parent
+    return s
+end
 
-local hud = Instance.new("Frame")
-hud.Name = "HUD"
-hud.BackgroundTransparency = 0.2
-hud.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-hud.BorderSizePixel = 0
-hud.Size = UDim2.new(0, 320, 0, 130)
-hud.Position = UDim2.new(0, 18, 0, 74)
-hud.Parent = root
-
-local function makeHudRow(y, name)
+local function makeLabel(parent, name, text, size, pos, color, font)
     local label = Instance.new("TextLabel")
     label.Name = name
     label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1, -16, 0, 24)
-    label.Position = UDim2.new(0, 8, 0, y)
-    label.Font = Enum.Font.Gotham
+    label.Size = size
+    label.Position = pos
+    label.Text = text
+    label.TextColor3 = color or Color3.new(1, 1, 1)
+    label.Font = font or Enum.Font.GothamBold
     label.TextScaled = true
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Text = name .. ": 0"
-    label.Parent = hud
+    label.TextWrapped = true
+    label.Parent = parent
     return label
 end
 
-local scoreLabel = makeHudRow(6, "Score")
-local comboLabel = makeHudRow(32, "Combo")
-local hypeLabel = makeHudRow(58, "Hype")
-local gradeLabel = makeHudRow(84, "Grade")
-local powerLabel = makeHudRow(110, "Power")
+local function makeButton(parent, name, text, size, pos, color)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = size
+    button.Position = pos
+    button.Text = text
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.GothamBlack
+    button.TextScaled = true
+    button.BackgroundColor3 = color or Color3.fromRGB(55, 145, 255)
+    button.AutoButtonColor = true
+    button.Parent = parent
+    corner(button, 12)
+    stroke(button, Color3.fromRGB(255, 255, 255), 1)
+    return button
+end
 
-local noteLayer = Instance.new("Frame")
-noteLayer.Name = "NoteLayer"
-noteLayer.BackgroundTransparency = 1
-noteLayer.Size = UDim2.fromScale(1, 1)
-noteLayer.Parent = root
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, -32, 0, 76)
+topBar.Position = UDim2.new(0, 16, 0, 12)
+topBar.BackgroundColor3 = Color3.fromRGB(10, 12, 24)
+topBar.BackgroundTransparency = 0.08
+topBar.Parent = root
+corner(topBar, 14)
+stroke(topBar, Color3.fromRGB(80, 225, 255), 2)
+
+local songInfo = makeLabel(topBar, "SongInfo", "Groan Tube Hero\nChoose a song at the stage mic", UDim2.new(0.30, 0, 1, -12), UDim2.new(0, 12, 0, 6), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+songInfo.TextXAlignment = Enum.TextXAlignment.Left
+local scoreInfo = makeLabel(topBar, "ScoreInfo", "Score 0\nCombo 0  Grade -", UDim2.new(0.30, 0, 1, -12), UDim2.new(0.35, 0, 0, 6), Color3.fromRGB(255, 240, 160), Enum.Font.GothamBlack)
+local hypeInfo = makeLabel(topBar, "HypeInfo", "Hype 0\nDead Room", UDim2.new(0.26, 0, 1, -12), UDim2.new(0.70, 0, 0, 6), Color3.fromRGB(120, 255, 180), Enum.Font.GothamBlack)
 
 local highway = Instance.new("Frame")
-highway.Name = "Highway"
-highway.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
-highway.BackgroundTransparency = 0.15
-highway.BorderSizePixel = 0
+highway.Name = "NoteHighway"
 highway.AnchorPoint = Vector2.new(0.5, 0.5)
-highway.Position = UDim2.new(0.52, 0, 0.5, 0)
-highway.Size = UDim2.new(0, 420, 0, 440)
-highway.Parent = noteLayer
+highway.Position = UDim2.new(0.5, 0, 0.53, 0)
+highway.Size = UDim2.new(0, 500, 0, 500)
+highway.BackgroundColor3 = Color3.fromRGB(14, 14, 28)
+highway.BackgroundTransparency = 0.06
+highway.Parent = root
+corner(highway, 18)
+stroke(highway, Color3.fromRGB(120, 210, 255), 3)
 
-local hitLine = Instance.new("Frame")
-hitLine.Name = "HitLine"
-hitLine.BorderSizePixel = 0
-hitLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-hitLine.BackgroundTransparency = 0.15
-hitLine.Position = UDim2.new(0, 0, 0.78, 0)
-hitLine.Size = UDim2.new(1, 0, 0, 4)
-hitLine.Parent = highway
-
-local laneFlashFrame = Instance.new("Frame")
-laneFlashFrame.Name = "LaneFlash"
-laneFlashFrame.BackgroundTransparency = 1
-laneFlashFrame.Size = UDim2.new(1, 0, 1, 0)
-laneFlashFrame.Parent = highway
-
-local noteFrames = {}
-local laneColumns = {
-    UDim2.new(0.02, 0, 0, 0),
-    UDim2.new(0.27, 0, 0, 0),
-    UDim2.new(0.52, 0, 0, 0),
-    UDim2.new(0.77, 0, 0, 0),
+local laneX = {0.125, 0.375, 0.625, 0.875}
+local laneKeys = {"D", "F", "J", "K"}
+local laneColors = {
+    Color3.fromRGB(80, 210, 255),
+    Color3.fromRGB(140, 255, 150),
+    Color3.fromRGB(255, 215, 80),
+    Color3.fromRGB(255, 110, 210),
 }
+local laneFlashLayer = Instance.new("Frame")
+laneFlashLayer.Name = "LaneFlashLayer"
+laneFlashLayer.BackgroundTransparency = 1
+laneFlashLayer.Size = UDim2.fromScale(1, 1)
+laneFlashLayer.Parent = highway
 
 for lane = 1, 4 do
     local laneFrame = Instance.new("Frame")
     laneFrame.Name = "Lane" .. lane
-    laneFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    laneFrame.BackgroundTransparency = 0.35
-    laneFrame.BorderSizePixel = 0
-    laneFrame.Size = UDim2.new(0.21, 0, 1, 0)
-    laneFrame.Position = laneColumns[lane]
+    laneFrame.Size = UDim2.new(0.23, 0, 1, -18)
+    laneFrame.Position = UDim2.new((lane - 1) * 0.25 + 0.0125, 0, 0, 9)
+    laneFrame.BackgroundColor3 = Color3.fromRGB(28, 30, 50)
+    laneFrame.BackgroundTransparency = 0.12
     laneFrame.Parent = highway
+    corner(laneFrame, 12)
+    makeLabel(laneFrame, "Key", laneKeys[lane], UDim2.new(1, 0, 0, 42), UDim2.new(0, 0, 1, -46), laneColors[lane], Enum.Font.GothamBlack)
 end
 
-local judgementBanner = Instance.new("TextLabel")
-judgementBanner.Name = "Judgement"
-judgementBanner.BackgroundTransparency = 1
-judgementBanner.AnchorPoint = Vector2.new(0.5, 0.5)
-judgementBanner.Position = UDim2.new(0.52, 0, 0.25, 0)
-judgementBanner.Size = UDim2.new(0, 400, 0, 70)
-judgementBanner.Font = Enum.Font.GothamBlack
-judgementBanner.TextScaled = true
-judgementBanner.TextColor3 = Color3.fromRGB(255, 255, 255)
-judgementBanner.TextStrokeTransparency = 0.25
-judgementBanner.Text = ""
-judgementBanner.Parent = noteLayer
+local hitLine = Instance.new("Frame")
+hitLine.Name = "HitLine"
+hitLine.Size = UDim2.new(1, -20, 0, 8)
+hitLine.Position = UDim2.new(0, 10, 0.78, 0)
+hitLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+hitLine.Parent = highway
+corner(hitLine, 4)
+stroke(hitLine, Color3.fromRGB(255, 255, 255), 1)
 
-local resultFrame = Instance.new("Frame")
-resultFrame.Name = "Results"
-resultFrame.Visible = false
-resultFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-resultFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-resultFrame.Size = UDim2.new(0, 420, 0, 320)
-resultFrame.BackgroundColor3 = Color3.fromRGB(16, 16, 28)
-resultFrame.BackgroundTransparency = 0.05
-resultFrame.Parent = root
+local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDim2.new(0.5, -260, 0.16, 0), Color3.new(1, 1, 1), Enum.Font.GothamBlack)
+judgement.TextStrokeTransparency = 0.35
+judgement.TextTransparency = 1
 
-local resultTitle = Instance.new("TextLabel")
-resultTitle.BackgroundTransparency = 1
-resultTitle.Size = UDim2.new(1, -20, 0, 50)
-resultTitle.Position = UDim2.new(0, 10, 0, 10)
-resultTitle.Font = Enum.Font.GothamBlack
-resultTitle.TextScaled = true
-resultTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-resultTitle.Text = "Results"
-resultTitle.Parent = resultFrame
+local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
-local resultText = Instance.new("TextLabel")
-resultText.BackgroundTransparency = 1
-resultText.Size = UDim2.new(1, -20, 0, 180)
-resultText.Position = UDim2.new(0, 10, 0, 60)
-resultText.Font = Enum.Font.Gotham
-resultText.TextWrapped = true
-resultText.TextScaled = true
-resultText.TextColor3 = Color3.fromRGB(220, 220, 240)
-resultText.Text = ""
-resultText.Parent = resultFrame
+local songSelect = Instance.new("Frame")
+songSelect.Name = "SongSelectModal"
+songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
+songSelect.Position = UDim2.new(0.5, 0, 0.5, 0)
+songSelect.Size = UDim2.new(0, 820, 0, 520)
+songSelect.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+songSelect.BackgroundTransparency = 0.02
+songSelect.Visible = false
+songSelect.Parent = root
+corner(songSelect, 22)
+stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
+makeLabel(songSelect, "Title", "Choose Your Cursed Groan", UDim2.new(1, -40, 0, 54), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+makeLabel(songSelect, "Subtitle", "Pick a placeholder song. All tracks run visually even if audio is missing.", UDim2.new(1, -40, 0, 32), UDim2.new(0, 20, 0, 70), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+local songList = Instance.new("Frame")
+songList.Name = "SongCards"
+songList.BackgroundTransparency = 1
+songList.Size = UDim2.new(1, -40, 1, -120)
+songList.Position = UDim2.new(0, 20, 0, 108)
+songList.Parent = songSelect
 
-local replayButton = Instance.new("TextButton")
-replayButton.Text = "Replay"
-replayButton.Size = UDim2.new(0, 140, 0, 48)
-replayButton.Position = UDim2.new(0.5, -150, 1, -64)
-replayButton.BackgroundColor3 = Color3.fromRGB(60, 150, 255)
-replayButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-replayButton.Font = Enum.Font.GothamBlack
-replayButton.TextScaled = true
-replayButton.Parent = resultFrame
+local results = Instance.new("Frame")
+results.Name = "ResultsFrame"
+results.AnchorPoint = Vector2.new(0.5, 0.5)
+results.Position = UDim2.new(0.5, 0, 0.5, 0)
+results.Size = UDim2.new(0, 620, 0, 460)
+results.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+results.BackgroundTransparency = 0.02
+results.Visible = false
+results.Parent = root
+corner(results, 22)
+stroke(results, Color3.fromRGB(255, 230, 120), 3)
+local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -120), UDim2.new(0, 20, 0, 20), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
+local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
+local upgradeButton = makeButton(results, "UpgradeButton", "Open Upgrades", UDim2.new(0, 190, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
 
-local closeButton = Instance.new("TextButton")
-closeButton.Text = "Close"
-closeButton.Size = UDim2.new(0, 140, 0, 48)
-closeButton.Position = UDim2.new(0.5, 10, 1, -64)
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 120, 120)
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.Font = Enum.Font.GothamBlack
-closeButton.TextScaled = true
-closeButton.Parent = resultFrame
-
-local countdownLabel = Instance.new("TextLabel")
-countdownLabel.BackgroundTransparency = 1
-countdownLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-countdownLabel.Position = UDim2.new(0.52, 0, 0.4, 0)
-countdownLabel.Size = UDim2.new(0, 260, 0, 70)
-countdownLabel.Font = Enum.Font.GothamBlack
-countdownLabel.TextScaled = true
-countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-countdownLabel.Text = ""
-countdownLabel.Parent = noteLayer
-
-local songState = {
+local state = {
     active = false,
     sessionId = nil,
     song = nil,
     startServerTime = 0,
-    countdownEndTime = 0,
     endServerTime = 0,
     notes = {},
-    activeNotes = {},
-    noteTemplate = nil,
-    localStart = 0,
-    mode = Config.Modes.Career,
-    replaySongId = Config.DefaultSongId,
-    replayVenueId = "SchoolStage",
-    replayMode = Config.Modes.Career,
+    noteFrames = {},
+    lastSongId = Config.DefaultSongId,
+    lastVenueId = "SchoolStage",
+    lastMode = Config.Modes.Career,
+    score = 0,
+    combo = 0,
+    hype = 0,
+    grade = "-",
 }
 
-local currentSnapshot
-ClientState.SetSnapshot = ClientState.SetSnapshot or function(snapshot)
-    currentSnapshot = snapshot
-end
-ClientState.GetSnapshot = ClientState.GetSnapshot or function()
-    return currentSnapshot
+local function openStore(tab)
+    local storeGui = playerGui:FindFirstChild("StoreGui")
+    if storeGui then
+        storeGui.Enabled = true
+        storeGui:SetAttribute("Open", true)
+        storeGui:SetAttribute("Tab", tab or "Upgrades")
+    end
 end
 
-local function getLocalTime()
-    if workspace.GetServerTimeNow then
-        return workspace:GetServerTimeNow()
-    end
-    return os.clock()
+local function flashLane(lane, color)
+    local flash = Instance.new("Frame")
+    flash.Name = "Flash" .. lane
+    flash.Size = UDim2.new(0.23, 0, 1, -18)
+    flash.Position = UDim2.new((lane - 1) * 0.25 + 0.0125, 0, 0, 9)
+    flash.BackgroundColor3 = color
+    flash.BackgroundTransparency = 0.2
+    flash.Parent = laneFlashLayer
+    corner(flash, 12)
+    TweenService:Create(flash, TweenInfo.new(0.28, Enum.EasingStyle.Quad), { BackgroundTransparency = 1 }):Play()
+    task.delay(0.32, function()
+        if flash then
+            flash:Destroy()
+        end
+    end)
+end
+
+local function showJudgement(text, color)
+    judgement.Text = text
+    judgement.TextColor3 = color
+    judgement.TextTransparency = 0
+    judgement.Size = UDim2.new(0, 520, 0, 82)
+    TweenService:Create(judgement, TweenInfo.new(0.10, Enum.EasingStyle.Back), { Size = UDim2.new(0, 580, 0, 92) }):Play()
+    task.delay(0.10, function()
+        if judgement then
+            TweenService:Create(judgement, TweenInfo.new(0.35), { TextTransparency = 1, Size = UDim2.new(0, 520, 0, 82) }):Play()
+        end
+    end)
+end
+
+local function updateHud(payload)
+    state.score = payload.score or state.score
+    state.combo = payload.combo or state.combo
+    state.hype = payload.hype or state.hype
+    state.grade = payload.grade or state.grade
+    scoreInfo.Text = string.format("Score %d\nCombo %d  Grade %s", state.score, state.combo, state.grade)
+    hypeInfo.Text = string.format("Hype %d\n%s", state.hype, payload.hypeTier or "Build the crowd")
 end
 
 local function clearNotes()
-    for _, frame in pairs(noteFrames) do
+    for _, frame in pairs(state.noteFrames) do
         frame:Destroy()
     end
-    noteFrames = {}
+    state.noteFrames = {}
 end
 
-local function createNoteFrame(note)
+local function createNote(note)
     local frame = Instance.new("Frame")
     frame.Name = note.id
-    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    frame.BorderSizePixel = 0
-    frame.Size = UDim2.new(0.18, 0, 0, 26)
+    frame.Size = UDim2.new(0.18, 0, 0, 30)
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = laneColors[note.lane] or Color3.new(1, 1, 1)
+    frame.Visible = false
     frame.Parent = highway
-
-    local bar = Instance.new("TextLabel")
-    bar.BackgroundTransparency = 1
-    bar.Size = UDim2.fromScale(1, 1)
-    bar.Font = Enum.Font.GothamBold
-    bar.TextScaled = true
-    bar.TextColor3 = Color3.fromRGB(20, 20, 20)
-    bar.Text = tostring(note.lane)
-    bar.Parent = frame
-    noteFrames[note.id] = frame
-    return frame
+    corner(frame, 10)
+    stroke(frame, Color3.fromRGB(255, 255, 255), 1)
+    makeLabel(frame, "Lane", laneKeys[note.lane] or tostring(note.lane), UDim2.fromScale(1, 1), UDim2.fromScale(0, 0), Color3.fromRGB(10, 12, 24), Enum.Font.GothamBlack)
+    state.noteFrames[note.id] = frame
 end
 
-local function setStatus(message)
-    statusLabel.Text = message
+local songMeta = {
+    NeonGroan = { difficulty = "Easy", description = "Learn the basics.", reward = "~45 Fans / 35 Coins / 60 XP" },
+    RomanticTubeDisaster = { difficulty = "Normal", description = "Dramatic groans and big chorus moments.", reward = "~70 Fans / 55 Coins / 85 XP" },
+    MallBalladButWrong = { difficulty = "Hard", description = "Awkward pauses and cursed timing.", reward = "~100 Fans / 75 Coins / 120 XP" },
+}
+
+local function startSong(songId)
+    state.lastSongId = songId
+    results.Visible = false
+    songSelect.Visible = false
+    remotes.StartSongRequest:FireServer({ songId = songId, mode = state.lastMode, venueId = state.lastVenueId })
 end
 
-local function flashLane(lane, color, intensity)
-    local frame = Instance.new("Frame")
-    frame.BackgroundColor3 = color
-    frame.BackgroundTransparency = 1 - intensity
-    frame.BorderSizePixel = 0
-    frame.Size = UDim2.new(0.21, 0, 1, 0)
-    frame.Position = laneColumns[lane]
-    frame.Parent = laneFlashFrame
-    TweenService:Create(frame, TweenInfo.new(0.25), { BackgroundTransparency = 1 }):Play()
-    task.delay(0.3, function()
-        if frame then
-            frame:Destroy()
-        end
-    end)
-end
-
-local function judgementText(judgement)
-    if judgement == "Perfect" then
-        return "PERFECT GROAN"
-    elseif judgement == "Good" then
-        return "GOOD GROAN"
-    elseif judgement == "Miss" then
-        return "MISSED"
-    end
-    return judgement
-end
-
-local function showJudgement(judgement, color)
-    judgementBanner.Text = judgementText(judgement)
-    judgementBanner.TextColor3 = color
-    local tween = TweenService:Create(judgementBanner, TweenInfo.new(0.15), { TextTransparency = 0 })
-    judgementBanner.TextTransparency = 1
-    tween:Play()
-    task.delay(0.5, function()
-        if judgementBanner then
-            judgementBanner.TextTransparency = 1
-        end
-    end)
-end
-
-local function updateHud(state)
-    scoreLabel.Text = string.format("Score: %d", state.score or 0)
-    comboLabel.Text = string.format("Combo: %d x%.2f", state.combo or 0, state.multiplier or 1)
-    hypeLabel.Text = string.format("Hype: %d", state.hype or 0)
-    gradeLabel.Text = string.format("Grade: %s", state.grade or "-")
-    powerLabel.Text = string.format("Power: %d", state.power or 0)
-end
-
-local function rebuildNotes(song)
-    clearNotes()
-    songState.notes = song.Notes or {}
-    songState.activeNotes = {}
-    for _, note in ipairs(songState.notes) do
-        createNoteFrame(note)
+local function buildSongCards()
+    songList:ClearAllChildren()
+    for index, song in ipairs(SongCatalog.List()) do
+        local meta = songMeta[song.Id] or { difficulty = "Normal", description = "Placeholder groan chart.", reward = "Rewards after song" }
+        local card = Instance.new("Frame")
+        card.Name = song.Id .. "Card"
+        card.Size = UDim2.new(0.31, 0, 0.92, 0)
+        card.Position = UDim2.new((index - 1) * 0.345, 0, 0.03, 0)
+        card.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
+        card.Parent = songList
+        corner(card, 18)
+        stroke(card, laneColors[index] or Color3.fromRGB(120, 220, 255), 2)
+        makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 34), UDim2.new(0, 10, 0, 72), laneColors[index] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Desc", meta.description .. "\n\nBest Grade: --\nBest Score: --\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 170), UDim2.new(0, 10, 0, 114), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
+        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 48), UDim2.new(0, 17, 1, -64), laneColors[index] or Color3.fromRGB(55, 145, 255))
+        start.Activated:Connect(function()
+            startSong(song.Id)
+        end)
     end
 end
 
-local function getSongTime()
-    if not songState.active then
-        return 0
-    end
-    return getLocalTime() - songState.startServerTime
+buildSongCards()
+
+local function openSongSelect()
+    buildSongCards()
+    songSelect.Visible = true
+    results.Visible = false
 end
 
-local function applyVisuals(note, judgement, visuals)
-    local color = Color3.fromRGB(255, 255, 255)
-    if judgement == "Perfect" then
-        color = Color3.fromRGB(120, 255, 170)
-        flashLane(note.lane, visuals and visuals.laneFlash or Color3.fromRGB(255, 255, 255), 0.8)
-    elseif judgement == "Good" then
-        color = Color3.fromRGB(120, 180, 255)
-        flashLane(note.lane, visuals and visuals.laneFlash or Color3.fromRGB(255, 255, 255), 0.5)
-    else
-        color = Color3.fromRGB(255, 120, 120)
-    end
-    showJudgement(judgement, color)
-end
-
-local lastState = { score = 0, combo = 0, hype = 0, grade = "-", power = 0, multiplier = 1 }
-
-remotes.StartSong.OnClientEvent:Connect(function(payload)
-    songState.active = true
-    songState.sessionId = payload.sessionId
-    songState.song = payload.song
-    songState.startServerTime = payload.startServerTime or getLocalTime()
-    songState.countdownEndTime = payload.countdownEndTime or songState.startServerTime
-    songState.endServerTime = payload.endServerTime or (songState.startServerTime + (payload.song and payload.song.Duration or 30))
-    songState.mode = payload.mode or Config.Modes.Career
-    songState.replaySongId = payload.song and payload.song.Id or Config.DefaultSongId
-    songState.replayMode = songState.mode
-    songState.replayVenueId = payload.venueId or "SchoolStage"
-    rebuildNotes(payload.song or SongCatalog.Get(Config.DefaultSongId))
-    resultFrame.Visible = false
-    setStatus("Countdown")
-    countdownLabel.Text = "3"
+replayButton.Activated:Connect(function()
+    startSong(state.lastSongId)
 end)
-
-remotes.ScoreUpdate.OnClientEvent:Connect(function(payload)
-    lastState = payload
-    updateHud(payload)
-end)
-
-remotes.NoteJudged.OnClientEvent:Connect(function(payload)
-    local note = nil
-    for _, entry in ipairs(songState.notes) do
-        if entry.id == payload.noteId then
-            note = entry
-            break
-        end
-    end
-    if note then
-        applyVisuals(note, payload.judgement, payload.visuals)
-        local frame = noteFrames[note.id]
-        if frame then
-            frame:Destroy()
-            noteFrames[note.id] = nil
-        end
-    end
-end)
-
-remotes.SongFinished.OnClientEvent:Connect(function(payload)
-    songState.active = false
-    local summary = payload.summary or {}
-    local rewards = payload.rewards or {}
-    resultFrame.Visible = true
-    resultText.Text = string.format(
-        "Song: %s\nGrade: %s\nScore: %d\nMax Combo: %d\nHype: %d\nFans +%d\nCoins +%d\nXP +%d\nTickets +%d",
-        payload.song and payload.song.Title or "Song",
-        summary.grade or "-",
-        summary.score or 0,
-        summary.maxCombo or 0,
-        summary.hype or 0,
-        rewards.Fans or 0,
-        rewards.Coins or 0,
-        rewards.XP or 0,
-        rewards.Tickets or 0
-    )
-    countdownLabel.Text = ""
-    setStatus("Finished")
-end)
-
-local function startReplay()
-    if not songState.replaySongId then
-        return
-    end
-    remotes.StartSongRequest:FireServer({
-        songId = songState.replaySongId,
-        mode = songState.replayMode,
-        venueId = songState.replayVenueId,
-    })
-end
-
-replayButton.Activated:Connect(startReplay)
-closeButton.Activated:Connect(function()
-    resultFrame.Visible = false
+chooseButton.Activated:Connect(openSongSelect)
+upgradeButton.Activated:Connect(function()
+    openStore("Upgrades")
 end)
 
 inputBus.Event:Connect(function(payload)
@@ -463,18 +349,15 @@ inputBus.Event:Connect(function(payload)
     if type(payload) ~= "table" or not payload.lane then
         return
     end
-    if not songState.active then
+    if not state.active or not state.song then
         return
     end
-    local songTime = getSongTime()
-    local lane = payload.lane
-    if not lane then
-        return
-    end
+
+    local songTime = serverNow() - state.startServerTime
     local targetNote = nil
     local bestDelta = math.huge
-    for _, note in ipairs(songState.notes) do
-        if note.lane == lane and not note.hit then
+    for _, note in ipairs(state.notes) do
+        if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
             if delta < bestDelta then
                 bestDelta = delta
@@ -484,50 +367,129 @@ inputBus.Event:Connect(function(payload)
     end
     if targetNote then
         remotes.NoteHit:FireServer({
-            songId = songState.song and songState.song.Id or Config.DefaultSongId,
+            songId = state.song.Id,
             noteId = targetNote.id,
-            lane = lane,
+            lane = payload.lane,
             songTime = songTime,
         })
+    else
+        showJudgement("No note!", Color3.fromRGB(255, 120, 120))
     end
 end)
 
-local countdownStart = 0
+remotes.StartSong.OnClientEvent:Connect(function(payload)
+    if payload and payload.openSongSelect then
+        openSongSelect()
+        return
+    end
+    if type(payload) ~= "table" or not payload.song then
+        return
+    end
+
+    state.active = true
+    state.sessionId = payload.sessionId
+    state.song = payload.song
+    state.startServerTime = payload.startServerTime or serverNow()
+    state.endServerTime = payload.endServerTime or (state.startServerTime + (payload.song.Duration or 30))
+    state.notes = payload.song.Notes or {}
+    state.score = 0
+    state.combo = 0
+    state.hype = 0
+    state.grade = "-"
+    state.lastSongId = payload.song.Id
+    songSelect.Visible = false
+    results.Visible = false
+    clearNotes()
+    for _, note in ipairs(state.notes) do
+        note.hit = false
+        createNote(note)
+    end
+    songInfo.Text = string.format("%s\n%s • %s", payload.song.Title, songMeta[payload.song.Id] and songMeta[payload.song.Id].difficulty or "Normal", payload.venueId or "School Stage")
+    updateHud({ score = 0, combo = 0, hype = 0, grade = "-", hypeTier = "Dead Room" })
+end)
+
+remotes.NoteJudged.OnClientEvent:Connect(function(payload)
+    if type(payload) ~= "table" then
+        return
+    end
+    for _, note in ipairs(state.notes) do
+        if note.id == payload.noteId then
+            note.hit = true
+            break
+        end
+    end
+    local frame = state.noteFrames[payload.noteId]
+    if frame then
+        frame:Destroy()
+        state.noteFrames[payload.noteId] = nil
+    end
+    if payload.lane then
+        flashLane(payload.lane, laneColors[payload.lane] or Color3.new(1, 1, 1))
+    end
+    local color = Color3.fromRGB(255, 120, 120)
+    if payload.judgement == "Perfect" then
+        color = Color3.fromRGB(120, 255, 170)
+    elseif payload.judgement == "Good" then
+        color = Color3.fromRGB(120, 180, 255)
+    end
+    showJudgement(payload.judgement or "Miss", color)
+end)
+
+remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
+
+remotes.SongFinished.OnClientEvent:Connect(function(payload)
+    state.active = false
+    clearNotes()
+    local summary = payload.summary or {}
+    local rewards = payload.rewards or {}
+    local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
+    resultsText.Text = string.format(
+        "%s\nGrade %s%s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\nNext: Buy Timing, Hype Gain, or Coin Bonus upgrades!",
+        payload.song and payload.song.Title or "Song Complete",
+        summary.grade or "-",
+        newBest and "  NEW BEST!" or "",
+        summary.score or 0,
+        summary.accuracyPercent or 0,
+        summary.perfect or 0,
+        summary.good or 0,
+        summary.miss or 0,
+        summary.maxCombo or 0,
+        summary.hype or 0,
+        rewards.Fans or 0,
+        rewards.Coins or 0,
+        rewards.XP or 0,
+        rewards.Tickets or 0
+    )
+    results.Visible = true
+    songInfo.Text = "Song complete\nReplay, choose another song, or upgrade."
+end)
+
 RunService.PreRender:Connect(function()
-    local songTime = getSongTime()
-    if songState.active then
-        local remaining = math.max(0, songState.countdownEndTime - getLocalTime())
-        if remaining > 0 then
-            countdownLabel.Text = tostring(math.ceil(remaining))
-        else
-            countdownLabel.Text = ""
-        end
-        for _, note in ipairs(songState.notes) do
-            local frame = noteFrames[note.id]
-            if frame then
-                local visible = songTime >= (note.time - Config.SongFlow.SpawnLeadSeconds) and songTime <= note.time + 0.65
-                frame.Visible = visible
-                if visible then
-                    local progress = 1 - ((note.time - songTime) / Config.SongFlow.HighwayTravelSeconds)
-                    local y = math.clamp(progress, 0, 1)
-                    local laneX = (laneColumns[note.lane].X.Scale or 0) + 0.095
-                    frame.Position = UDim2.new(laneX, 0, y * 0.78, 0)
-                    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                end
-            end
-        end
-        if getLocalTime() > songState.endServerTime + 1 then
-            setStatus("Song Ended")
-        else
-            setStatus(songState.mode .. " | " .. (songState.song and songState.song.Title or ""))
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.78, 1.15)
+
+    if not state.active or not state.song then
+        return
+    end
+    local songTime = serverNow() - state.startServerTime
+    if songTime < 0 then
+        judgement.TextTransparency = 0
+        judgement.Text = tostring(math.ceil(-songTime))
+        judgement.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+    for _, note in ipairs(state.notes) do
+        local frame = state.noteFrames[note.id]
+        if frame then
+            local progress = 1 - ((note.time - songTime) / Config.SongFlow.HighwayTravelSeconds)
+            frame.Visible = progress >= -0.05 and progress <= 1.08
+            frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, math.clamp(progress, 0, 1) * 0.78, 0)
         end
     end
 end)
 
-remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
-    ClientState.SetSnapshot(snapshot)
-    if snapshot and snapshot.Equipped then
-        local visuals = require(ReplicatedStorage.Shared.CosmeticConfig).GetVisualProfile(snapshot.Equipped)
-        scoreLabel.TextColor3 = visuals.laneFlash or Color3.fromRGB(255, 255, 255)
+-- Give new players a clear first action even before they walk to the prompt.
+task.delay(1.0, function()
+    if screenGui and not state.active then
+        openSongSelect()
     end
 end)
