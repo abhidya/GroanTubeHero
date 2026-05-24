@@ -1,7 +1,7 @@
 local Config = {}
 
 Config.GameName = "Groan Tube Hero"
-Config.DefaultSongId = "NeonGroan"
+Config.DefaultSongId = "LocalAudioSong001"
 Config.Modes = {
     Career = "Career",
     Pure = "Pure",
@@ -9,10 +9,10 @@ Config.Modes = {
 }
 
 Config.Lanes = {
-    { index = 1, key = "D", symbol = "D", name = "D" },
-    { index = 2, key = "F", symbol = "F", name = "F" },
-    { index = 3, key = "J", symbol = "J", name = "J" },
-    { index = 4, key = "K", symbol = "K", name = "K" },
+    { index = 1, key = "Left", symbol = "←", name = "Left" },
+    { index = 2, key = "Right", symbol = "→", name = "Right" },
+    { index = 3, key = "Up", symbol = "↑", name = "Up" },
+    { index = 4, key = "Down", symbol = "↓", name = "Down" },
 }
 
 Config.Difficulties = {
@@ -39,11 +39,16 @@ Config.MissGlitch = {
     lightFlicker = true,
 }
 
+Config.DebugRhythm = false
+Config.ClientHitCandidateWindow = 0.65
+
 Config.Judgement = {
-    PerfectWindow = 0.09,
-    GoodWindow = 0.16,
-    AcceptWindow = 0.25,
-    MissWindow = 0.25,
+    PerfectWindow = 0.16,
+    GoodWindow = 0.30,
+    AcceptWindow = 0.42,
+    LatencyGrace = 0.18,
+    DebugWindow = 0.65,
+    MissWindow = 0.42,
     PerfectScore = 100,
     GoodScore = 50,
     MissScore = 0,
@@ -108,6 +113,7 @@ Config.RemoteNames = {
     "ClaimMission",
     "DataSnapshot",
     "OpenSongSelect",
+    "HordeUpdate",
 }
 
 Config.DefaultProfile = {

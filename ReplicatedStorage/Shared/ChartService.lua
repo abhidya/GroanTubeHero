@@ -146,6 +146,7 @@ function ChartService.BuildPlayableChart(baseSong, difficulty, segmentLength, se
     playable.SegmentMultiplier = segment.rewardMultiplier or 1
     playable.DifficultyMultiplier = ChartService.GetDifficultyConfig(playable.Difficulty).rewardMultiplier or 1
     playable.Duration = segmentDuration or (diffChart.Duration or 30)
+    playable.Offset = 0
     playable.Notes = {}
 
     local count = 0
@@ -159,13 +160,15 @@ function ChartService.BuildPlayableChart(baseSong, difficulty, segmentLength, se
         end
     end
 
-    -- If an extremely sparse chart segment has too few notes, keep the demo playable.
-    if #playable.Notes < 8 then
-        local syntheticCount = playable.Duration <= 20 and 18 or playable.Duration <= 30 and 26 or 34
+    -- If a chart segment is sparse, add deterministic filler so every visible
+    -- local/test song can be played through the selected short segment.
+    local minNotes = math.max(8, math.floor((playable.Duration or 20) * (ChartService.GetDifficultyConfig(playable.Difficulty).densityMultiplier or 1) * 1.15 + 0.5))
+    if #playable.Notes < minNotes then
+        local syntheticCount = minNotes - #playable.Notes
         for i = 1, syntheticCount do
             local base = diffChart.Notes[((i - 1) % math.max(1, #diffChart.Notes)) + 1] or { lane = ((i - 1) % 4) + 1 }
             local n = copyNote(base)
-            n.time = 1 + (i - 1) * math.max(0.45, (playable.Duration - 2) / syntheticCount)
+            n.time = 1 + (i - 1) * math.max(0.45, ((playable.Duration or 20) - 2) / math.max(1, syntheticCount))
             n.lane = ((i - 1) % 4) + 1
             n.id = string.format("%s-fill-%03d", playable.Id, i)
             table.insert(playable.Notes, n)

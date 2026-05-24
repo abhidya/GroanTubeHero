@@ -55,7 +55,7 @@ local function bindLane(name, lane)
             fireLane(lane, "KeyboardAction")
         end
         return Enum.ContextActionResult.Sink
-    end, false, 10000, keyCode)
+    end, false, 10001, keyCode)
 end
 
 for lane = 1, 4 do
@@ -146,7 +146,7 @@ channel.Event:Connect(function(payload, legacySource)
     end
 
     local rhythmClient = playerGui:FindFirstChild("RhythmGui")
-    if rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("AcceptInput") == true then
+    if rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("SongActive") == true and rhythmClient:GetAttribute("AcceptInput") == true then
         local binder = rhythmClient:FindFirstChild("InputBus")
         if binder and binder:IsA("BindableEvent") then
             binder:Fire(payload)

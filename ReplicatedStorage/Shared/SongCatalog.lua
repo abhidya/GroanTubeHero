@@ -8,11 +8,7 @@ local publicSongs = {}
 local localTestSongs = {}
 local seen = {}
 
-local DEFAULT_MODULES = {
-    "Chart_NeonGroan",
-    "Chart_RomanticTubeDisaster",
-    "Chart_MallBalladButWrong",
-}
+local DEFAULT_MODULES = {}
 
 local function validSong(song)
     if type(song) ~= "table" or type(song.Id) ~= "string" or song.Id == "" then
@@ -81,6 +77,11 @@ for _, module in ipairs(generatedModules) do
     if ok then
         song.LocalAudioGenerated = true
         song.LocalTestOnly = true
+        local number = module.Name:match("Chart_LocalAudioSong(%d+)$")
+        if number then
+            song.Id = "LocalAudioSong" .. number
+            song.Title = "Local Audio Song " .. number
+        end
         addSong(song, "LocalTest")
     else
         warn("Groan Tube Hero: skipped invalid local test chart", module.Name, song)
@@ -115,7 +116,16 @@ function SongCatalog.ListLocalTests()
 end
 
 function SongCatalog.GetDefaultSong()
-    return publicSongs[1] or songs[1]
+    return byId.LocalAudioSong001 or localTestSongs[1] or songs[1]
+end
+
+function SongCatalog.PrettyTitle(songOrId)
+    local id = type(songOrId) == "table" and (songOrId.Title or songOrId.Id) or tostring(songOrId or "")
+    local number = id:match("LocalAudioSong(%d+)") or id:match("Local Audio Song (%d+)")
+    if number then
+        return "Local Audio Song " .. number
+    end
+    return tostring(id):gsub("(%l)(%u)", "%1 %2")
 end
 
 return SongCatalog

@@ -38,7 +38,8 @@ laneInput.Name = "LaneInput"
 laneInput.Parent = inputFolder
 
 local screenGui = ensureScreenGui("RhythmGui")
-screenGui:SetAttribute("AcceptInput", true)
+screenGui:SetAttribute("SongActive", false)
+screenGui:SetAttribute("AcceptInput", false)
 screenGui:ClearAllChildren()
 
 local inputBus = Instance.new("BindableEvent")
@@ -327,7 +328,8 @@ local state = {
 
 local songSound = Instance.new("Sound")
 songSound.Name = "SongAudioPipe"
-songSound.Volume = 0.65
+local baseSongVolume = 0.65
+songSound.Volume = baseSongVolume
 songSound.Looped = false
 songSound.Parent = SoundService
 
@@ -338,6 +340,7 @@ end
 
 local function playSongAudio(song)
     stopSongAudio()
+    songSound.Volume = baseSongVolume
     local audioId = song and song.AudioId
     if type(audioId) ~= "string" or audioId == "" or audioId == "rbxassetid://0" then
         songInfo.Text = songInfo.Text .. "\nVisual chart mode — no uploaded audio asset."
@@ -440,14 +443,12 @@ glitchOverlay.Parent = root
 
 local function playMissGlitch()
     if not Config.MissGlitch or not Config.MissGlitch.enabled then return end
-    local oldVolume = songSound.Volume
-    songSound.Volume = math.max(0, oldVolume * (Config.MissGlitch.volumeDuck or 0.2))
+    songSound.Volume = 0
     glitchOverlay.BackgroundTransparency = 0.68
     local original = highway.Position
     highway.Position = original + UDim2.new(0, math.random(-10, 10), 0, math.random(-6, 6))
     TweenService:Create(glitchOverlay, TweenInfo.new(Config.MissGlitch.duration or 0.25), { BackgroundTransparency = 1 }):Play()
     task.delay(Config.MissGlitch.duration or 0.25, function()
-        if songSound then songSound.Volume = oldVolume end
         if highway then highway.Position = original end
     end)
 end
@@ -576,24 +577,43 @@ inputBus.Event:Connect(function(payload)
         return
     end
 
+    if screenGui:GetAttribute("SongActive") ~= true or screenGui:GetAttribute("AcceptInput") ~= true then
+        return
+    end
+
     local songTime = serverNow() - state.startServerTime
     local targetNote = nil
     local bestDelta = math.huge
+    local candidateWindow = Config.ClientHitCandidateWindow or 0.65
+    local fallbackWindow = math.max(candidateWindow, 1.10)
     for _, note in ipairs(state.notes) do
         if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
-            if delta < bestDelta then
+            if delta <= candidateWindow and delta < bestDelta then
                 bestDelta = delta
                 targetNote = note
             end
         end
     end
+    if not targetNote then
+        for _, note in ipairs(state.notes) do
+            if not note.hit and note.lane == payload.lane then
+                local delta = math.abs(songTime - note.time)
+                if delta <= fallbackWindow and delta < bestDelta then
+                    bestDelta = delta
+                    targetNote = note
+                end
+            end
+        end
+    end
     if targetNote then
         remotes.NoteHit:FireServer({
+            sessionId = state.sessionId,
             songId = state.song.Id,
             noteId = targetNote.id,
             lane = payload.lane,
-            songTime = songTime,
+            clientSongTime = songTime,
+            clientDelta = songTime - targetNote.time,
         })
     else
         showJudgement("No note!", Color3.fromRGB(255, 120, 120))
@@ -638,6 +658,13 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     end
     songInfo.Text = string.format("%s\n%s • %s • %s", payload.song.Title, state.lastDifficulty, state.lastSegment, payload.venueId or "School Stage")
     screenGui:SetAttribute("SongActive", true)
+    screenGui:SetAttribute("AcceptInput", false)
+    local startToken = pendingStartToken
+    task.delay(math.max(0, state.startServerTime - serverNow()), function()
+        if state.active and pendingStartToken == startToken then
+            screenGui:SetAttribute("AcceptInput", true)
+        end
+    end)
     updateHud({ score = 0, combo = 0, hype = 0, hp = 100, grade = "-", hypeTier = "Dead Room" })
     playSongAudio(payload.song)
 end)
@@ -669,6 +696,10 @@ remotes.NoteJudged.OnClientEvent:Connect(function(payload)
     showJudgement(payload.judgement or "Miss", color)
     if payload.judgement == "Miss" then
         playMissGlitch()
+    elseif payload.judgement == "Perfect" or payload.judgement == "Good" then
+        if songSound then
+            songSound.Volume = baseSongVolume
+        end
     end
 end)
 
@@ -683,6 +714,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
     hudChooseButton.Visible = true
     screenGui:SetAttribute("SongActive", false)
+    screenGui:SetAttribute("AcceptInput", false)
     stopSongAudio()
     setPerformanceUiVisible(false)
     clearNotes()
@@ -736,7 +768,7 @@ RunService.PreRender:Connect(function()
         if frame then
             local progress = 1 - ((note.time - songTime) / (state.highwayTravelSeconds or Config.SongFlow.HighwayTravelSeconds))
             frame.Visible = progress >= -0.05 and progress <= 1.08
-            frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, math.clamp(progress, 0, 1) * 0.78, 0)
+            frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, progress * 0.78, 0)
         end
     end
 end)

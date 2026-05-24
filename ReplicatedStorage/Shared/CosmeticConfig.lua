@@ -3,7 +3,7 @@ local CosmeticConfig = {}
 CosmeticConfig.Items = {
     TubeSounds = {
         ClassicTube = { id = "ClassicTube", name = "Classic Tube", price = 0, currency = "Coins", default = true, tubeTag = "Classic Tube", laneFlash = Color3.fromRGB(255, 255, 255) },
-        NeonGroan = { id = "NeonGroan", name = "Neon Groan", price = 120, currency = "Fans", tubeTag = "Neon Groan", laneFlash = Color3.fromRGB(120, 240, 255) },
+        SkyBuzz = { id = "SkyBuzz", name = "Sky Buzz", price = 120, currency = "Fans", tubeTag = "Sky Buzz", laneFlash = Color3.fromRGB(120, 240, 255) },
         RustyWail = { id = "RustyWail", name = "Rusty Wail", price = 100, currency = "Coins", tubeTag = "Rusty Wail", laneFlash = Color3.fromRGB(255, 170, 120) },
     },
     StageEffects = {

@@ -52,7 +52,7 @@ function SongSessionService:_attachNotes(song)
     for index, note in ipairs(song.Notes or {}) do
         local copy = {
             id = note.id,
-            time = note.time + (song.Offset or 0),
+            time = note.time,
             lane = note.lane,
             groan = note.groan,
             pose = note.pose,
@@ -221,7 +221,8 @@ function SongSessionService:NoteHit(player, payload)
 
     if session.song.Sections then
         for index, section in ipairs(session.song.Sections) do
-            if payload.songTime >= section.start and payload.songTime <= section.finish then
+            local sectionSongTime = tonumber(payload.clientSongTime) or tonumber(payload.songTime) or 0
+            if sectionSongTime >= section.start and sectionSongTime <= section.finish then
                 session.currentSectionIndex = index
                 break
             end
@@ -318,11 +319,12 @@ function SongSessionService:Update(dt)
             if session.state == "Countdown" and now() >= session.startServerTime then
                 session.state = "Playing"
             end
-            if now() >= session.endServerTime or session.judgedNotes >= #session.noteOrder then
+            if now() >= session.endServerTime then
                 self:FinishSession(session.player)
             else
+                local allowedWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
                 for _, note in ipairs(session.noteOrder) do
-                    if not note.hit and now() - session.startServerTime > note.time + Config.Judgement.AcceptWindow then
+                    if not note.hit and now() - session.startServerTime > note.time + allowedWindow then
                         note.hit = true
                         session.judgedNotes = session.judgedNotes + 1
                         local profile = self.context.Services.DataService:GetProfile(session.player)
@@ -333,7 +335,7 @@ function SongSessionService:Update(dt)
                             noteId = note.id,
                             lane = note.lane,
                             judgement = "Miss",
-                            offset = Config.Judgement.AcceptWindow,
+                            offset = allowedWindow,
                             score = session.stateData.score,
                             combo = session.stateData.combo,
                             multiplier = session.stateData.multiplier,
