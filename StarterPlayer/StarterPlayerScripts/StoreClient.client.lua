@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local MissionConfig = require(ReplicatedStorage.Shared.MissionConfig)
 
@@ -12,7 +13,7 @@ local function ensureScreenGui(name)
     if existing and not existing:IsA("ScreenGui") then existing:Destroy(); existing = nil end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -32,6 +33,7 @@ gui:ClearAllChildren()
 
 local openButton=button(gui,"Store",UDim2.new(0,120,0,42),UDim2.new(1,-138,1,-58),Color3.fromRGB(170,95,255))
 local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.52,0);panel.Size=UDim2.new(0,800,0,520);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.BackgroundTransparency=.10;panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
+local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
 local title=label(panel,"Store & Progression",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
 local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
@@ -123,3 +125,7 @@ gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Op
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
 render()
+RunService.RenderStepped:Connect(function()
+    local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
+    panelScale.Scale=math.clamp(math.min(viewport.X/880, viewport.Y/600), .58, 1)
+end)

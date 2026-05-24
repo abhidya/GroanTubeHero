@@ -24,7 +24,7 @@ local function ensureScreenGui(name)
     end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -152,14 +152,22 @@ laneFlashLayer.Size = UDim2.fromScale(1, 1)
 laneFlashLayer.Parent = highway
 
 for lane = 1, 4 do
-    local laneFrame = Instance.new("Frame")
+    local laneFrame = Instance.new("TextButton")
     laneFrame.Name = "Lane" .. lane
+    laneFrame.Text = ""
+    laneFrame.AutoButtonColor = false
     laneFrame.Size = UDim2.new(0.23, 0, 1, -18)
     laneFrame.Position = UDim2.new((lane - 1) * 0.25 + 0.0125, 0, 0, 9)
     laneFrame.BackgroundColor3 = Color3.fromRGB(28, 30, 50)
     laneFrame.BackgroundTransparency = 0.12
     laneFrame.Parent = highway
     corner(laneFrame, 12)
+    laneFrame.Activated:Connect(function()
+        local original = laneFrame.BackgroundColor3
+        laneFrame.BackgroundColor3 = laneColors[lane]
+        TweenService:Create(laneFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { BackgroundColor3 = original }):Play()
+        inputBus:Fire({ lane = lane, source = "TouchLane" })
+    end)
     makeLabel(laneFrame, "Key", laneKeys[lane], UDim2.new(1, 0, 0, 42), UDim2.new(0, 0, 1, -46), laneColors[lane], Enum.Font.GothamBlack)
 end
 
@@ -176,7 +184,10 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Keep Stability alive  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local comboFx = makeLabel(root, "ComboStreak", "", UDim2.new(0, 700, 0, 90), UDim2.new(0.5, -350, 0.27, 0), Color3.fromRGB(255, 245, 120), Enum.Font.GothamBlack)
+comboFx.TextTransparency = 1
+
+local bottomHint = makeLabel(root, "BottomHint", "Tap/click lanes or press ←  →  ↑  ↓  •  Combo streaks blast the horde!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -187,7 +198,7 @@ noteLegend.BackgroundTransparency = 0.08
 noteLegend.Parent = root
 corner(noteLegend, 16)
 stroke(noteLegend, Color3.fromRGB(255, 230, 120), 2)
-makeLabel(noteLegend, "LegendTitle", "NOTES / KEYS", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
+makeLabel(noteLegend, "LegendTitle", "NOTES / LANES", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
 local legendNames = { "Blue note", "Green note", "Gold note", "Pink note" }
 for lane = 1, 4 do
     local chip = Instance.new("Frame")
@@ -303,7 +314,18 @@ local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 44, 0
 closeResults.Activated:Connect(function()
     results.Visible = false
 end)
-local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -130), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local resultsScroll = Instance.new("ScrollingFrame")
+resultsScroll.Name = "ResultsScroll"
+resultsScroll.BackgroundTransparency = 1
+resultsScroll.Size = UDim2.new(1, -40, 1, -130)
+resultsScroll.Position = UDim2.new(0, 20, 0, 16)
+resultsScroll.ScrollBarThickness = 8
+resultsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+resultsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+resultsScroll.Parent = results
+local resultsText = makeLabel(resultsScroll, "ResultsText", "", UDim2.new(1, -16, 0, 560), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+resultsText.AutomaticSize = Enum.AutomaticSize.Y
+resultsText.TextYAlignment = Enum.TextYAlignment.Top
 local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
 local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
 local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
@@ -413,6 +435,18 @@ local function updateHud(payload)
     scoreInfo.Text = string.format("Score %d\nCombo %d  Grade %s", state.score, state.combo, state.grade)
     local status = state.hp <= 0 and "Disaster" or state.hp < 40 and "Shaky" or "Stable"
     hypeInfo.Text = string.format("Stability %d%%  Hype %d\n%s • %s", state.hp, state.hype, status, payload.hypeTier or "Build the crowd")
+    if state.combo > 0 and state.combo % 5 == 0 then
+        comboFx.Text = string.format("🔥 %d COMBO STREAK 🔥", state.combo)
+        comboFx.TextTransparency = 0
+        comboFx.Size = UDim2.new(0, 700, 0, 90)
+        TweenService:Create(comboFx, TweenInfo.new(0.18, Enum.EasingStyle.Back), { Size = UDim2.new(0, 780, 0, 104) }):Play()
+        task.delay(0.55, function()
+            if comboFx then
+                comboFx.TextTransparency = 1
+                comboFx.Size = UDim2.new(0, 700, 0, 90)
+            end
+        end)
+    end
     if payload.lastDamage and payload.lastDamage > 0 then
         showJudgement("-" .. tostring(payload.lastDamage) .. " Stability", Color3.fromRGB(255, 95, 120))
     end
@@ -760,7 +794,7 @@ end)
 
 RunService.PreRender:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.78, 1.15)
+    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.52, 1.15)
 
     if not state.active or not state.song then
         return

@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -15,7 +16,7 @@ local function ensureScreenGui(name)
     end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -82,6 +83,9 @@ welcome.Size = UDim2.new(0, 390, 0, 300)
 welcome.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
 welcome.BackgroundTransparency = 0.02
 welcome.Parent = screenGui
+local welcomeScale = Instance.new("UIScale")
+welcomeScale.Name = "ResponsiveScale"
+welcomeScale.Parent = welcome
 corner(welcome, 18)
 stroke(welcome, Color3.fromRGB(255, 230, 120))
 
@@ -95,11 +99,24 @@ title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
 title.Parent = welcome
 
+local closeWelcome = Instance.new("TextButton")
+closeWelcome.Name = "CloseWelcome"
+closeWelcome.Size = UDim2.new(0, 40, 0, 36)
+closeWelcome.Position = UDim2.new(1, -50, 0, 12)
+closeWelcome.Text = "X"
+closeWelcome.TextColor3 = Color3.new(1, 1, 1)
+closeWelcome.Font = Enum.Font.GothamBlack
+closeWelcome.TextScaled = true
+closeWelcome.BackgroundColor3 = Color3.fromRGB(255, 95, 95)
+closeWelcome.Parent = welcome
+corner(closeWelcome, 10)
+closeWelcome.Activated:Connect(function() welcome.Visible = false end)
+
 local body = Instance.new("TextLabel")
 body.BackgroundTransparency = 1
 body.Size = UDim2.new(1, -28, 0, 176)
 body.Position = UDim2.new(0, 14, 0, 62)
-body.Text = "Hit notes. Make cursed groans. Hype the crowd. Upgrade your stage career.\n\n1. Go to the glowing mic.\n2. Hold E or click Choose Song.\n3. Pick a song, difficulty, and segment length.\n4. Hit D F J K or tap the four buttons.\n5. Build Combo, Hype, and keep Stability alive.\n6. Earn Fans, Coins, XP, and Tickets.\n7. Buy upgrades, stage effects, and Tour Bus bonuses."
+body.Text = "Hit notes. Make cursed groans. Hype the crowd. Upgrade your stage career.\n\n1. Tap Choose Song or use the glowing mic.\n2. Pick a song, difficulty, and segment length.\n3. Press ← → ↑ ↓ or tap/click the matching lanes.\n4. Build Combo, Hype, and keep Stability alive.\n5. Earn Fans, Coins, XP, and Tickets.\n6. Buy upgrades, stage effects, and Tour Bus bonuses."
 body.TextColor3 = Color3.fromRGB(220, 235, 255)
 body.Font = Enum.Font.GothamBold
 body.TextScaled = true
@@ -141,6 +158,74 @@ makeButton("StoreButton", "Store", 262, function()
     if sg then sg.Enabled = true; sg:SetAttribute("Open", true); sg:SetAttribute("Tab", "Tube Sounds") end
 end)
 
+local actionBar = Instance.new("Frame")
+actionBar.Name = "TouchActionBar"
+actionBar.AnchorPoint = Vector2.new(0.5, 0)
+actionBar.Position = UDim2.new(0.5, 0, 0, 12)
+actionBar.Size = UDim2.new(0, 720, 0, 52)
+actionBar.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+actionBar.BackgroundTransparency = 0.08
+actionBar.Parent = screenGui
+corner(actionBar, 14)
+stroke(actionBar, Color3.fromRGB(80, 225, 255))
+local actionScale = Instance.new("UIScale")
+actionScale.Name = "ResponsiveScale"
+actionScale.Parent = actionBar
+local actionLayout = Instance.new("UIListLayout")
+actionLayout.FillDirection = Enum.FillDirection.Horizontal
+actionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+actionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+actionLayout.Padding = UDim.new(0, 8)
+actionLayout.Parent = actionBar
+local actionPad = Instance.new("UIPadding")
+actionPad.PaddingLeft = UDim.new(0, 8)
+actionPad.PaddingRight = UDim.new(0, 8)
+actionPad.Parent = actionBar
+
+local function actionButton(name, text, callback)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(0, 108, 0, 38)
+    b.Text = text
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamBlack
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(45, 55, 85)
+    b.Parent = actionBar
+    corner(b, 10)
+    b.Activated:Connect(callback)
+    return b
+end
+
+local function openStoreTab(tab)
+    local sg = playerGui:FindFirstChild("StoreGui")
+    if sg then
+        sg.Enabled = true
+        sg:SetAttribute("Open", true)
+        sg:SetAttribute("Tab", tab)
+    end
+end
+
+local function openSongs()
+    local rg = playerGui:FindFirstChild("RhythmGui")
+    if rg then
+        rg:SetAttribute("OpenSongSelect", true)
+        local modal = rg:FindFirstChild("Root") and rg.Root:FindFirstChild("SongSelectModal")
+        if modal then modal.Visible = true end
+    end
+    welcome.Visible = false
+end
+
+actionButton("ChooseSong", "Choose Song", openSongs)
+actionButton("Store", "Store", function() openStoreTab("Tube Sounds") end)
+actionButton("Missions", "Missions", function() openStoreTab("Missions") end)
+actionButton("TourBus", "Tour Bus", function() openStoreTab("Tour Bus") end)
+actionButton("Watch", "Watch", function()
+    local ag = playerGui:FindFirstChild("AudienceGui")
+    if ag then ag:SetAttribute("Open", true) end
+end)
+actionButton("Help", "Help", function() welcome.Visible = true end)
+
 local arrow = Instance.new("TextLabel")
 arrow.Name = "StageArrow"
 arrow.BackgroundTransparency = 1
@@ -152,6 +237,14 @@ arrow.Font = Enum.Font.GothamBlack
 arrow.TextScaled = true
 arrow.Parent = screenGui
 TweenService:Create(arrow, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextTransparency = 0.35 }):Play()
+
+RunService.RenderStepped:Connect(function()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    local scale = math.clamp(math.min(viewport.X / 1180, viewport.Y / 680), 0.68, 1.06)
+    actionScale.Scale = scale
+    welcomeScale.Scale = math.clamp(math.min(viewport.X / 760, viewport.Y / 560), 0.72, 1)
+    hud.Size = UDim2.new(0, math.clamp(viewport.X * 0.34, 320, 430), 0, 76)
+end)
 
 local function update(snapshot)
     ClientState.SetSnapshot(snapshot)

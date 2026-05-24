@@ -3,7 +3,7 @@
 A Roblox Studio foundation for a server-authoritative rhythm RPG/stage-performance game.
 
 ## What is included
-- 3 original placeholder charts
+- local/test chart catalog
 - server-authoritative rhythm session flow
 - score/combo/hype/reward logic
 - economy, upgrades, buffs, attacks, missions, audience actions
@@ -17,8 +17,8 @@ You can open either:
 
 1. Open the project with Rojo or copy the folder tree into a Roblox place.
 2. Press Play.
-3. Walk to the **StartPrompt** near the stage and trigger it.
-4. Use **D / F / J / K** or the on-screen mobile buttons.
+3. Tap/click **Choose Song**, or walk to the stage StartPrompt.
+4. Use **← / → / ↑ / ↓** or tap/click the on-screen lanes.
 5. Watch the countdown, note highway, judgement text, score, combo, hype, and end screen.
 6. Try the store, upgrade kiosk, mission board, and audience zone.
 

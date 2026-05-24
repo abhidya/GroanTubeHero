@@ -43,179 +43,6 @@ function BuffConfig.Get(buffId)
 end
 
 return BuffConfig
-</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX16"><Properties><string name="Name">Chart_MallBalladButWrong</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
-    return {
-        id = id,
-        time = timeValue,
-        lane = lane,
-        groan = groan,
-        pose = pose,
-        lightCue = lightCue,
-        crowdCue = crowdCue,
-    }
-end
-
-return {
-    Id = "MallBalladButWrong",
-    Title = "Mall Ballad But Wrong",
-    Artist = "Groan Tube Hero",
-    AudioId = "rbxassetid://0",
-    BPM = 140,
-    Offset = 0,
-    Duration = 39.0,
-    Sections = {
-        { name = "Intro", start = 0, finish = 7.5 },
-        { name = "Verse", start = 7.5, finish = 18.0 },
-        { name = "Chorus", start = 18.0, finish = 28.0 },
-        { name = "Bridge", start = 28.0, finish = 33.0 },
-        { name = "Finale", start = 33.0, finish = 39.0 },
-    },
-    Notes = {
-        note("mbw-01", 1.0, 1, "Soft Groan", "Lean Left", "Teal", "Cheer"),
-        note("mbw-02", 1.7, 4, "Normal Groan", "Lean Right", "Yellow", "Clap"),
-        note("mbw-03", 2.3, 2, "Normal Groan", "Chest Puff", "Teal", "Cheer"),
-        note("mbw-04", 2.9, 3, "Normal Groan", "Wide Stance", "Yellow", "Clap"),
-        note("mbw-05", 3.7, 1, "Soft Groan", "Head Tilt", "Teal", "Cheer"),
-        note("mbw-06", 4.2, 3, "Normal Groan", "Quick Point", "Yellow", "Clap"),
-        note("mbw-07", 5.0, 2, "Normal Groan", "Stomp", "Teal", "Cheer"),
-        note("mbw-08", 5.8, 4, "Normal Groan", "Shoulder Roll", "Yellow", "Clap"),
-        note("mbw-09", 7.8, 1, "Normal Groan", "Lean Left", "Teal", "Cheer"),
-        note("mbw-10", 8.4, 2, "Normal Groan", "Lean Right", "Yellow", "Clap"),
-        note("mbw-11", 9.0, 3, "Normal Groan", "Chest Puff", "Teal", "Cheer"),
-        note("mbw-12", 9.6, 4, "Normal Groan", "Wide Stance", "Yellow", "Clap"),
-        note("mbw-13", 10.2, 1, "Normal Groan", "Head Tilt", "Teal", "Cheer"),
-        note("mbw-14", 11.0, 2, "Normal Groan", "Quick Point", "Yellow", "Clap"),
-        note("mbw-15", 11.7, 3, "Normal Groan", "Stomp", "Teal", "Cheer"),
-        note("mbw-16", 12.3, 4, "Normal Groan", "Shoulder Roll", "Yellow", "Clap"),
-        note("mbw-17", 13.0, 1, "Normal Groan", "Arm Sweep", "Teal", "Cheer"),
-        note("mbw-18", 13.7, 3, "Normal Groan", "Raised Chin", "Yellow", "Clap"),
-        note("mbw-19", 15.0, 2, "Normal Groan", "Lean Left", "Teal", "Cheer"),
-        note("mbw-20", 16.0, 4, "Normal Groan", "Lean Right", "Yellow", "Clap"),
-        note("mbw-21", 18.4, 1, "Big Groan", "Stage Lean", "Gold", "Encore"),
-        note("mbw-22", 19.1, 2, "Big Groan", "Raised Chin", "Teal", "Cheer"),
-        note("mbw-23", 20.0, 3, "Big Groan", "Lean Right", "Yellow", "Clap"),
-        note("mbw-24", 21.0, 4, "Big Groan", "Wide Stance", "Gold", "Encore"),
-        note("mbw-25", 22.0, 1, "Big Groan", "Arm Sweep", "Teal", "Cheer"),
-        note("mbw-26", 23.5, 2, "Big Groan", "Chest Puff", "Yellow", "Clap"),
-        note("mbw-27", 25.0, 3, "Big Groan", "Head Tilt", "Gold", "Encore"),
-        note("mbw-28", 26.4, 4, "Big Groan", "Quick Point", "Teal", "Cheer"),
-        note("mbw-29", 28.8, 1, "Bridge Groan", "Soft Lean", "Yellow", "Clap"),
-        note("mbw-30", 30.0, 4, "Bridge Groan", "Soft Lean", "Teal", "Cheer"),
-        note("mbw-31", 33.8, 2, "Final Groan", "Final Pose", "Gold", "Encore"),
-        note("mbw-32", 37.0, 3, "Final Groan", "Final Pose", "Gold", "Encore"),
-    },
-}
-</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX17"><Properties><string name="Name">Chart_NeonGroan</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
-    return {
-        id = id,
-        time = timeValue,
-        lane = lane,
-        groan = groan,
-        pose = pose,
-        lightCue = lightCue,
-        crowdCue = crowdCue,
-    }
-end
-
-return {
-    Id = "NeonGroan",
-    Title = "Neon Groan",
-    Artist = "Groan Tube Hero",
-    AudioId = "rbxassetid://0",
-    BPM = 108,
-    Offset = 0,
-    Duration = 31.5,
-    Sections = {
-        { name = "Intro", start = 0, finish = 8.0 },
-        { name = "Verse", start = 8.0, finish = 17.0 },
-        { name = "Chorus", start = 17.0, finish = 27.0 },
-        { name = "Outro", start = 27.0, finish = 31.5 },
-    },
-    Notes = {
-        note("ng-01", 1.5, 1, "Soft Groan", "Lean Left", "Cyan", "Cheer"),
-        note("ng-02", 2.3, 2, "Soft Groan", "Lean Right", "Blue", "Clap"),
-        note("ng-03", 3.1, 3, "Clean Groan", "Chest Puff", "Purple", "Cheer"),
-        note("ng-04", 3.9, 4, "Clean Groan", "Wide Stance", "Cyan", "Clap"),
-        note("ng-05", 5.0, 2, "Soft Groan", "Head Tilt", "Blue", "Cheer"),
-        note("ng-06", 6.0, 3, "Clean Groan", "Quick Point", "Purple", "Clap"),
-        note("ng-07", 7.2, 1, "Soft Groan", "Stomp", "Cyan", "Cheer"),
-        note("ng-08", 8.4, 4, "Clean Groan", "Shoulder Roll", "White", "Clap"),
-        note("ng-09", 9.4, 2, "Normal Groan", "Lean Left", "Blue", "Cheer"),
-        note("ng-10", 10.2, 3, "Normal Groan", "Lean Right", "Purple", "Clap"),
-        note("ng-11", 11.0, 1, "Normal Groan", "Chest Puff", "Cyan", "Cheer"),
-        note("ng-12", 12.0, 4, "Normal Groan", "Wide Stance", "White", "Clap"),
-        note("ng-13", 13.0, 2, "Normal Groan", "Head Tilt", "Blue", "Cheer"),
-        note("ng-14", 14.0, 3, "Normal Groan", "Quick Point", "Purple", "Clap"),
-        note("ng-15", 15.0, 1, "Normal Groan", "Stomp", "Cyan", "Cheer"),
-        note("ng-16", 16.0, 4, "Normal Groan", "Shoulder Roll", "White", "Clap"),
-        note("ng-17", 17.5, 1, "Big Groan", "Stage Lean", "Cyan", "Cheer"),
-        note("ng-18", 18.4, 2, "Big Groan", "Raised Chin", "Blue", "Clap"),
-        note("ng-19", 19.0, 3, "Big Groan", "Lean Right", "Purple", "Cheer"),
-        note("ng-20", 20.0, 4, "Big Groan", "Wide Stance", "White", "Encore"),
-        note("ng-21", 21.2, 1, "Big Groan", "Arm Sweep", "Cyan", "Cheer"),
-        note("ng-22", 23.0, 3, "Big Groan", "Chest Puff", "Purple", "Clap"),
-        note("ng-23", 25.0, 2, "Big Groan", "Head Tilt", "Blue", "Cheer"),
-        note("ng-24", 27.4, 4, "Final Groan", "Final Pose", "Gold", "Encore"),
-    },
-}
-</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX18"><Properties><string name="Name">Chart_RomanticTubeDisaster</string><ProtectedString name="Source">local function note(id, timeValue, lane, groan, pose, lightCue, crowdCue)
-    return {
-        id = id,
-        time = timeValue,
-        lane = lane,
-        groan = groan,
-        pose = pose,
-        lightCue = lightCue,
-        crowdCue = crowdCue,
-    }
-end
-
-return {
-    Id = "RomanticTubeDisaster",
-    Title = "Romantic Tube Disaster",
-    Artist = "Groan Tube Hero",
-    AudioId = "rbxassetid://0",
-    BPM = 128,
-    Offset = 0,
-    Duration = 35.0,
-    Sections = {
-        { name = "Intro", start = 0, finish = 8.0 },
-        { name = "Verse", start = 8.0, finish = 17.5 },
-        { name = "Chorus", start = 17.5, finish = 28.0 },
-        { name = "Bridge", start = 28.0, finish = 32.0 },
-        { name = "Finale", start = 32.0, finish = 35.0 },
-    },
-    Notes = {
-        note("rtd-01", 1.4, 1, "Soft Groan", "Lean Left", "Pink", "Cheer"),
-        note("rtd-02", 2.0, 3, "Normal Groan", "Lean Right", "Purple", "Clap"),
-        note("rtd-03", 2.7, 2, "Normal Groan", "Chest Puff", "Pink", "Cheer"),
-        note("rtd-04", 3.4, 4, "Clean Groan", "Wide Stance", "Blue", "Clap"),
-        note("rtd-05", 4.5, 1, "Soft Groan", "Head Tilt", "Pink", "Cheer"),
-        note("rtd-06", 5.1, 2, "Normal Groan", "Quick Point", "Purple", "Clap"),
-        note("rtd-07", 6.0, 4, "Normal Groan", "Stomp", "Blue", "Cheer"),
-        note("rtd-08", 7.0, 3, "Clean Groan", "Shoulder Roll", "Pink", "Clap"),
-        note("rtd-09", 8.6, 1, "Normal Groan", "Lean Left", "Purple", "Cheer"),
-        note("rtd-10", 9.3, 2, "Normal Groan", "Lean Right", "Pink", "Clap"),
-        note("rtd-11", 10.0, 3, "Normal Groan", "Chest Puff", "Blue", "Cheer"),
-        note("rtd-12", 11.0, 4, "Normal Groan", "Wide Stance", "Purple", "Clap"),
-        note("rtd-13", 12.0, 1, "Normal Groan", "Head Tilt", "Pink", "Cheer"),
-        note("rtd-14", 13.1, 2, "Normal Groan", "Quick Point", "Blue", "Clap"),
-        note("rtd-15", 14.2, 3, "Normal Groan", "Stomp", "Purple", "Cheer"),
-        note("rtd-16", 15.3, 4, "Normal Groan", "Shoulder Roll", "Pink", "Clap"),
-        note("rtd-17", 17.8, 1, "Big Groan", "Stage Lean", "Gold", "Encore"),
-        note("rtd-18", 18.6, 2, "Big Groan", "Raised Chin", "Pink", "Cheer"),
-        note("rtd-19", 19.2, 3, "Big Groan", "Lean Right", "Purple", "Clap"),
-        note("rtd-20", 20.0, 4, "Big Groan", "Wide Stance", "Blue", "Cheer"),
-        note("rtd-21", 21.0, 1, "Big Groan", "Arm Sweep", "Pink", "Clap"),
-        note("rtd-22", 22.2, 4, "Big Groan", "Chest Puff", "Purple", "Cheer"),
-        note("rtd-23", 24.0, 2, "Big Groan", "Head Tilt", "Blue", "Clap"),
-        note("rtd-24", 25.0, 3, "Big Groan", "Quick Point", "Pink", "Cheer"),
-        note("rtd-25", 28.6, 1, "Bridge Groan", "Soft Lean", "Purple", "Clap"),
-        note("rtd-26", 29.4, 4, "Bridge Groan", "Soft Lean", "Pink", "Cheer"),
-        note("rtd-27", 31.5, 2, "Final Groan", "Final Pose", "Gold", "Encore"),
-        note("rtd-28", 33.8, 3, "Final Groan", "Final Pose", "Gold", "Encore"),
-    },
-}
 </ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX19"><Properties><string name="Name">ClientState</string><ProtectedString name="Source">local ClientState = {
     snapshot = nil,
     session = nil,
@@ -250,7 +77,7 @@ return ClientState
 </ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX20"><Properties><string name="Name">Config</string><ProtectedString name="Source">local Config = {}
 
 Config.GameName = "Groan Tube Hero"
-Config.DefaultSongId = "NeonGroan"
+Config.DefaultSongId = "LocalAudioSong001"
 Config.Modes = {
     Career = "Career",
     Pure = "Pure",
@@ -258,17 +85,46 @@ Config.Modes = {
 }
 
 Config.Lanes = {
-    { index = 1, key = "D", name = "Left" },
-    { index = 2, key = "F", name = "InnerLeft" },
-    { index = 3, key = "J", name = "InnerRight" },
-    { index = 4, key = "K", name = "Right" },
+    { index = 1, key = "Left", symbol = "←", name = "Left" },
+    { index = 2, key = "Right", symbol = "→", name = "Right" },
+    { index = 3, key = "Up", symbol = "↑", name = "Up" },
+    { index = 4, key = "Down", symbol = "↓", name = "Down" },
 }
 
+Config.Difficulties = {
+    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1 },
+    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3 },
+    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6 },
+    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10 },
+}
+Config.DifficultyOrder = { "Easy", "Hard", "Extreme", "Brainrot" }
+
+Config.SegmentLengths = {
+    Quick = { id = "20s", label = "20 sec", duration = 20, rewardMultiplier = 0.6 },
+    Standard = { id = "30s", label = "30 sec", duration = 30, rewardMultiplier = 1.0 },
+    Long = { id = "40s", label = "40 sec", duration = 40, rewardMultiplier = 1.25 },
+    Full = { id = "full", label = "Full", duration = nil, rewardMultiplier = 2.0 },
+}
+Config.SegmentOrder = { "20s", "30s", "40s", "full" }
+
+Config.MissGlitch = {
+    enabled = true,
+    duration = 0.25,
+    volumeDuck = 0.2,
+    screenShake = true,
+    lightFlicker = true,
+}
+
+Config.DebugRhythm = false
+Config.ClientHitCandidateWindow = 0.65
+
 Config.Judgement = {
-    PerfectWindow = 0.09,
-    GoodWindow = 0.16,
-    AcceptWindow = 0.25,
-    MissWindow = 0.25,
+    PerfectWindow = 0.16,
+    GoodWindow = 0.30,
+    AcceptWindow = 0.42,
+    LatencyGrace = 0.18,
+    DebugWindow = 0.65,
+    MissWindow = 0.42,
     PerfectScore = 100,
     GoodScore = 50,
     MissScore = 0,
@@ -330,7 +186,10 @@ Config.RemoteNames = {
     "AudienceAction",
     "PurchaseItem",
     "EquipItem",
+    "ClaimMission",
     "DataSnapshot",
+    "OpenSongSelect",
+    "HordeUpdate",
 }
 
 Config.DefaultProfile = {
@@ -417,7 +276,7 @@ return Config
 CosmeticConfig.Items = {
     TubeSounds = {
         ClassicTube = { id = "ClassicTube", name = "Classic Tube", price = 0, currency = "Coins", default = true, tubeTag = "Classic Tube", laneFlash = Color3.fromRGB(255, 255, 255) },
-        NeonGroan = { id = "NeonGroan", name = "Neon Groan", price = 120, currency = "Fans", tubeTag = "Neon Groan", laneFlash = Color3.fromRGB(120, 240, 255) },
+        SkyBuzz = { id = "SkyBuzz", name = "Sky Buzz", price = 120, currency = "Fans", tubeTag = "Sky Buzz", laneFlash = Color3.fromRGB(120, 240, 255) },
         RustyWail = { id = "RustyWail", name = "Rusty Wail", price = 100, currency = "Coins", tubeTag = "Rusty Wail", laneFlash = Color3.fromRGB(255, 170, 120) },
     },
     StageEffects = {
@@ -504,8 +363,9 @@ Config.LevelCurve = {
 
 Config.Difficulty = {
     Easy = { baseFans = 45, baseCoins = 35, baseXP = 60, baseTickets = 0, rewardScale = 1.0 },
-    Medium = { baseFans = 70, baseCoins = 55, baseXP = 85, baseTickets = 1, rewardScale = 1.2 },
-    Hard = { baseFans = 100, baseCoins = 75, baseXP = 120, baseTickets = 1, rewardScale = 1.45 },
+    Hard = { baseFans = 90, baseCoins = 70, baseXP = 110, baseTickets = 1, rewardScale = 1.5 },
+    Extreme = { baseFans = 135, baseCoins = 105, baseXP = 165, baseTickets = 1, rewardScale = 2.25 },
+    Brainrot = { baseFans = 190, baseCoins = 145, baseXP = 220, baseTickets = 2, rewardScale = 3.0 },
 }
 
 Config.VenueFees = {
@@ -531,13 +391,8 @@ function Config.GetXPForLevel(level)
     return math.floor(Config.LevelCurve.BaseXP * ((level - 1) ^ Config.LevelCurve.Growth))
 end
 
-function Config.GetDifficultyProfile(songId)
-    if songId == "NeonGroan" then
-        return Config.Difficulty.Easy
-    elseif songId == "RomanticTubeDisaster" then
-        return Config.Difficulty.Medium
-    end
-    return Config.Difficulty.Hard
+function Config.GetDifficultyProfile(difficulty)
+    return Config.Difficulty[difficulty] or Config.Difficulty.Easy
 end
 
 return Config
@@ -546,11 +401,17 @@ return Config
 MissionConfig.Daily = {
     { id = "DailyPerfects", title = "Get 50 Perfects", event = "PerfectHit", target = 50, rewardFans = 120, rewardCoins = 80, rewardXP = 150 },
     { id = "DailySongs", title = "Finish 3 songs", event = "SongFinished", target = 3, rewardFans = 80, rewardCoins = 70, rewardXP = 100 },
-    { id = "DailyHype", title = "Reach 80 Hype", event = "HypePeak", target = 80, rewardFans = 100, rewardCoins = 75, rewardXP = 120 },
+    { id = "DailyHype", title = "Reach 80 Hype", event = "HypePeak", target = 1, rewardFans = 100, rewardCoins = 75, rewardXP = 120 },
     { id = "DailyBuffs", title = "Use 2 buffs", event = "BuffUsed", target = 2, rewardFans = 70, rewardCoins = 70, rewardXP = 90 },
     { id = "DailyCheer", title = "Cheer for 2 performances", event = "AudienceActionCheer", target = 2, rewardFans = 60, rewardCoins = 40, rewardXP = 80 },
-    { id = "DailyBattle", title = "Win 1 battle", event = "BattleWin", target = 1, rewardFans = 140, rewardCoins = 120, rewardXP = 160 },
+    { id = "DailyBattle", title = "Battle wins — Coming Soon", event = "BattleWin", target = 1, rewardFans = 140, rewardCoins = 120, rewardXP = 160 },
     { id = "DailyClean", title = "Clear a song with fewer than 5 misses", event = "SongClearUnder5Misses", target = 1, rewardFans = 100, rewardCoins = 90, rewardXP = 130 },
+    { id = "DailyQuickRun", title = "Finish any 20s Quick Run", event = "QuickRun20s", target = 1, rewardFans = 60, rewardCoins = 50, rewardXP = 80 },
+    { id = "DailyHard30", title = "Clear 30s on Hard", event = "Hard30sClear", target = 1, rewardFans = 110, rewardCoins = 90, rewardXP = 130 },
+    { id = "DailyBrainrot40", title = "Survive 40s Brainrot with 30+ Stability", event = "Brainrot40sSurvive", target = 1, rewardFans = 180, rewardCoins = 130, rewardXP = 220 },
+    { id = "DailyFullClear", title = "Full clear any song", event = "FullClear", target = 1, rewardFans = 170, rewardCoins = 130, rewardXP = 200 },
+    { id = "DailyClearEasy", title = "Clear Easy difficulty", event = "ClearDifficulty_Easy", target = 1, rewardFans = 60, rewardCoins = 40, rewardXP = 70 },
+    { id = "DailyClearHard", title = "Clear Hard difficulty", event = "ClearDifficulty_Hard", target = 1, rewardFans = 90, rewardCoins = 70, rewardXP = 100 },
 }
 
 MissionConfig.Weekly = {
@@ -558,6 +419,8 @@ MissionConfig.Weekly = {
     { id = "WeeklyAGrades", title = "Get A grade on 5 songs", event = "SongGradeAOrHigher", target = 5, rewardFans = 350, rewardCoins = 350, rewardXP = 500 },
     { id = "WeeklyEncore", title = "Trigger Encore Mode 3 times", event = "EncoreModeTriggered", target = 3, rewardFans = 350, rewardCoins = 300, rewardXP = 450 },
     { id = "WeeklyAudience", title = "Help 5 performers as audience", event = "AudienceHelp", target = 5, rewardFans = 250, rewardCoins = 220, rewardXP = 350 },
+    { id = "WeeklyExtreme", title = "Clear Extreme difficulty", event = "ClearDifficulty_Extreme", target = 1, rewardFans = 300, rewardCoins = 260, rewardXP = 420 },
+    { id = "WeeklyBrainrot", title = "Clear Brainrot difficulty", event = "ClearDifficulty_Brainrot", target = 1, rewardFans = 450, rewardCoins = 360, rewardXP = 620 },
 }
 
 function MissionConfig.GetAll()
@@ -573,7 +436,7 @@ Groan Tube Hero test guide
 
 1. Start the game in Studio.
 2. Trigger the StartPrompt on the stage.
-3. Use D/F/J/K or the mobile buttons to hit notes.
+3. Use ← → ↑ ↓ or the mobile arrow buttons to hit notes.
 4. Watch the judgement text, combo, hype, stage flashes, and results screen.
 5. Try store, upgrades, missions, and audience actions.
 6. If audio fails to load, the rhythm gameplay still runs visually.
@@ -677,6 +540,9 @@ function Scoring.BuildSummary(state)
         accuracyPercent = accuracyPercent,
         grade = Scoring.GetGrade(accuracyPercent),
         hype = state.hype,
+        hp = state.hp or 0,
+        downed = state.downed == true,
+        revived = state.revived == true,
         hypeTier = Scoring.GetHypeTier(state.hype),
         power = state.power,
         battle = state.mode == Config.Modes.Battle,
@@ -684,17 +550,144 @@ function Scoring.BuildSummary(state)
 end
 
 return Scoring
-</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX26"><Properties><string name="Name">SongCatalog</string><ProtectedString name="Source">local SongCatalog = {}
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX26"><Properties><string name="Name">SongCatalog</string><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local NeonGroan = require(script.Parent.Chart_NeonGroan)
-local RomanticTubeDisaster = require(script.Parent.Chart_RomanticTubeDisaster)
-local MallBalladButWrong = require(script.Parent.Chart_MallBalladButWrong)
+local SongCatalog = {}
 
-local songs = {
-    NeonGroan,
-    RomanticTubeDisaster,
-    MallBalladButWrong,
+local shared = ReplicatedStorage:WaitForChild("Shared")
+local songs = {}
+local publicSongs = {}
+local localTestSongs = {}
+local seen = {}
+
+local DEFAULT_MODULES = {}
+
+local TITLE_OVERRIDES = {
+    LocalAudioSong001 = "Thick of it Thomas the train remix",
+    LocalAudioSong005 = "Decorate Ur Life",
+    LocalAudioSong008 = "Flawed Mangoes Dramamine",
+    LocalAudioSong009 = "Ordinary",
+    LocalAudioSong011 = "Lose Control The Village Sessions",
+    LocalAudioSong015 = "Spoiled Cover",
+    LocalAudioSong016 = "Anything You Can Do I Can Do Better",
+    LocalAudioSong017 = "Girl Like Me 2",
+    LocalAudioSong018 = "Sneak Out",
+    LocalAudioSong021 = "Feat",
+    LocalAudioSong022 = "Assumptions",
+    LocalAudioSong024 = "It Is Going Down Now",
+    LocalAudioSong026 = "Oiia Oiia Spinning Cat",
+    LocalAudioSong027 = "Heaven On This Earth",
+    LocalAudioSong028 = "Tattletale Parents Revenge",
+    LocalAudioSong032 = "Legends Never Die Tribute",
+    LocalAudioSong033 = "Up Where We Belong",
+    LocalAudioSong036 = "I Am Fine",
+    LocalAudioSong037 = "Surrender",
+    LocalAudioSong038 = "Love Me Not",
+    LocalAudioSong039 = "You Are The Poison I Keep Choosing Still",
 }
+
+local function trim(value)
+    return tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function titleCase(value)
+    local lowered = tostring(value or ""):lower()
+    return (lowered:gsub("(%a)([%w']*)", function(first, rest)
+        local word = first .. rest
+        if word == "of" or word == "the" or word == "and" or word == "or" or word == "to" or word == "in" or word == "on" then
+            return word
+        end
+        return first:upper() .. rest
+    end):gsub("^%l", string.upper))
+end
+
+local function cleanRawTitle(raw)
+    local title = tostring(raw or "")
+    title = title:gsub("^%d+%s*[%-%–]%s*", ""):gsub("%b[]", ""):gsub("_", " ")
+    title = title:gsub("%f[%a]Official%f[%A]", ""):gsub("%f[%a]Lyric%f[%A]", "")
+    title = title:gsub("%f[%a]Video%f[%A]", ""):gsub("%f[%a]Visualizer%f[%A]", "")
+    title = title:gsub("%f[%a]Audio%f[%A]", ""):gsub("%f[%a]Music%f[%A]", "")
+    title = title:gsub("%f[%a]Extended%f[%A]", ""):gsub("%s+", " ")
+    return trim(titleCase(title))
+end
+
+local function validSong(song)
+    if type(song) ~= "table" or type(song.Id) ~= "string" or song.Id == "" then
+        return false
+    end
+    if type(song.Title) ~= "string" or song.Title == "" then
+        return false
+    end
+    if type(song.Duration) ~= "number" or song.Duration &lt;= 0 then
+        return false
+    end
+    if type(song.Notes) ~= "table" or #song.Notes == 0 then
+        return false
+    end
+    for _, note in ipairs(song.Notes) do
+        if type(note.id) ~= "string" or type(note.time) ~= "number" or type(note.lane) ~= "number" then
+            return false
+        end
+        if note.lane &lt; 1 or note.lane &gt; 4 then
+            return false
+        end
+    end
+    return true
+end
+
+local function addSong(song, group)
+    if not validSong(song) or seen[song.Id] then
+        return false
+    end
+    seen[song.Id] = true
+    song.CatalogGroup = group or "Public"
+    table.insert(songs, song)
+    if song.CatalogGroup == "LocalTest" then
+        table.insert(localTestSongs, song)
+    else
+        table.insert(publicSongs, song)
+    end
+    return true
+end
+
+for _, moduleName in ipairs(DEFAULT_MODULES) do
+    local module = shared:FindFirstChild(moduleName)
+    if module and module:IsA("ModuleScript") then
+        local ok, song = pcall(require, module)
+        if ok then
+            song.SafePublicDemo = true
+            addSong(song, "Public")
+        else
+            warn("Groan Tube Hero: failed to load public chart", moduleName, song)
+        end
+    end
+end
+
+local generatedModules = {}
+for _, child in ipairs(shared:GetChildren()) do
+    if child:IsA("ModuleScript") and (child.Name:match("^Chart_LocalAudioSong%d+$") or child.Name:match("^Chart_DownloadSong%d+$")) then
+        table.insert(generatedModules, child)
+    end
+end
+table.sort(generatedModules, function(a, b)
+    return a.Name &lt; b.Name
+end)
+
+for _, module in ipairs(generatedModules) do
+    local ok, song = pcall(require, module)
+    if ok then
+        song.LocalAudioGenerated = true
+        song.LocalTestOnly = true
+        local number = module.Name:match("Chart_LocalAudioSong(%d+)$")
+        if number then
+            song.Id = "LocalAudioSong" .. number
+            song.Title = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
+        end
+        addSong(song, "LocalTest")
+    else
+        warn("Groan Tube Hero: skipped invalid local test chart", module.Name, song)
+    end
+end
 
 local byId = {}
 for _, song in ipairs(songs) do
@@ -702,18 +695,44 @@ for _, song in ipairs(songs) do
 end
 
 SongCatalog.All = songs
+SongCatalog.Public = publicSongs
+SongCatalog.LocalTest = localTestSongs
 SongCatalog.ById = byId
 
 function SongCatalog.Get(songId)
-    return byId[songId] or songs[1]
+    return byId[songId]
 end
 
-function SongCatalog.List()
+function SongCatalog.List(includeLocalTests)
+    -- Backward compatibility: older live clients call List() with no args.
+    -- Return all playable songs then; new UI passes false for public-only.
+    if includeLocalTests == false then
+        return publicSongs
+    end
     return songs
 end
 
+function SongCatalog.ListLocalTests()
+    return localTestSongs
+end
+
 function SongCatalog.GetDefaultSong()
-    return songs[1]
+    return byId.LocalAudioSong001 or localTestSongs[1] or songs[1]
+end
+
+function SongCatalog.PrettyTitle(songOrId)
+    local id = type(songOrId) == "table" and songOrId.Id or tostring(songOrId or "")
+    if TITLE_OVERRIDES[id] then
+        return TITLE_OVERRIDES[id]
+    end
+    if type(songOrId) == "table" and type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
+        return cleanRawTitle(songOrId.Title)
+    end
+    local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
+    if number then
+        return "Local Audio Song " .. number
+    end
+    return tostring(id):gsub("(%l)(%u)", "%1 %2")
 end
 
 return SongCatalog
@@ -743,14 +762,14 @@ return {}
 </ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX28"><Properties><string name="Name">UpgradeConfig</string><ProtectedString name="Source">local Config = {}
 
 Config.Upgrades = {
-    Timing = { max = 5, baseCost = 120, growth = 1.35, perLevel = { goodWindow = 0.01 } },
-    HypeGain = { max = 5, baseCost = 150, growth = 1.38, perLevel = { hypeOnHit = 0.08 } },
+    Timing = { max = 6, baseCost = 120, growth = 1.35, perLevel = { goodWindow = 0.005 } },
+    HypeGain = { max = 10, baseCost = 150, growth = 1.38, perLevel = { hypeOnHit = 0.05 } },
     Recovery = { max = 5, baseCost = 150, growth = 1.40, perLevel = { missPenaltyReduction = 0.10 } },
-    Stagecraft = { max = 5, baseCost = 170, growth = 1.42, perLevel = { stageFans = 0.08 } },
+    Stagecraft = { max = 10, baseCost = 170, growth = 1.42, perLevel = { stageFans = 0.08 } },
     Chaos = { max = 5, baseCost = 180, growth = 1.45, perLevel = { battlePotency = 0.10 } },
     Focus = { max = 5, baseCost = 180, growth = 1.40, perLevel = { debuffReduction = 0.10 } },
-    CoinBonus = { max = 5, baseCost = 160, growth = 1.37, perLevel = { coinBonus = 0.08 } },
-    AudiencePower = { max = 5, baseCost = 160, growth = 1.36, perLevel = { audiencePower = 0.08 } },
+    CoinBonus = { max = 10, baseCost = 160, growth = 1.37, perLevel = { coinBonus = 0.08 } },
+    AudiencePower = { max = 8, baseCost = 160, growth = 1.36, perLevel = { audiencePower = 0.08 } },
 }
 
 function Config.GetCost(upgradeId, currentLevel)
@@ -832,7 +851,11 @@ end
 
 function AntiExploitService:ValidateNoteHit(player, payload, session)
     if not session or session.state ~= "Playing" then
-        return false, "NoActiveSong"
+        if session and session.state == "Countdown" and now() &gt;= session.startServerTime then
+            session.state = "Playing"
+        else
+            return false, "NoActiveSong"
+        end
     end
     if type(payload) ~= "table" then
         return false, "BadPayload"
@@ -862,8 +885,15 @@ function AntiExploitService:ValidateNoteHit(player, payload, session)
     end
 
     local songTime = absoluteNow - session.startServerTime
-    local offset = songTime - note.time
-    if math.abs(offset) &gt; Config.Judgement.AcceptWindow then
+    local serverOffset = songTime - note.time
+    local clientDelta = tonumber(payload.clientDelta)
+    local visualWindow = Config.ClientHitCandidateWindow or Config.Judgement.DebugWindow or Config.Judgement.AcceptWindow
+    local allowedWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
+    local offset = serverOffset
+    if clientDelta and math.abs(clientDelta) &lt;= visualWindow then
+        offset = clientDelta
+    end
+    if math.abs(serverOffset) &gt; allowedWindow and (not clientDelta or math.abs(clientDelta) &gt; visualWindow) then
         return false, "OutsideWindow"
     end
 
@@ -995,7 +1025,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
     elseif action == "Laugh" then
         rewardFans = 1
         rewardXP = 1
-        hypeBoost = -1
+        hypeBoost = 0
     elseif action == "Support" then
         rewardFans = 4
         rewardXP = 2
@@ -1451,14 +1481,6 @@ function EconomyService:Init(runtimeContext)
     self.context = runtimeContext
 end
 
-local function getSongDifficulty(songId)
-    if songId == "NeonGroan" then
-        return "Easy"
-    elseif songId == "RomanticTubeDisaster" then
-        return "Medium"
-    end
-    return "Hard"
-end
 
 function EconomyService:LevelFromXP(xp)
     local level = 1
@@ -1474,10 +1496,11 @@ function EconomyService:FinalizeSong(player, session, summary)
         return nil
     end
 
-    local songProfile = EconomyConfig.GetDifficultyProfile(session.songId)
     local venue, modifiers = self.context.Services.VenueService:GetRewardModifiers(session.venueId)
-    local difficulty = getSongDifficulty(session.songId)
-    local base = EconomyConfig.Difficulty[difficulty]
+    local difficulty = session.difficulty or summary.difficulty or "Easy"
+    local base = EconomyConfig.GetDifficultyProfile(difficulty)
+    local difficultyMultiplier = (session.song and session.song.DifficultyMultiplier) or (session.difficultyConfig and session.difficultyConfig.rewardMultiplier) or 1
+    local segmentMultiplier = (session.song and session.song.SegmentMultiplier) or 1
 
     local gradeMultiplier = 1
     if summary.grade == "S" then
@@ -1502,7 +1525,8 @@ function EconomyService:FinalizeSong(player, session, summary)
     local modeKey = session.mode or Config.Modes.Career
     profile.BestScores = profile.BestScores or {}
     profile.BestScores[modeKey] = profile.BestScores[modeKey] or {}
-    local bestRecord = profile.BestScores[modeKey][session.songId]
+    local bestKey = string.format("%s:%s:%s:%s", session.songId, difficulty, session.segmentLength or "30s", session.segmentSection or "Intro")
+    local bestRecord = profile.BestScores[modeKey][bestKey]
     if not bestRecord then
         firstClearBonus = Config.Economy.FirstClearBonus
     else
@@ -1512,6 +1536,16 @@ function EconomyService:FinalizeSong(player, session, summary)
     end
 
     self.context.Services.MissionService:RecordEvent(profile, "SongFinished", 1, { player = player })
+    self.context.Services.MissionService:RecordEvent(profile, "ClearDifficulty_" .. difficulty, 1, { player = player })
+    if session.segmentLength == "20s" then
+        self.context.Services.MissionService:RecordEvent(profile, "QuickRun20s", 1, { player = player })
+    elseif session.segmentLength == "30s" and difficulty == "Hard" then
+        self.context.Services.MissionService:RecordEvent(profile, "Hard30sClear", 1, { player = player })
+    elseif session.segmentLength == "40s" and difficulty == "Brainrot" and (summary.hp or 0) &gt;= 30 then
+        self.context.Services.MissionService:RecordEvent(profile, "Brainrot40sSurvive", 1, { player = player })
+    elseif session.segmentLength == "full" then
+        self.context.Services.MissionService:RecordEvent(profile, "FullClear", 1, { player = player })
+    end
     if summary.grade == "A" or summary.grade == "S" then
         self.context.Services.MissionService:RecordEvent(profile, "SongGradeAOrHigher", 1, { player = player })
     end
@@ -1525,9 +1559,9 @@ function EconomyService:FinalizeSong(player, session, summary)
         self.context.Services.MissionService:RecordEvent(profile, "EncoreModeTriggered", 1, { player = player })
     end
 
-    local rewardFans = math.floor(base.baseFans * gradeMultiplier)
-    local rewardCoins = math.floor(base.baseCoins * gradeMultiplier)
-    local rewardXP = math.floor(base.baseXP * gradeMultiplier)
+    local rewardFans = math.floor(base.baseFans * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
+    local rewardCoins = math.floor(base.baseCoins * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
+    local rewardXP = math.floor(base.baseXP * gradeMultiplier * difficultyMultiplier * segmentMultiplier)
     local rewardTickets = base.baseTickets or 0
 
     rewardFans = math.floor(rewardFans + hypeBonus + comboBonus * 0.5 + completionBonus)
@@ -1567,6 +1601,10 @@ function EconomyService:FinalizeSong(player, session, summary)
         XP = busModifiers.XP + missionBonus,
         Tickets = busModifiers.Tickets,
         GroanTokens = 0,
+        DifficultyMultiplier = difficultyMultiplier,
+        SegmentMultiplier = segmentMultiplier,
+        VenueFee = feeAmount,
+        GrossFans = rewardFans,
     }
 
     profile.SessionHistory = profile.SessionHistory or { Career = {}, Pure = {} }
@@ -1578,10 +1616,13 @@ function EconomyService:FinalizeSong(player, session, summary)
         hype = summary.hype,
         maxCombo = summary.maxCombo,
         time = os.time(),
+        difficulty = difficulty,
+        segmentLength = session.segmentLength,
+        segmentSection = session.segmentSection,
     })
 
-    profile.BestScores[modeKey][session.songId] = profile.BestScores[modeKey][session.songId] or {}
-    local best = profile.BestScores[modeKey][session.songId]
+    profile.BestScores[modeKey][bestKey] = profile.BestScores[modeKey][bestKey] or {}
+    local best = profile.BestScores[modeKey][bestKey]
     if summary.score &gt; (best.bestScore or 0) then
         best.bestScore = summary.score
     end
@@ -1765,9 +1806,12 @@ local function wirePrompt(context)
     local promptPart = stage:WaitForChild("StartPrompt")
     local prompt = promptPart:WaitForChild("ProximityPrompt")
     prompt.Triggered:Connect(function(player)
-        -- Prompt opens song select on the client; the server still starts songs only
-        -- after StartSongRequest and server-side validation.
-        context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
+        -- Dedicated song-select remote; keep StartSong fallback for older clients.
+        if context.Remotes.OpenSongSelect then
+            context.Remotes.OpenSongSelect:FireClient(player)
+        else
+            context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
+        end
     end)
 end
 
@@ -1853,6 +1897,13 @@ local function wireRemotes(context)
     context.Remotes.EquipItem.OnServerEvent:Connect(function(player, payload)
         context.Services.StoreService:EquipItem(player, payload and payload.category, payload and payload.itemId)
     end)
+
+    if context.Remotes.ClaimMission then
+        context.Remotes.ClaimMission.OnServerEvent:Connect(function(player, payload)
+            context.Services.MissionService:ClaimMission(player, payload and payload.missionId)
+        end)
+    end
+
 end
 
 local function makeClientReadmeString()
@@ -2007,7 +2058,14 @@ end
 
 local function ensureProgress(store, list)
     for _, definition in ipairs(list) do
-        store[definition.id] = store[definition.id] or { progress = 0, claimed = false }
+        local existing = store[definition.id]
+        if type(existing) ~= "table" then
+            existing = { progress = 0, completed = false, claimed = false }
+            store[definition.id] = existing
+        end
+        existing.progress = tonumber(existing.progress) or 0
+        existing.claimed = existing.claimed == true
+        existing.completed = existing.claimed or existing.completed == true or existing.progress &gt;= definition.target
     end
 end
 
@@ -2034,19 +2092,18 @@ end
 function MissionService:RecordEvent(profile, eventName, amount, context)
     self:EnsureProfile(profile)
     amount = amount or 1
-    local completeRewards = { Fans = 0, Coins = 0, XP = 0, Tickets = 0 }
+    local changed = { completed = 0, progressed = 0, Fans = 0, Coins = 0, XP = 0, Tickets = 0 }
     local function process(listKey, definitions)
         local store = profile.Missions[listKey]
         for _, definition in ipairs(definitions) do
             if definition.event == eventName then
                 local progress = store[definition.id]
-                if progress and not progress.claimed then
+                if progress and not progress.claimed and not progress.completed then
                     progress.progress = math.min(definition.target, (progress.progress or 0) + amount)
+                    changed.progressed += 1
                     if progress.progress &gt;= definition.target then
-                        progress.claimed = true
-                        completeRewards.Fans = completeRewards.Fans + (definition.rewardFans or 0)
-                        completeRewards.Coins = completeRewards.Coins + (definition.rewardCoins or 0)
-                        completeRewards.XP = completeRewards.XP + (definition.rewardXP or 0)
+                        progress.completed = true
+                        changed.completed += 1
                     end
                 end
             end
@@ -2055,12 +2112,62 @@ function MissionService:RecordEvent(profile, eventName, amount, context)
 
     process("Daily", MissionConfig.Daily)
     process("Weekly", MissionConfig.Weekly)
-    if self.context and self.context.Services and self.context.Services.DataService then
-        if completeRewards.Fans &gt; 0 or completeRewards.Coins &gt; 0 or completeRewards.XP &gt; 0 then
-            self.context.Services.DataService:Award(context.player, completeRewards)
+    if changed.progressed &gt; 0 and self.context and self.context.Services and self.context.Services.DataService and context and context.player then
+        self.context.Services.DataService:UpdateProfile(context.player, function(updatedProfile)
+            return updatedProfile
+        end)
+    end
+    return changed
+end
+
+local function findMission(missionId)
+    for listKey, definitions in pairs(MissionConfig.GetAll()) do
+        for _, definition in ipairs(definitions) do
+            if definition.id == missionId then
+                return listKey, definition
+            end
         end
     end
-    return completeRewards
+    return nil, nil
+end
+
+function MissionService:ClaimMission(player, missionId)
+    local profile = self.context.Services.DataService:GetProfile(player)
+    if not profile then
+        return false, "NoData"
+    end
+    self:EnsureProfile(profile)
+
+    local listKey, definition = findMission(missionId)
+    if not definition then
+        return false, "UnknownMission"
+    end
+
+    local state = profile.Missions[listKey] and profile.Missions[listKey][missionId]
+    if not state then
+        return false, "MissingMission"
+    end
+    if state.claimed then
+        return false, "AlreadyClaimed"
+    end
+    if not state.completed and (state.progress or 0) &lt; definition.target then
+        return false, "Incomplete"
+    end
+
+    state.completed = true
+    state.claimed = true
+    local rewards = {
+        Fans = definition.rewardFans or 0,
+        Coins = definition.rewardCoins or 0,
+        XP = definition.rewardXP or 0,
+        Tickets = definition.rewardTickets or 0,
+    }
+    self.context.Services.DataService:Award(player, rewards)
+    self.context.Services.DataService:SavePlayer(player)
+    self.context.Services.DataService:UpdateProfile(player, function(updatedProfile)
+        return updatedProfile
+    end)
+    return true, rewards
 end
 
 function MissionService:GetSnapshot(profile)
@@ -2098,6 +2205,9 @@ function ScoreService:CreateState(song, mode)
         miss = 0,
         multiplier = 1,
         hype = 0,
+        hp = 100,
+        downed = false,
+        revived = false,
         power = 0,
         accuracyPoints = 0,
         sectionIndex = 1,
@@ -2144,6 +2254,26 @@ function ScoreService:GetHypeOnHit(profile, mode, judgement, session)
     return base
 end
 
+
+function ScoreService:GetMissDamage(profile, session)
+    local diff = session and session.difficultyConfig
+    local damage = (diff and diff.hpDamageMiss) or 8
+    local upgrades = profile.Upgrades or {}
+    local levelReduction = math.min(0.15, math.max(0, ((profile.Level or 1) - 1) * 0.005))
+    damage = damage * (1 - math.min(0.5, (upgrades.Recovery or 0) * 0.10))
+    damage = damage * (1 - levelReduction)
+    if session.modifiers and session.modifiers.recoveryShield then
+        damage = damage * 0.75
+    end
+    if session.modifiers and session.modifiers.voiceCrack then
+        damage = damage * 1.25
+    end
+    if session.mode == Config.Modes.Battle then
+        damage = damage * 1.15
+    end
+    return math.max(1, math.floor(damage + 0.5))
+end
+
 function ScoreService:GetMissPenalty(profile, session)
     local penalty = 6
     penalty = math.max(2, penalty - (profile.Upgrades.Recovery or 0))
@@ -2155,6 +2285,7 @@ end
 
 function ScoreService:ApplyJudgement(session, note, judgement, profile)
     local state = session.stateData
+    state.lastDamage = 0
     state.noteIndex = state.noteIndex + 1
     local mode = session.mode
 
@@ -2166,6 +2297,7 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         state.accuracyPoints = state.accuracyPoints + 100
         state.hype = math.min(100, state.hype + self:GetHypeOnHit(profile, mode, judgement, session))
         state.power = math.min(100, state.power + 3)
+        state.hp = math.min(100, (state.hp or 100) + 1)
         if state.combo % 10 == 0 then
             state.power = math.min(100, state.power + 10)
         end
@@ -2181,12 +2313,20 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         state.score = state.score + (50 * state.multiplier)
         state.accuracyPoints = state.accuracyPoints + 50
         state.hype = math.min(100, state.hype + self:GetHypeOnHit(profile, mode, judgement, session))
+        state.hp = math.min(100, (state.hp or 100) + 0.5)
         state.power = math.min(100, state.power + 1)
     elseif judgement == "Miss" then
         state.miss = state.miss + 1
         state.sectionMisses = state.sectionMisses + 1
         state.score = state.score + 0
         state.hype = math.max(0, state.hype - self:GetMissPenalty(profile, session))
+        local damage = self:GetMissDamage(profile, session)
+        if session.modifiers and session.modifiers.deepBreath then
+            damage = math.max(1, math.floor(damage * 0.5))
+        end
+        state.hp = math.max(0, (state.hp or 100) - damage)
+        state.lastDamage = damage
+        state.downed = state.hp &lt;= 0
         if session.modifiers and session.modifiers.deepBreath then
             session.modifiers.deepBreath = false
         else
@@ -2240,7 +2380,18 @@ function ScoreService:Finalize(session)
     summary.mode = session.mode
     summary.venueId = session.venueId
     summary.totalNotes = state.totalNotes
+    summary.hp = state.hp or 0
+    summary.stability = summary.hp
+    summary.downed = state.downed == true
+    summary.revived = state.revived == true
     summary.clear = state.miss &lt; 5
+    summary.difficulty = session.difficulty or state.difficulty or "Easy"
+    summary.segmentLength = session.segmentLength or state.segmentLength or "30s"
+    summary.segmentLabel = session.segmentLabel or summary.segmentLength
+    summary.segmentStart = session.segmentStart or 0
+    summary.segmentSection = session.segmentSection or "Intro"
+    summary.difficultyMultiplier = session.song and session.song.DifficultyMultiplier or 1
+    summary.segmentMultiplier = session.song and session.song.SegmentMultiplier or 1
     summary.cleanedSection = state.sectionMisses == 0
     summary.battle = session.mode == Config.Modes.Battle
     return summary
@@ -2254,6 +2405,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local SongCatalog = require(ReplicatedStorage.Shared.SongCatalog)
 local Scoring = require(ReplicatedStorage.Shared.Scoring)
+local ChartService = require(ReplicatedStorage.Shared.ChartService)
 
 local SongSessionService = {}
 SongSessionService.__index = SongSessionService
@@ -2300,7 +2452,7 @@ function SongSessionService:_attachNotes(song)
     for index, note in ipairs(song.Notes or {}) do
         local copy = {
             id = note.id,
-            time = note.time + (song.Offset or 0),
+            time = note.time,
             lane = note.lane,
             groan = note.groan,
             pose = note.pose,
@@ -2316,32 +2468,52 @@ function SongSessionService:_attachNotes(song)
 end
 
 function SongSessionService:_createSession(player, payload)
-    local song = SongCatalog.Get(payload.songId or Config.DefaultSongId)
+    payload = type(payload) == "table" and payload or {}
+    local requestedSongId = payload.songId or Config.DefaultSongId
     local profile = self.context.Services.DataService:GetProfile(player)
+    local baseSong = SongCatalog.Get(requestedSongId) or SongCatalog.GetDefaultSong()
+    assert(baseSong, "No playable songs are available")
+
+    local difficulty = Config.Difficulties[payload.difficulty] and payload.difficulty or "Easy"
+    local segmentLength = payload.segmentLength or "30s"
+    local segmentStart = payload.segmentStart or "Intro"
+    local song = ChartService.BuildPlayableChart(baseSong, difficulty, segmentLength, segmentStart)
+
     local sessionId = self:_buildSessionId(player, song.Id)
     local notesById, noteOrder = self:_attachNotes(song)
-    local mode = payload.mode or Config.Modes.Career
+    local mode = Config.Modes[payload.mode] and payload.mode or Config.Modes.Career
     local venueId = payload.venueId or "SchoolStage"
+    local currentTime = now()
 
     local session = {
         id = sessionId,
         playerId = player.UserId,
         player = player,
         songId = song.Id,
+        baseSongId = baseSong.Id,
         song = song,
+        baseSong = baseSong,
+        difficulty = difficulty,
+        difficultyConfig = ChartService.GetDifficultyConfig(difficulty),
+        segmentLength = song.SegmentLength,
+        segmentLabel = song.SegmentLabel,
+        segmentStart = song.SegmentStart,
+        segmentSection = song.SegmentSection,
         mode = mode,
         venueId = venueId,
         notesById = notesById,
         noteOrder = noteOrder,
-        startServerTime = now() + Config.SongFlow.CountdownSeconds,
-        countdownEndTime = now() + Config.SongFlow.CountdownSeconds,
-        endServerTime = now() + Config.SongFlow.CountdownSeconds + (song.Duration or 30),
+        startServerTime = currentTime + Config.SongFlow.CountdownSeconds,
+        countdownEndTime = currentTime + Config.SongFlow.CountdownSeconds,
+        endServerTime = currentTime + Config.SongFlow.CountdownSeconds + (song.Duration or 30),
         state = "Countdown",
         stateData = self.context.Services.ScoreService:CreateState(song, mode),
         judgedNotes = 0,
         modifiers = {},
-        lastActionAt = now(),
+        lastActionAt = currentTime,
     }
+    session.stateData.difficulty = difficulty
+    session.stateData.segmentLength = song.SegmentLength
 
     session.GetSongTime = function()
         return now() - session.startServerTime
@@ -2380,6 +2552,12 @@ function SongSessionService:StartSong(player, payload)
         endServerTime = session.endServerTime,
         visuals = session.visuals,
         profile = self.context.Services.DataService:GetSnapshot(player),
+        difficulty = session.difficulty,
+        difficultyConfig = session.difficultyConfig,
+        segmentLength = session.segmentLength,
+        segmentLabel = session.segmentLabel,
+        segmentStart = session.segmentStart,
+        segmentSection = session.segmentSection,
     })
     self.context.Services.HypeService:ApplyStartBonus(session, profile or {})
     if self.context.Services.AudienceService then
@@ -2443,7 +2621,8 @@ function SongSessionService:NoteHit(player, payload)
 
     if session.song.Sections then
         for index, section in ipairs(session.song.Sections) do
-            if payload.songTime &gt;= section.start and payload.songTime &lt;= section.finish then
+            local sectionSongTime = tonumber(payload.clientSongTime) or tonumber(payload.songTime) or 0
+            if sectionSongTime &gt;= section.start and sectionSongTime &lt;= section.finish then
                 session.currentSectionIndex = index
                 break
             end
@@ -2460,6 +2639,9 @@ function SongSessionService:NoteHit(player, payload)
         combo = summaryState.combo,
         multiplier = summaryState.multiplier,
         hype = summaryState.hype,
+        hp = summaryState.hp,
+        downed = summaryState.downed,
+        lastDamage = summaryState.lastDamage,
         power = summaryState.power,
         visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
     })
@@ -2470,10 +2652,15 @@ function SongSessionService:NoteHit(player, payload)
         maxCombo = summaryState.maxCombo,
         multiplier = summaryState.multiplier,
         hype = summaryState.hype,
+        hp = summaryState.hp,
+        downed = summaryState.downed,
+        lastDamage = summaryState.lastDamage,
         power = summaryState.power,
         grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(summaryState)),
         hypeTier = Scoring.GetHypeTier(summaryState.hype),
     })
+
+    -- Stability hitting 0 enters Disaster Mode in the demo; the player can still finish.
 
     return true, judgement
 end
@@ -2532,25 +2719,30 @@ function SongSessionService:Update(dt)
             if session.state == "Countdown" and now() &gt;= session.startServerTime then
                 session.state = "Playing"
             end
-            if now() &gt;= session.endServerTime or session.judgedNotes &gt;= #session.noteOrder then
+            if now() &gt;= session.endServerTime then
                 self:FinishSession(session.player)
             else
+                local allowedWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
                 for _, note in ipairs(session.noteOrder) do
-                    if not note.hit and now() - session.startServerTime &gt; note.time + Config.Judgement.AcceptWindow then
+                    if not note.hit and now() - session.startServerTime &gt; note.time + allowedWindow then
                         note.hit = true
                         session.judgedNotes = session.judgedNotes + 1
-                        session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", self.context.Services.DataService:GetProfile(session.player))
-                        self.context.Services.HypeService:ApplyMiss(session, self.context.Services.DataService:GetProfile(session.player))
+                        local profile = self.context.Services.DataService:GetProfile(session.player)
+                        session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", profile)
+                        self.context.Services.HypeService:ApplyMiss(session, profile)
                         self.context.Remotes.NoteJudged:FireClient(session.player, {
                             sessionId = session.id,
                             noteId = note.id,
                             lane = note.lane,
                             judgement = "Miss",
-                            offset = Config.Judgement.AcceptWindow,
+                            offset = allowedWindow,
                             score = session.stateData.score,
                             combo = session.stateData.combo,
                             multiplier = session.stateData.multiplier,
                             hype = session.stateData.hype,
+                            hp = session.stateData.hp,
+                            downed = session.stateData.downed,
+                            lastDamage = session.stateData.lastDamage,
                             power = session.stateData.power,
                             visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
                         })
@@ -2560,10 +2752,15 @@ function SongSessionService:Update(dt)
                             maxCombo = session.stateData.maxCombo,
                             multiplier = session.stateData.multiplier,
                             hype = session.stateData.hype,
+                            hp = session.stateData.hp,
+                            downed = session.stateData.downed,
+                            lastDamage = session.stateData.lastDamage,
                             power = session.stateData.power,
                             grade = Scoring.GetGrade(Scoring.GetAccuracyPercent(session.stateData)),
                             hypeTier = Scoring.GetHypeTier(session.stateData.hype),
                         })
+                        -- Do not hard-stop at 0 Stability; finish the selected segment/song.
+
                     end
                 end
             end
@@ -2647,6 +2844,9 @@ function StoreService:PurchaseItem(player, category, itemId)
     if category == "GameplayUpgrades" then
         return self.context.Services.UpgradeService:PurchaseUpgrade(player, itemId)
     end
+    if category == "TourBus" then
+        return self.context.Services.TourBusService:PurchaseUpgrade(player, itemId)
+    end
 
     local item = CosmeticConfig.Get(category, itemId)
     if not item then
@@ -2716,12 +2916,12 @@ local TourBusService = {}
 TourBusService.__index = TourBusService
 
 TourBusService.Upgrades = {
-    BiggerSpeakers = { id = "BiggerSpeakers", cost = 120, description = "+Hype gain" },
-    SnackStand = { id = "SnackStand", cost = 140, description = "Passive Fans placeholder" },
-    PracticeSeat = { id = "PracticeSeat", cost = 130, description = "+XP from retries" },
-    MerchBox = { id = "MerchBox", cost = 150, description = "+Fans from audience" },
-    RoadCrew = { id = "RoadCrew", cost = 180, description = "Lowers venue fees" },
-    NeonWrap = { id = "NeonWrap", cost = 100, description = "Cosmetic bus wrap" },
+    BiggerSpeakers = { id = "BiggerSpeakers", name = "Bigger Speakers", cost = 120, currency = "Coins", max = 5, description = "+Hype gain during performances." },
+    SnackStand = { id = "SnackStand", name = "Snack Stand", cost = 140, currency = "Coins", max = 5, description = "Small bonus Fans after completed songs." },
+    PracticeSeat = { id = "PracticeSeat", name = "Practice Seat", cost = 130, currency = "Coins", max = 5, description = "+XP from retries and replays." },
+    MerchBox = { id = "MerchBox", name = "Merch Box", cost = 150, currency = "Fans", max = 5, description = "+Fans from audience participation." },
+    RoadCrew = { id = "RoadCrew", name = "Road Crew", cost = 180, currency = "Coins", max = 5, description = "Reduces venue fees." },
+    NeonWrap = { id = "NeonWrap", name = "Neon Wrap", cost = 100, currency = "Fans", max = 3, description = "Cosmetic Tour Bus flex." },
 }
 
 function TourBusService:Init(runtimeContext)
@@ -2746,6 +2946,49 @@ function TourBusService:GetModifiers(profile)
         roadCrew = bus.RoadCrew or 0,
         neonWrap = bus.NeonWrap or 0,
     }
+end
+
+function TourBusService:GetCost(profile, upgradeId)
+    local info = self.Upgrades[upgradeId]
+    if not info then
+        return nil
+    end
+    local bus = self:GetProfile(profile)
+    local current = bus[upgradeId] or 0
+    if current &gt;= info.max then
+        return nil
+    end
+    return math.floor((info.cost or 100) * (1.35 ^ current))
+end
+
+function TourBusService:PurchaseUpgrade(player, upgradeId)
+    local profile = self.context.Services.DataService:GetProfile(player)
+    if not profile then
+        return false, "NoData"
+    end
+    local info = self.Upgrades[upgradeId]
+    if not info then
+        return false, "UnknownTourBusUpgrade"
+    end
+
+    local bus = self:GetProfile(profile)
+    local current = bus[upgradeId] or 0
+    if current &gt;= info.max then
+        return false, "Maxed"
+    end
+
+    local cost = self:GetCost(profile, upgradeId)
+    local currency = info.currency or "Coins"
+    if not self.context.Services.DataService:SpendCurrency(player, currency, cost) then
+        return false, "InsufficientCurrency"
+    end
+
+    bus[upgradeId] = current + 1
+    self.context.Services.DataService:SavePlayer(player)
+    self.context.Services.DataService:UpdateProfile(player, function(updatedProfile)
+        return updatedProfile
+    end)
+    return true, { upgradeId = upgradeId, level = bus[upgradeId], cost = cost, currency = currency }
 end
 
 function TourBusService:ApplyRewardModifiers(profile, rewards, isRetry)
@@ -2856,8 +3099,8 @@ function UpgradeService:GetSessionBonus(profile, mode)
 
     profile.Upgrades = profile.Upgrades or {}
     return {
-        goodWindow = (profile.Upgrades.Timing or 0) * 0.01,
-        hypeGain = (profile.Upgrades.HypeGain or 0) * 0.08,
+        goodWindow = (profile.Upgrades.Timing or 0) * 0.005,
+        hypeGain = (profile.Upgrades.HypeGain or 0) * 0.05,
         recovery = (profile.Upgrades.Recovery or 0) * 0.10,
         stagecraft = (profile.Upgrades.Stagecraft or 0) * 0.08,
         chaos = (profile.Upgrades.Chaos or 0) * 0.10,
@@ -2905,7 +3148,7 @@ end
 return VenueService
 </ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX56"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX54"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX48"><Properties><string name="Name">AudienceClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -2918,76 +3161,125 @@ if existing and not existing:IsA("ScreenGui") then
 end
 local screenGui = existing or Instance.new("ScreenGui")
 screenGui.Name = "AudienceGui"
-screenGui.IgnoreGuiInset = true
+screenGui.IgnoreGuiInset = false
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
+
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 12)
+    c.Parent = parent
+end
+
+local function button(parent, name, text, size, position, color)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = size
+    b.Position = position
+    b.Text = text
+    b.Font = Enum.Font.GothamBlack
+    b.TextScaled = true
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.BackgroundColor3 = color or Color3.fromRGB(55, 145, 255)
+    b.Parent = parent
+    corner(b, 10)
+    return b
+end
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
 panel.Visible = false
-panel.Size = UDim2.new(0, 240, 0, 220)
-panel.Position = UDim2.new(1, -260, 0.12, 0)
+panel.AnchorPoint = Vector2.new(1, 0.5)
+panel.Size = UDim2.new(0, 300, 0, 270)
+panel.Position = UDim2.new(1, -24, 0.48, 0)
 panel.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 panel.BackgroundTransparency = 0.05
 panel.Parent = screenGui
+corner(panel, 18)
+local panelScale = Instance.new("UIScale")
+panelScale.Name = "ResponsiveScale"
+panelScale.Parent = panel
 
 local title = Instance.new("TextLabel")
 title.BackgroundTransparency = 1
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Position = UDim2.new(0, 0, 0, 4)
-title.Text = "Audience"
+title.Size = UDim2.new(1, -64, 0, 40)
+title.Position = UDim2.new(0, 14, 0, 8)
+title.Text = "Audience / Watch"
 title.TextScaled = true
 title.Font = Enum.Font.GothamBlack
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Parent = panel
 
-local buttons = { "Clap", "Cheer", "Encore", "Laugh", "Support" }
-local buttonFrames = {}
-for i, action in ipairs(buttons) do
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.85, 0, 0, 30)
-    button.Position = UDim2.new(0.075, 0, 0, 40 + ((i - 1) * 34))
-    button.Text = action
-    button.Font = Enum.Font.GothamBold
-    button.TextScaled = true
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Parent = panel
-    button.MouseButton1Click:Connect(function()
+local close = button(panel, "Close", "X", UDim2.new(0, 42, 0, 38), UDim2.new(1, -52, 0, 10), Color3.fromRGB(255, 95, 95))
+local hint = Instance.new("TextLabel")
+hint.BackgroundTransparency = 1
+hint.Size = UDim2.new(1, -28, 0, 42)
+hint.Position = UDim2.new(0, 14, 0, 48)
+hint.Text = "Cheer the performer. Watch horde/stage action."
+hint.TextScaled = true
+hint.TextWrapped = true
+hint.Font = Enum.Font.GothamBold
+hint.TextColor3 = Color3.fromRGB(220, 235, 255)
+hint.Parent = panel
+
+local actions = { "Clap", "Cheer", "Encore", "Laugh", "Support" }
+for i, action in ipairs(actions) do
+    local col = ((i - 1) % 2)
+    local row = math.floor((i - 1) / 2)
+    local b = button(panel, action .. "Button", action, UDim2.new(0.44, -8, 0, 44), UDim2.new(0.06 + col * 0.47, 0, 0, 102 + row * 52), Color3.fromRGB(40, 40, 70))
+    b.Activated:Connect(function()
         remotes.AudienceAction:FireServer({ action = action })
     end)
-    buttonFrames[action] = button
 end
 
-local function updateVisibility()
+local forcedOpen = false
+close.Activated:Connect(function()
+    forcedOpen = false
+    screenGui:SetAttribute("Open", false)
+    panel.Visible = false
+end)
+
+screenGui:GetAttributeChangedSignal("Open"):Connect(function()
+    if screenGui:GetAttribute("Open") then
+        forcedOpen = true
+        panel.Visible = true
+    end
+end)
+
+local function inAudienceZone()
     local stage = workspace:FindFirstChild("Stage")
     local zone = stage and stage:FindFirstChild("AudienceZone")
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    local watching = false
-    if zone and root then
-        local localPoint = zone.CFrame:PointToObjectSpace(root.Position)
-        local half = zone.Size * 0.5
-        watching = math.abs(localPoint.X) &lt;= half.X and math.abs(localPoint.Y) &lt;= half.Y + 5 and math.abs(localPoint.Z) &lt;= half.Z
-    end
-    panel.Visible = watching and not UserInputService.TouchEnabled or watching
+    if not zone or not root then return false end
+    local localPoint = zone.CFrame:PointToObjectSpace(root.Position)
+    local half = zone.Size * 0.5
+    return math.abs(localPoint.X) &lt;= half.X and math.abs(localPoint.Y) &lt;= half.Y + 5 and math.abs(localPoint.Z) &lt;= half.Z
 end
 
+local lastZone = false
 task.spawn(function()
     while true do
-        updateVisibility()
+        lastZone = inAudienceZone()
+        panel.Visible = forcedOpen or lastZone
         task.wait(0.5)
     end
+end)
+
+RunService.RenderStepped:Connect(function()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    panelScale.Scale = math.clamp(math.min(viewport.X / 900, viewport.Y / 560), 0.72, 1.08)
 end)
 
 remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
     local equipped = snapshot and snapshot.Equipped
     if equipped and equipped.AudiencePacks then
-        title.Text = "Audience: " .. tostring(equipped.AudiencePacks)
+        title.Text = "Audience / Watch: " .. tostring(equipped.AudiencePacks)
     end
 end)
 </ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX49"><Properties><string name="Name">DataClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -3002,7 +3294,7 @@ local function ensureScreenGui(name)
     end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -3069,6 +3361,9 @@ welcome.Size = UDim2.new(0, 390, 0, 300)
 welcome.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
 welcome.BackgroundTransparency = 0.02
 welcome.Parent = screenGui
+local welcomeScale = Instance.new("UIScale")
+welcomeScale.Name = "ResponsiveScale"
+welcomeScale.Parent = welcome
 corner(welcome, 18)
 stroke(welcome, Color3.fromRGB(255, 230, 120))
 
@@ -3082,11 +3377,24 @@ title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
 title.Parent = welcome
 
+local closeWelcome = Instance.new("TextButton")
+closeWelcome.Name = "CloseWelcome"
+closeWelcome.Size = UDim2.new(0, 40, 0, 36)
+closeWelcome.Position = UDim2.new(1, -50, 0, 12)
+closeWelcome.Text = "X"
+closeWelcome.TextColor3 = Color3.new(1, 1, 1)
+closeWelcome.Font = Enum.Font.GothamBlack
+closeWelcome.TextScaled = true
+closeWelcome.BackgroundColor3 = Color3.fromRGB(255, 95, 95)
+closeWelcome.Parent = welcome
+corner(closeWelcome, 10)
+closeWelcome.Activated:Connect(function() welcome.Visible = false end)
+
 local body = Instance.new("TextLabel")
 body.BackgroundTransparency = 1
 body.Size = UDim2.new(1, -28, 0, 176)
 body.Position = UDim2.new(0, 14, 0, 62)
-body.Text = "Hit the notes. Make your avatar groan. Hype the crowd.\n\n1. Walk to the glowing stage mic\n2. Press E / tap Start Song\n3. Hit D F J K or the 4 buttons\n4. Build Combo + Hype\n5. Earn Fans, Coins, XP, Tickets\n6. Buy upgrades and stage effects"
+body.Text = "Hit notes. Make cursed groans. Hype the crowd. Upgrade your stage career.\n\n1. Tap Choose Song or use the glowing mic.\n2. Pick a song, difficulty, and segment length.\n3. Press ← → ↑ ↓ or tap/click the matching lanes.\n4. Build Combo, Hype, and keep Stability alive.\n5. Earn Fans, Coins, XP, and Tickets.\n6. Buy upgrades, stage effects, and Tour Bus bonuses."
 body.TextColor3 = Color3.fromRGB(220, 235, 255)
 body.Font = Enum.Font.GothamBold
 body.TextScaled = true
@@ -3128,6 +3436,74 @@ makeButton("StoreButton", "Store", 262, function()
     if sg then sg.Enabled = true; sg:SetAttribute("Open", true); sg:SetAttribute("Tab", "Tube Sounds") end
 end)
 
+local actionBar = Instance.new("Frame")
+actionBar.Name = "TouchActionBar"
+actionBar.AnchorPoint = Vector2.new(0.5, 0)
+actionBar.Position = UDim2.new(0.5, 0, 0, 12)
+actionBar.Size = UDim2.new(0, 720, 0, 52)
+actionBar.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+actionBar.BackgroundTransparency = 0.08
+actionBar.Parent = screenGui
+corner(actionBar, 14)
+stroke(actionBar, Color3.fromRGB(80, 225, 255))
+local actionScale = Instance.new("UIScale")
+actionScale.Name = "ResponsiveScale"
+actionScale.Parent = actionBar
+local actionLayout = Instance.new("UIListLayout")
+actionLayout.FillDirection = Enum.FillDirection.Horizontal
+actionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+actionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+actionLayout.Padding = UDim.new(0, 8)
+actionLayout.Parent = actionBar
+local actionPad = Instance.new("UIPadding")
+actionPad.PaddingLeft = UDim.new(0, 8)
+actionPad.PaddingRight = UDim.new(0, 8)
+actionPad.Parent = actionBar
+
+local function actionButton(name, text, callback)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(0, 108, 0, 38)
+    b.Text = text
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamBlack
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(45, 55, 85)
+    b.Parent = actionBar
+    corner(b, 10)
+    b.Activated:Connect(callback)
+    return b
+end
+
+local function openStoreTab(tab)
+    local sg = playerGui:FindFirstChild("StoreGui")
+    if sg then
+        sg.Enabled = true
+        sg:SetAttribute("Open", true)
+        sg:SetAttribute("Tab", tab)
+    end
+end
+
+local function openSongs()
+    local rg = playerGui:FindFirstChild("RhythmGui")
+    if rg then
+        rg:SetAttribute("OpenSongSelect", true)
+        local modal = rg:FindFirstChild("Root") and rg.Root:FindFirstChild("SongSelectModal")
+        if modal then modal.Visible = true end
+    end
+    welcome.Visible = false
+end
+
+actionButton("ChooseSong", "Choose Song", openSongs)
+actionButton("Store", "Store", function() openStoreTab("Tube Sounds") end)
+actionButton("Missions", "Missions", function() openStoreTab("Missions") end)
+actionButton("TourBus", "Tour Bus", function() openStoreTab("Tour Bus") end)
+actionButton("Watch", "Watch", function()
+    local ag = playerGui:FindFirstChild("AudienceGui")
+    if ag then ag:SetAttribute("Open", true) end
+end)
+actionButton("Help", "Help", function() welcome.Visible = true end)
+
 local arrow = Instance.new("TextLabel")
 arrow.Name = "StageArrow"
 arrow.BackgroundTransparency = 1
@@ -3139,6 +3515,14 @@ arrow.Font = Enum.Font.GothamBlack
 arrow.TextScaled = true
 arrow.Parent = screenGui
 TweenService:Create(arrow, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextTransparency = 0.35 }):Play()
+
+RunService.RenderStepped:Connect(function()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    local scale = math.clamp(math.min(viewport.X / 1180, viewport.Y / 680), 0.68, 1.06)
+    actionScale.Scale = scale
+    welcomeScale.Scale = math.clamp(math.min(viewport.X / 760, viewport.Y / 560), 0.72, 1)
+    hud.Size = UDim2.new(0, math.clamp(viewport.X * 0.34, 320, 430), 0, 76)
+end)
 
 local function update(snapshot)
     ClientState.SetSnapshot(snapshot)
@@ -3159,6 +3543,8 @@ end)
 local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -3174,8 +3560,30 @@ local Config = require(ReplicatedStorage.Shared.Config)
 
 local laneButtons = {}
 local buttonGui
+local inputBar
+local rotateLabel
+local keyToLane = {}
+
+for lane = 1, 4 do
+    local keyName = Config.Lanes[lane].key
+    local keyCode = Enum.KeyCode[keyName]
+    if keyCode then
+        keyToLane[keyCode] = lane
+    end
+end
+
+local function isSongActive()
+    local rhythmGui = playerGui:FindFirstChild("RhythmGui")
+    return rhythmGui and rhythmGui:IsA("ScreenGui") and rhythmGui:GetAttribute("SongActive") == true
+end
 
 local function fireLane(lane, source)
+    local button = laneButtons[lane]
+    if button then
+        local original = button.BackgroundColor3
+        button.BackgroundColor3 = Color3.fromRGB(255, 245, 120)
+        TweenService:Create(button, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { BackgroundColor3 = original }):Play()
+    end
     channel:Fire({
         lane = lane,
         source = source,
@@ -3184,16 +3592,44 @@ local function fireLane(lane, source)
 end
 
 local function bindLane(name, lane)
-    ContextActionService:BindAction(name, function(_, state)
+    local keyCode = Enum.KeyCode[Config.Lanes[lane].key]
+    if not keyCode then
+        warn("Groan Tube Hero: bad lane key", lane, Config.Lanes[lane].key)
+        return
+    end
+
+    ContextActionService:BindActionAtPriority(name, function(_, state)
+        if not isSongActive() then
+            return Enum.ContextActionResult.Pass
+        end
         if state == Enum.UserInputState.Begin then
-            fireLane(lane, "Keyboard")
+            fireLane(lane, "KeyboardAction")
         end
         return Enum.ContextActionResult.Sink
-    end, false, Enum.KeyCode[Config.Lanes[lane].key])
+    end, false, 10001, keyCode)
 end
 
 for lane = 1, 4 do
     bindLane("GroanTubeHeroLane" .. lane, lane)
+end
+
+-- ContextActionService handles most cases, but Roblox camera/controller scripts can
+-- still consume arrows in some Studio states. This direct fallback guarantees arrows
+-- become hits while the song is active.
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not isSongActive() then
+        return
+    end
+    local lane = keyToLane[input.KeyCode]
+    if lane then
+        fireLane(lane, gameProcessed and "KeyboardFallbackProcessed" or "KeyboardFallback")
+    end
+end)
+
+local function setButtonsVisible(visible)
+    if buttonGui then
+        buttonGui.Enabled = visible
+    end
 end
 
 local function createMobileButtons()
@@ -3202,36 +3638,120 @@ local function createMobileButtons()
     end
     buttonGui = Instance.new("ScreenGui")
     buttonGui.Name = "GroanTubeHeroMobileInput"
-    buttonGui.IgnoreGuiInset = true
+    buttonGui.IgnoreGuiInset = false
     buttonGui.ResetOnSpawn = false
+    buttonGui.Enabled = false
     buttonGui.Parent = playerGui
 
-    local baseY = 0.82
+    inputBar = Instance.new("Frame")
+    inputBar.Name = "BottomArrowInputBar"
+    inputBar.AnchorPoint = Vector2.new(0.5, 1)
+    inputBar.Position = UDim2.new(0.5, 0, 0.96, -8)
+    inputBar.Size = UDim2.new(0.54, 0, 0.18, 0)
+    inputBar.BackgroundColor3 = Color3.fromRGB(6, 8, 18)
+    inputBar.BackgroundTransparency = 0.08
+    inputBar.Parent = buttonGui
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(0, 18)
+    barCorner.Parent = inputBar
+    local barStroke = Instance.new("UIStroke")
+    barStroke.Color = Color3.fromRGB(120, 220, 255)
+    barStroke.Thickness = 2
+    barStroke.Transparency = 0.15
+    barStroke.Parent = inputBar
+    local scale = Instance.new("UIScale")
+    scale.Name = "ResponsiveScale"
+    scale.Parent = inputBar
+    local aspect = Instance.new("UIAspectRatioConstraint")
+    aspect.AspectRatio = 5.4
+    aspect.AspectType = Enum.AspectType.FitWithinMaxSize
+    aspect.Parent = inputBar
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.Padding = UDim.new(0.025, 0)
+    layout.Parent = inputBar
+
     for lane = 1, 4 do
         local button = Instance.new("TextButton")
         button.Name = "Lane" .. lane
-        button.Text = Config.Lanes[lane].key
-        button.Size = UDim2.new(0.22, 0, 0.12, 0)
-        button.Position = UDim2.new(0.05 + ((lane - 1) * 0.23), 0, baseY, 0)
-        button.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+        button.Text = Config.Lanes[lane].symbol or Config.Lanes[lane].key
+        button.Size = UDim2.new(0.225, 0, 0.82, 0)
+        button.BackgroundColor3 = Color3.fromRGB(24, 28, 52)
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.TextScaled = true
-        button.Parent = buttonGui
+        button.Font = Enum.Font.GothamBlack
+        button.AutoButtonColor = false
+        button.ZIndex = 10
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 16)
+        corner.Parent = button
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Thickness = 2
+        stroke.Transparency = 0.25
+        stroke.Parent = button
+        button.Parent = inputBar
+        local textSize = Instance.new("UITextSizeConstraint")
+        textSize.MinTextSize = 30
+        textSize.MaxTextSize = 72
+        textSize.Parent = button
         button.Activated:Connect(function()
             fireLane(lane, "Mobile")
         end)
         laneButtons[lane] = button
     end
+
+    rotateLabel = Instance.new("TextLabel")
+    rotateLabel.Name = "RotateDevice"
+    rotateLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    rotateLabel.Position = UDim2.fromScale(0.5, 0.5)
+    rotateLabel.Size = UDim2.new(0.82, 0, 0.22, 0)
+    rotateLabel.BackgroundColor3 = Color3.fromRGB(8, 10, 22)
+    rotateLabel.Text = "Rotate device for rhythm controls"
+    rotateLabel.TextColor3 = Color3.fromRGB(255, 245, 150)
+    rotateLabel.Font = Enum.Font.GothamBlack
+    rotateLabel.TextScaled = true
+    rotateLabel.Visible = false
+    rotateLabel.Parent = buttonGui
+    local rotateCorner = Instance.new("UICorner")
+    rotateCorner.CornerRadius = UDim.new(0, 18)
+    rotateCorner.Parent = rotateLabel
+
+    local function updateResponsive()
+        local cam = workspace.CurrentCamera
+        local viewport = cam and cam.ViewportSize or Vector2.new(1280, 720)
+        local portrait = viewport.Y &gt; viewport.X
+        rotateLabel.Visible = portrait and buttonGui.Enabled
+        inputBar.Visible = not portrait
+        local minSide = math.min(viewport.X, viewport.Y)
+        scale.Scale = math.clamp(minSide / 720, 0.82, 1.18)
+    end
+    RunService.RenderStepped:Connect(updateResponsive)
+    updateResponsive()
     return buttonGui
 end
 
--- Always create the four large lane buttons. Desktop players get visible hints,
--- mobile players get tappable controls outside the Roblox thumbstick/jump area.
 createMobileButtons()
 
-ReplicatedStorage:GetAttributeChangedSignal("GroanTubeHeroReady"):Connect(function()
-    if UserInputService.TouchEnabled and not buttonGui then
-        createMobileButtons()
+local function watchRhythmGui(gui)
+    if not gui or not gui:IsA("ScreenGui") then
+        return
+    end
+    setButtonsVisible(gui:GetAttribute("SongActive") == true)
+    gui:GetAttributeChangedSignal("SongActive"):Connect(function()
+        setButtonsVisible(gui:GetAttribute("SongActive") == true)
+    end)
+end
+
+local existingRhythm = playerGui:FindFirstChild("RhythmGui")
+if existingRhythm then
+    watchRhythmGui(existingRhythm)
+end
+playerGui.ChildAdded:Connect(function(child)
+    if child.Name == "RhythmGui" then
+        watchRhythmGui(child)
     end
 end)
 
@@ -3248,7 +3768,7 @@ channel.Event:Connect(function(payload, legacySource)
     end
 
     local rhythmClient = playerGui:FindFirstChild("RhythmGui")
-    if rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("AcceptInput") == true then
+    if rhythmClient and rhythmClient:IsA("ScreenGui") and rhythmClient:GetAttribute("SongActive") == true and rhythmClient:GetAttribute("AcceptInput") == true then
         local binder = rhythmClient:FindFirstChild("InputBus")
         if binder and binder:IsA("BindableEvent") then
             binder:Fire(payload)
@@ -3258,6 +3778,8 @@ end)
 </ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX51"><Properties><string name="Name">RhythmClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -3279,7 +3801,7 @@ local function ensureScreenGui(name)
     end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -3293,7 +3815,8 @@ laneInput.Name = "LaneInput"
 laneInput.Parent = inputFolder
 
 local screenGui = ensureScreenGui("RhythmGui")
-screenGui:SetAttribute("AcceptInput", true)
+screenGui:SetAttribute("SongActive", false)
+screenGui:SetAttribute("AcceptInput", false)
 screenGui:ClearAllChildren()
 
 local inputBus = Instance.new("BindableEvent")
@@ -3373,6 +3896,7 @@ local songInfo = makeLabel(topBar, "SongInfo", "Groan Tube Hero\nChoose a song a
 songInfo.TextXAlignment = Enum.TextXAlignment.Left
 local scoreInfo = makeLabel(topBar, "ScoreInfo", "Score 0\nCombo 0  Grade -", UDim2.new(0.30, 0, 1, -12), UDim2.new(0.35, 0, 0, 6), Color3.fromRGB(255, 240, 160), Enum.Font.GothamBlack)
 local hypeInfo = makeLabel(topBar, "HypeInfo", "Hype 0\nDead Room", UDim2.new(0.26, 0, 1, -12), UDim2.new(0.70, 0, 0, 6), Color3.fromRGB(120, 255, 180), Enum.Font.GothamBlack)
+local hudChooseButton = makeButton(root, "HudChooseSong", "Choose Song", UDim2.new(0, 170, 0, 42), UDim2.new(1, -190, 0, 96), Color3.fromRGB(170, 95, 255))
 
 local highway = Instance.new("Frame")
 highway.Name = "NoteHighway"
@@ -3386,7 +3910,12 @@ corner(highway, 18)
 stroke(highway, Color3.fromRGB(120, 210, 255), 3)
 
 local laneX = {0.125, 0.375, 0.625, 0.875}
-local laneKeys = {"D", "F", "J", "K"}
+local laneKeys = {
+    Config.Lanes[1].symbol or Config.Lanes[1].key,
+    Config.Lanes[2].symbol or Config.Lanes[2].key,
+    Config.Lanes[3].symbol or Config.Lanes[3].key,
+    Config.Lanes[4].symbol or Config.Lanes[4].key,
+}
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -3400,14 +3929,22 @@ laneFlashLayer.Size = UDim2.fromScale(1, 1)
 laneFlashLayer.Parent = highway
 
 for lane = 1, 4 do
-    local laneFrame = Instance.new("Frame")
+    local laneFrame = Instance.new("TextButton")
     laneFrame.Name = "Lane" .. lane
+    laneFrame.Text = ""
+    laneFrame.AutoButtonColor = false
     laneFrame.Size = UDim2.new(0.23, 0, 1, -18)
     laneFrame.Position = UDim2.new((lane - 1) * 0.25 + 0.0125, 0, 0, 9)
     laneFrame.BackgroundColor3 = Color3.fromRGB(28, 30, 50)
     laneFrame.BackgroundTransparency = 0.12
     laneFrame.Parent = highway
     corner(laneFrame, 12)
+    laneFrame.Activated:Connect(function()
+        local original = laneFrame.BackgroundColor3
+        laneFrame.BackgroundColor3 = laneColors[lane]
+        TweenService:Create(laneFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { BackgroundColor3 = original }):Play()
+        inputBus:Fire({ lane = lane, source = "TouchLane" })
+    end)
     makeLabel(laneFrame, "Key", laneKeys[lane], UDim2.new(1, 0, 0, 42), UDim2.new(0, 0, 1, -46), laneColors[lane], Enum.Font.GothamBlack)
 end
 
@@ -3424,7 +3961,10 @@ local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDi
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
 
-local bottomHint = makeLabel(root, "BottomHint", "Hit D  F  J  K  •  Mobile buttons work too  •  Build Combo + Hype!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
+local comboFx = makeLabel(root, "ComboStreak", "", UDim2.new(0, 700, 0, 90), UDim2.new(0.5, -350, 0.27, 0), Color3.fromRGB(255, 245, 120), Enum.Font.GothamBlack)
+comboFx.TextTransparency = 1
+
+local bottomHint = makeLabel(root, "BottomHint", "Tap/click lanes or press ←  →  ↑  ↓  •  Combo streaks blast the horde!", UDim2.new(1, -40, 0, 44), UDim2.new(0, 20, 0.91, 0), Color3.fromRGB(230, 240, 255), Enum.Font.GothamBold)
 
 local noteLegend = Instance.new("Frame")
 noteLegend.Name = "AlwaysVisibleNoteLegend"
@@ -3435,7 +3975,7 @@ noteLegend.BackgroundTransparency = 0.08
 noteLegend.Parent = root
 corner(noteLegend, 16)
 stroke(noteLegend, Color3.fromRGB(255, 230, 120), 2)
-makeLabel(noteLegend, "LegendTitle", "NOTES / KEYS", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
+makeLabel(noteLegend, "LegendTitle", "NOTES / LANES", UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 150), Enum.Font.GothamBlack)
 local legendNames = { "Blue note", "Green note", "Gold note", "Pink note" }
 for lane = 1, 4 do
     local chip = Instance.new("Frame")
@@ -3457,25 +3997,84 @@ for lane = 1, 4 do
     text.TextXAlignment = Enum.TextXAlignment.Left
 end
 
+local function setPerformanceUiVisible(visible)
+    topBar.Visible = visible
+    highway.Visible = visible
+    bottomHint.Visible = visible
+    noteLegend.Visible = visible
+    judgement.Visible = visible
+end
+
+setPerformanceUiVisible(false)
+
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
-songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
-songSelect.Position = UDim2.new(0.5, 0, 0.5, 0)
-songSelect.Size = UDim2.new(0, 820, 0, 520)
+songSelect.AnchorPoint = Vector2.new(1, 0.5)
+songSelect.Position = UDim2.new(1, -18, 0.55, 0)
+songSelect.Size = UDim2.new(0, 620, 0, 650)
 songSelect.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
-songSelect.BackgroundTransparency = 0.02
+songSelect.BackgroundTransparency = 0.16
 songSelect.Visible = false
 songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
-makeLabel(songSelect, "Title", "Choose Your Cursed Groan", UDim2.new(1, -40, 0, 54), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-makeLabel(songSelect, "Subtitle", "Pick a placeholder song. All tracks run visually even if audio is missing.", UDim2.new(1, -40, 0, 32), UDim2.new(0, 20, 0, 70), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
-local songList = Instance.new("Frame")
+makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+closeSongSelect.Activated:Connect(function()
+    songSelect.Visible = false
+end)
+makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local test charts are separated and not public-release content.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+local selectedDifficulty = "Easy"
+local selectedSegment = "30s"
+local selectedSection = "Intro"
+local difficultyButtons = {}
+local segmentButtons = {}
+local function refreshOptionButtons()
+    for id, button in pairs(difficultyButtons) do
+        button.BackgroundColor3 = (id == selectedDifficulty) and Color3.fromRGB(255, 185, 70) or Color3.fromRGB(45, 55, 85)
+    end
+    for id, button in pairs(segmentButtons) do
+        button.BackgroundColor3 = (id == selectedSegment) and Color3.fromRGB(80, 210, 140) or Color3.fromRGB(45, 55, 85)
+    end
+end
+
+local optionPanel = Instance.new("Frame")
+optionPanel.Name = "DifficultySegmentPicker"
+optionPanel.Size = UDim2.new(1, -40, 0, 92)
+optionPanel.Position = UDim2.new(0, 20, 0, 104)
+optionPanel.BackgroundColor3 = Color3.fromRGB(18, 22, 42)
+optionPanel.Parent = songSelect
+corner(optionPanel, 14)
+stroke(optionPanel, Color3.fromRGB(120, 220, 255), 1)
+makeLabel(optionPanel, "DiffLabel", "Difficulty", UDim2.new(0, 120, 0, 28), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 245, 160), Enum.Font.GothamBlack)
+for i, id in ipairs(Config.DifficultyOrder or { "Easy", "Hard", "Extreme", "Brainrot" }) do
+    local button = makeButton(optionPanel, "Difficulty" .. id, id, UDim2.new(0, 96, 0, 28), UDim2.new(0, 112 + (i - 1) * 104, 0, 8), Color3.fromRGB(45, 55, 85))
+    difficultyButtons[id] = button
+    button.Activated:Connect(function() selectedDifficulty = id; refreshOptionButtons() end)
+end
+makeLabel(optionPanel, "SegLabel", "Segment", UDim2.new(0, 120, 0, 28), UDim2.new(0, 10, 0, 52), Color3.fromRGB(255, 245, 160), Enum.Font.GothamBlack)
+local segmentLabels = { ["20s"] = "20s Quick", ["30s"] = "30s Standard", ["40s"] = "40s Long", ["full"] = "Full" }
+for i, id in ipairs(Config.SegmentOrder or { "20s", "30s", "40s", "full" }) do
+    local button = makeButton(optionPanel, "Segment" .. id, segmentLabels[id] or id, UDim2.new(0, 116, 0, 28), UDim2.new(0, 112 + (i - 1) * 124, 0, 52), Color3.fromRGB(45, 55, 85))
+    segmentButtons[id] = button
+    button.Activated:Connect(function() selectedSegment = id; refreshOptionButtons() end)
+end
+refreshOptionButtons()
+
+local songList = Instance.new("ScrollingFrame")
 songList.Name = "SongCards"
 songList.BackgroundTransparency = 1
-songList.Size = UDim2.new(1, -40, 1, -120)
-songList.Position = UDim2.new(0, 20, 0, 108)
+songList.Size = UDim2.new(1, -40, 1, -220)
+songList.Position = UDim2.new(0, 20, 0, 204)
+songList.ScrollBarThickness = 8
+songList.CanvasSize = UDim2.new(0, 0, 0, 0)
+songList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 songList.Parent = songSelect
+local songGrid = Instance.new("UIGridLayout")
+songGrid.CellSize = UDim2.new(0, 270, 0, 250)
+songGrid.CellPadding = UDim2.new(0, 12, 0, 12)
+songGrid.SortOrder = Enum.SortOrder.LayoutOrder
+songGrid.Parent = songList
 
 local results = Instance.new("Frame")
 results.Name = "ResultsFrame"
@@ -3488,10 +4087,28 @@ results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
-local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -120), UDim2.new(0, 20, 0, 20), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+closeResults.Activated:Connect(function()
+    results.Visible = false
+end)
+local resultsScroll = Instance.new("ScrollingFrame")
+resultsScroll.Name = "ResultsScroll"
+resultsScroll.BackgroundTransparency = 1
+resultsScroll.Size = UDim2.new(1, -40, 1, -130)
+resultsScroll.Position = UDim2.new(0, 20, 0, 16)
+resultsScroll.ScrollBarThickness = 8
+resultsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+resultsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+resultsScroll.Parent = results
+local resultsText = makeLabel(resultsScroll, "ResultsText", "", UDim2.new(1, -16, 0, 560), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+resultsText.AutomaticSize = Enum.AutomaticSize.Y
+resultsText.TextYAlignment = Enum.TextYAlignment.Top
 local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
 local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
-local upgradeButton = makeButton(results, "UpgradeButton", "Open Upgrades", UDim2.new(0, 190, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
+local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
+local upgradeButton = makeButton(results, "UpgradeButton", "Upgrades", UDim2.new(0, 120, 0, 48), UDim2.new(0, 456, 1, -70), Color3.fromRGB(255, 175, 70))
+local missionsButton = makeButton(results, "MissionsButton", "Missions", UDim2.new(0, 112, 0, 40), UDim2.new(0, 28, 1, -118), Color3.fromRGB(120, 200, 95))
+local busButton = makeButton(results, "TourBusButton", "Tour Bus", UDim2.new(0, 124, 0, 40), UDim2.new(0, 152, 1, -118), Color3.fromRGB(90, 210, 220))
 
 local state = {
     active = false,
@@ -3507,8 +4124,44 @@ local state = {
     score = 0,
     combo = 0,
     hype = 0,
+    hp = 100,
+    downed = false,
     grade = "-",
+    lastDifficulty = "Easy",
+    lastSegment = "30s",
+    lastSegmentSection = "Intro",
+    highwayTravelSeconds = Config.SongFlow.HighwayTravelSeconds,
 }
+
+local songSound = Instance.new("Sound")
+songSound.Name = "SongAudioPipe"
+local baseSongVolume = 0.65
+songSound.Volume = baseSongVolume
+songSound.Looped = false
+songSound.Parent = SoundService
+
+local function stopSongAudio()
+    songSound:Stop()
+    songSound.SoundId = ""
+end
+
+local function playSongAudio(song)
+    stopSongAudio()
+    songSound.Volume = baseSongVolume
+    local audioId = song and song.AudioId
+    if type(audioId) ~= "string" or audioId == "" or audioId == "rbxassetid://0" then
+        songInfo.Text = songInfo.Text .. "\nVisual chart mode — no uploaded audio asset."
+        return
+    end
+    songSound.SoundId = audioId
+    local delaySeconds = math.max(0, (state.startServerTime or serverNow()) - serverNow())
+    task.delay(delaySeconds, function()
+        if state.active and state.song == song and songSound.SoundId == audioId then
+            songSound.TimePosition = math.max(0, (song.SegmentStart or 0) + serverNow() - (state.startServerTime or serverNow()))
+            songSound:Play()
+        end
+    end)
+end
 
 local function openStore(tab)
     local storeGui = playerGui:FindFirstChild("StoreGui")
@@ -3553,9 +4206,27 @@ local function updateHud(payload)
     state.score = payload.score or state.score
     state.combo = payload.combo or state.combo
     state.hype = payload.hype or state.hype
+    state.hp = payload.hp or state.hp
+    state.downed = payload.downed or false
     state.grade = payload.grade or state.grade
     scoreInfo.Text = string.format("Score %d\nCombo %d  Grade %s", state.score, state.combo, state.grade)
-    hypeInfo.Text = string.format("Hype %d\n%s", state.hype, payload.hypeTier or "Build the crowd")
+    local status = state.hp &lt;= 0 and "Disaster" or state.hp &lt; 40 and "Shaky" or "Stable"
+    hypeInfo.Text = string.format("Stability %d%%  Hype %d\n%s • %s", state.hp, state.hype, status, payload.hypeTier or "Build the crowd")
+    if state.combo &gt; 0 and state.combo % 5 == 0 then
+        comboFx.Text = string.format("🔥 %d COMBO STREAK 🔥", state.combo)
+        comboFx.TextTransparency = 0
+        comboFx.Size = UDim2.new(0, 700, 0, 90)
+        TweenService:Create(comboFx, TweenInfo.new(0.18, Enum.EasingStyle.Back), { Size = UDim2.new(0, 780, 0, 104) }):Play()
+        task.delay(0.55, function()
+            if comboFx then
+                comboFx.TextTransparency = 1
+                comboFx.Size = UDim2.new(0, 700, 0, 90)
+            end
+        end)
+    end
+    if payload.lastDamage and payload.lastDamage &gt; 0 then
+        showJudgement("-" .. tostring(payload.lastDamage) .. " Stability", Color3.fromRGB(255, 95, 120))
+    end
 end
 
 local function clearNotes()
@@ -3579,24 +4250,51 @@ local function createNote(note)
     state.noteFrames[note.id] = frame
 end
 
-local songMeta = {
-    NeonGroan = { difficulty = "Easy", description = "Learn the basics.", reward = "~45 Fans / 35 Coins / 60 XP" },
-    RomanticTubeDisaster = { difficulty = "Normal", description = "Dramatic groans and big chorus moments.", reward = "~70 Fans / 55 Coins / 85 XP" },
-    MallBalladButWrong = { difficulty = "Hard", description = "Awkward pauses and cursed timing.", reward = "~100 Fans / 75 Coins / 120 XP" },
-}
+local songMeta = {}
+
+local glitchOverlay = Instance.new("Frame")
+glitchOverlay.Name = "MissGlitchOverlay"
+glitchOverlay.BackgroundColor3 = Color3.fromRGB(255, 40, 90)
+glitchOverlay.BackgroundTransparency = 1
+glitchOverlay.Size = UDim2.fromScale(1, 1)
+glitchOverlay.ZIndex = 50
+glitchOverlay.Parent = root
+
+local function playMissGlitch()
+    if not Config.MissGlitch or not Config.MissGlitch.enabled then return end
+    songSound.Volume = 0
+    glitchOverlay.BackgroundTransparency = 0.68
+    local original = highway.Position
+    highway.Position = original + UDim2.new(0, math.random(-10, 10), 0, math.random(-6, 6))
+    TweenService:Create(glitchOverlay, TweenInfo.new(Config.MissGlitch.duration or 0.25), { BackgroundTransparency = 1 }):Play()
+    task.delay(Config.MissGlitch.duration or 0.25, function()
+        if highway then highway.Position = original end
+    end)
+end
 
 local pendingStartToken = 0
+local playerSnapshot = {}
 local openSongSelect
 
 local function startSong(songId)
     state.lastSongId = songId
+    state.lastDifficulty = selectedDifficulty
+    state.lastSegment = selectedSegment
+    state.lastSegmentSection = selectedSection
     results.Visible = false
     songSelect.Visible = false
     pendingStartToken = pendingStartToken + 1
     local token = pendingStartToken
     songInfo.Text = "Starting song...\n" .. tostring(songId)
     showJudgement("Starting...", Color3.fromRGB(255, 245, 150))
-    remotes.StartSongRequest:FireServer({ songId = songId, mode = state.lastMode, venueId = state.lastVenueId })
+    remotes.StartSongRequest:FireServer({
+        songId = songId,
+        difficulty = selectedDifficulty,
+        segmentLength = selectedSegment,
+        segmentStart = selectedSection,
+        mode = state.lastMode,
+        venueId = state.lastVenueId,
+    })
     task.delay(4, function()
         if token == pendingStartToken and not state.active and not results.Visible then
             songInfo.Text = "Start did not complete\nPick a song again or use the stage mic."
@@ -3606,21 +4304,29 @@ local function startSong(songId)
 end
 
 local function buildSongCards()
-    songList:ClearAllChildren()
-    for index, song in ipairs(SongCatalog.List()) do
-        local meta = songMeta[song.Id] or { difficulty = "Normal", description = "Placeholder groan chart.", reward = "Rewards after song" }
+    for _, child in ipairs(songList:GetChildren()) do
+        if child:IsA("GuiObject") then
+            child:Destroy()
+        end
+    end
+    local displaySongs = {}
+    for _, song in ipairs(SongCatalog.List(false)) do table.insert(displaySongs, song) end
+    for _, song in ipairs(SongCatalog.ListLocalTests and SongCatalog.ListLocalTests() or {}) do table.insert(displaySongs, song) end
+    for index, song in ipairs(displaySongs) do
+        local isLocalTest = song.CatalogGroup == "LocalTest" or song.LocalTestOnly
+        local meta = songMeta[song.Id] or { difficulty = isLocalTest and "Local Test Chart" or "Public Demo", description = isLocalTest and "Imported placeholder chart — not for public release." or "Original Groan Tube Hero stage chart.", reward = "Difficulty × Segment" }
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
-        card.Size = UDim2.new(0.31, 0, 0.92, 0)
-        card.Position = UDim2.new((index - 1) * 0.345, 0, 0.03, 0)
+        card.LayoutOrder = index
+        card.Size = UDim2.new(0, 270, 0, 250)
         card.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
         card.Parent = songList
         corner(card, 18)
-        stroke(card, laneColors[index] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", song.Title, UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 34), UDim2.new(0, 10, 0, 72), laneColors[index] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Desc", meta.description .. "\n\nBest Grade: --\nBest Score: --\nRewards: " .. meta.reward, UDim2.new(1, -20, 0, 170), UDim2.new(0, 10, 0, 114), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
-        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 48), UDim2.new(0, 17, 1, -64), laneColors[index] or Color3.fromRGB(55, 145, 255))
+        stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
+        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. song.Title, UDim2.new(1, -20, 0, 62), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 76), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 96), UDim2.new(0, 10, 0, 108), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
+        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
         start.Activated:Connect(function()
             startSong(song.Id)
         end)
@@ -3633,7 +4339,9 @@ function openSongSelect()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
-    songInfo.Text = "Choose a song\nStart with Neon Groan if new."
+    setPerformanceUiVisible(false)
+    refreshOptionButtons()
+    songInfo.Text = "Choose a song\nPick difficulty and 20s/30s/40s/Full segment."
 end
 
 local function consumeOpenSongSelectAttribute()
@@ -3645,13 +4353,36 @@ end
 
 screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSelectAttribute)
 consumeOpenSongSelectAttribute()
+if remotes:FindFirstChild("OpenSongSelect") then
+    remotes.OpenSongSelect.OnClientEvent:Connect(function()
+        openSongSelect()
+    end)
+end
+
+-- Client-side safety net: if the server prompt connection is missing or delayed,
+-- pressing E on the START SONG prompt still opens song select for the local player.
+ProximityPromptService.PromptTriggered:Connect(function(prompt)
+    if prompt and prompt.Parent and prompt.Parent.Name == "StartPrompt" then
+        openSongSelect()
+    end
+end)
 
 replayButton.Activated:Connect(function()
     startSong(state.lastSongId)
 end)
 chooseButton.Activated:Connect(openSongSelect)
+hudChooseButton.Activated:Connect(openSongSelect)
 upgradeButton.Activated:Connect(function()
     openStore("Upgrades")
+end)
+missionsButton.Activated:Connect(function()
+    openStore("Missions")
+end)
+storeButton.Activated:Connect(function()
+    openStore("Tube Sounds")
+end)
+busButton.Activated:Connect(function()
+    openStore("Tour Bus")
 end)
 
 inputBus.Event:Connect(function(payload)
@@ -3665,24 +4396,43 @@ inputBus.Event:Connect(function(payload)
         return
     end
 
+    if screenGui:GetAttribute("SongActive") ~= true or screenGui:GetAttribute("AcceptInput") ~= true then
+        return
+    end
+
     local songTime = serverNow() - state.startServerTime
     local targetNote = nil
     local bestDelta = math.huge
+    local candidateWindow = Config.ClientHitCandidateWindow or 0.65
+    local fallbackWindow = math.max(candidateWindow, 1.10)
     for _, note in ipairs(state.notes) do
         if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
-            if delta &lt; bestDelta then
+            if delta &lt;= candidateWindow and delta &lt; bestDelta then
                 bestDelta = delta
                 targetNote = note
             end
         end
     end
+    if not targetNote then
+        for _, note in ipairs(state.notes) do
+            if not note.hit and note.lane == payload.lane then
+                local delta = math.abs(songTime - note.time)
+                if delta &lt;= fallbackWindow and delta &lt; bestDelta then
+                    bestDelta = delta
+                    targetNote = note
+                end
+            end
+        end
+    end
     if targetNote then
         remotes.NoteHit:FireServer({
+            sessionId = state.sessionId,
             songId = state.song.Id,
             noteId = targetNote.id,
             lane = payload.lane,
-            songTime = songTime,
+            clientSongTime = songTime,
+            clientDelta = songTime - targetNote.time,
         })
     else
         showJudgement("No note!", Color3.fromRGB(255, 120, 120))
@@ -3700,7 +4450,8 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
 
     pendingStartToken = pendingStartToken + 1
     state.active = true
-    noteLegend.Visible = false
+    hudChooseButton.Visible = false
+    setPerformanceUiVisible(true)
     state.sessionId = payload.sessionId
     state.song = payload.song
     state.startServerTime = payload.startServerTime or serverNow()
@@ -3709,8 +4460,14 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     state.score = 0
     state.combo = 0
     state.hype = 0
+    state.hp = 100
+    state.downed = false
     state.grade = "-"
     state.lastSongId = payload.song.Id
+    state.lastDifficulty = payload.difficulty or payload.song.Difficulty or selectedDifficulty
+    state.lastSegment = payload.segmentLength or payload.song.SegmentLength or selectedSegment
+    state.lastSegmentSection = payload.segmentSection or payload.song.SegmentSection or selectedSection
+    state.highwayTravelSeconds = Config.SongFlow.HighwayTravelSeconds / math.max(0.75, ((payload.difficultyConfig and payload.difficultyConfig.noteSpeed) or 1))
     songSelect.Visible = false
     results.Visible = false
     clearNotes()
@@ -3718,8 +4475,17 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
         note.hit = false
         createNote(note)
     end
-    songInfo.Text = string.format("%s\n%s • %s", payload.song.Title, songMeta[payload.song.Id] and songMeta[payload.song.Id].difficulty or "Normal", payload.venueId or "School Stage")
-    updateHud({ score = 0, combo = 0, hype = 0, grade = "-", hypeTier = "Dead Room" })
+    songInfo.Text = string.format("%s\n%s • %s • %s", payload.song.Title, state.lastDifficulty, state.lastSegment, payload.venueId or "School Stage")
+    screenGui:SetAttribute("SongActive", true)
+    screenGui:SetAttribute("AcceptInput", false)
+    local startToken = pendingStartToken
+    task.delay(math.max(0, state.startServerTime - serverNow()), function()
+        if state.active and pendingStartToken == startToken then
+            screenGui:SetAttribute("AcceptInput", true)
+        end
+    end)
+    updateHud({ score = 0, combo = 0, hype = 0, hp = 100, grade = "-", hypeTier = "Dead Room" })
+    playSongAudio(payload.song)
 end)
 
 remotes.NoteJudged.OnClientEvent:Connect(function(payload)
@@ -3747,22 +4513,42 @@ remotes.NoteJudged.OnClientEvent:Connect(function(payload)
         color = Color3.fromRGB(120, 180, 255)
     end
     showJudgement(payload.judgement or "Miss", color)
+    if payload.judgement == "Miss" then
+        playMissGlitch()
+    elseif payload.judgement == "Perfect" or payload.judgement == "Good" then
+        if songSound then
+            songSound.Volume = baseSongVolume
+        end
+    end
 end)
 
 remotes.ScoreUpdate.OnClientEvent:Connect(updateHud)
+remotes.DataSnapshot.OnClientEvent:Connect(function(snapshot)
+    if snapshot then
+        playerSnapshot = snapshot
+    end
+end)
 
 remotes.SongFinished.OnClientEvent:Connect(function(payload)
     state.active = false
-    noteLegend.Visible = true
+    hudChooseButton.Visible = true
+    screenGui:SetAttribute("SongActive", false)
+    screenGui:SetAttribute("AcceptInput", false)
+    stopSongAudio()
+    setPerformanceUiVisible(false)
     clearNotes()
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}
     local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
     resultsText.Text = string.format(
-        "%s\nGrade %s%s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\nNext: Buy Timing, Hype Gain, or Coin Bonus upgrades!",
+        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
         payload.song and payload.song.Title or "Song Complete",
+        summary.difficulty or state.lastDifficulty or "Easy",
+        summary.segmentLabel or state.lastSegment or "30s",
+        summary.segmentSection or "Intro",
         summary.grade or "-",
         newBest and "  NEW BEST!" or "",
+        summary.hp or 0,
         summary.score or 0,
         summary.accuracyPercent or 0,
         summary.perfect or 0,
@@ -3770,18 +4556,22 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         summary.miss or 0,
         summary.maxCombo or 0,
         summary.hype or 0,
+        rewards.DifficultyMultiplier or summary.difficultyMultiplier or 1,
+        rewards.SegmentMultiplier or summary.segmentMultiplier or 1,
+        rewards.VenueFee or 0,
         rewards.Fans or 0,
         rewards.Coins or 0,
         rewards.XP or 0,
-        rewards.Tickets or 0
+        rewards.Tickets or 0,
+        "Next: Claim mission rewards, buy Timing, or upgrade the Tour Bus."
     )
     results.Visible = true
-    songInfo.Text = "Song complete\nReplay, choose another song, or upgrade."
+    songInfo.Text = summary.downed and "Song failed — stage stability hit 0\nRetry or buy upgrades." or "Song complete\nReplay, choose another song, or upgrade."
 end)
 
 RunService.PreRender:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.78, 1.15)
+    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.52, 1.15)
 
     if not state.active or not state.song then
         return
@@ -3795,19 +4585,14 @@ RunService.PreRender:Connect(function()
     for _, note in ipairs(state.notes) do
         local frame = state.noteFrames[note.id]
         if frame then
-            local progress = 1 - ((note.time - songTime) / Config.SongFlow.HighwayTravelSeconds)
+            local progress = 1 - ((note.time - songTime) / (state.highwayTravelSeconds or Config.SongFlow.HighwayTravelSeconds))
             frame.Visible = progress &gt;= -0.05 and progress &lt;= 1.08
-            frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, math.clamp(progress, 0, 1) * 0.78, 0)
+            frame.Position = UDim2.new(laneX[note.lane] or 0.5, 0, progress * 0.78, 0)
         end
     end
 end)
 
--- Give new players a clear first action even before they walk to the prompt.
-task.delay(1.0, function()
-    if screenGui and not state.active then
-        openSongSelect()
-    end
-end)
+-- Song select now opens from the stage prompt or Choose Song button so it does not block the game/store view on spawn.
 </ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX52"><Properties><string name="Name">StageFeedbackClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -3917,6 +4702,9 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
 end)
 </ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX53"><Properties><string name="Name">StoreClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local MissionConfig = require(ReplicatedStorage.Shared.MissionConfig)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -3927,7 +4715,7 @@ local function ensureScreenGui(name)
     if existing and not existing:IsA("ScreenGui") then existing:Destroy(); existing = nil end
     local gui = existing or Instance.new("ScreenGui")
     gui.Name = name
-    gui.IgnoreGuiInset = true
+    gui.IgnoreGuiInset = false
     gui.ResetOnSpawn = false
     gui.Parent = playerGui
     return gui
@@ -3945,81 +4733,87 @@ local gui=ensureScreenGui("StoreGui")
 gui.Enabled=true
 gui:ClearAllChildren()
 
-local openButton=button(gui,"Store / Upgrades",UDim2.new(0,190,0,46),UDim2.new(1,-210,1,-64),Color3.fromRGB(170,95,255))
-local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.5,0);panel.Size=UDim2.new(0,820,0,540);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
-local title=label(panel,"Store &amp; Upgrades",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
+local openButton=button(gui,"Store",UDim2.new(0,120,0,42),UDim2.new(1,-138,1,-58),Color3.fromRGB(170,95,255))
+local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.52,0);panel.Size=UDim2.new(0,800,0,520);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.BackgroundTransparency=.10;panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
+local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
+local title=label(panel,"Store &amp; Progression",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
 local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
-local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,180,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
-local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-224,1,-116);list.Position=UDim2.new(0,204,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Parent=panel
+local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,190,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
+local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Parent=panel
 
 local currentTab="Upgrades"
-local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={}}
+local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={},TourBus={},Missions={Daily={},Weekly={}}}
 local tabs={"Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Tour Bus"}
 local items={
-    ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"NeonGroan","Deep Sewer Tube","A glowing drainpipe wail.",120,"Fans","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"},{"RomanticTubeDisaster","Romantic Disaster Tube","Melodrama, but tube-shaped.",140,"Fans","TubeSounds"}},
+    ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"}},
     ["Stage Effects"]={{"DefaultGlow","Default Glow","Plain but dependable.",0,"Coins","StageEffects"},{"PurpleRift","Confetti Burst","A neon pop on big hits.",160,"Fans","StageEffects"},{"ChromeSpark","Smoke Machine Fail","Mostly smoke. Some regret.",180,"Coins","StageEffects"}},
     ["Poses"]={{"HeroPose","Mic Lean","Classic stage confidence.",0,"Coins","AvatarPoses"},{"CrookedBop","Knee Drop","Very committed. Maybe too much.",90,"Coins","AvatarPoses"},{"TubeLegend","Point at Crowd","Announce your cursed greatness.",150,"Fans","AvatarPoses"}},
     ["Audience"]={{"BasicCrowd","Confused Parents","Supportive but worried.",0,"Coins","AudiencePacks"},{"NeonFans","Hyper Kids","Maximum cheering chaos.",140,"Fans","AudiencePacks"},{"MallRegulars","Mall Food Court Crowd","They came for pretzels.",110,"Coins","AudiencePacks"}},
     ["Themes"]={{"SchoolBackdrop","School Stage","Beginner venue identity.",0,"Coins","StageThemes"},{"NeonArenaTheme","Neon Arena","Bright, loud, unforgettable.",150,"Fans","StageThemes"},{"WeddingGlow","Wedding Hall","Awkward romantic lighting.",130,"Coins","StageThemes"}},
 }
-local upgrades={
-    {"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended"},
-    {"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended"},
-    {"Recovery","Recovery","Miss streaks hurt less.",150,""},
-    {"Stagecraft","Stagecraft","Better effects and more Fans.",170,""},
-    {"Focus","Focus","Resist battle distractions.",180,""},
-    {"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended"},
-    {"AudiencePower","Audience Power","Audience support gives more Hype.",160,""},
-}
+local upgrades={{"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended",6},{"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended",10},{"Recovery","Recovery","Miss streaks hurt less.",150,"",5},{"Stagecraft","Stagecraft","Better effects and more Fans.",170,"",10},{"Chaos","Chaos","Battle-only potency placeholder.",180,"Coming Soon",5},{"Focus","Focus","Resist battle distractions.",180,"",5},{"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended",10},{"AudiencePower","Audience Power","Audience support gives more Hype.",160,"",8}}
+local busUpgrades={{"BiggerSpeakers","Bigger Speakers","+Hype gain during performances.",120,"Coins",5},{"SnackStand","Snack Stand","Small bonus Fans after completed songs.",140,"Coins",5},{"PracticeSeat","Practice Seat","+XP from retries and replays.",130,"Coins",5},{"MerchBox","Merch Box","+Fans from audience participation.",150,"Fans",5},{"RoadCrew","Road Crew","Reduces venue fees.",180,"Coins",5},{"NeonWrap","Neon Wrap","Cosmetic Tour Bus flex.",100,"Fans",3}}
 
-local function owned(category,id)
-    return snapshot.OwnedCosmetics and snapshot.OwnedCosmetics[category] and snapshot.OwnedCosmetics[category][id]
-end
-local function equipped(category,id)
-    return snapshot.Equipped and snapshot.Equipped[category]==id
-end
-local function canAfford(currency,cost)
-    return cost&lt;=0 or ((snapshot[currency] or 0) &gt;= cost)
-end
+local function owned(category,id)return snapshot.OwnedCosmetics and snapshot.OwnedCosmetics[category] and snapshot.OwnedCosmetics[category][id] end
+local function equipped(category,id)return snapshot.Equipped and snapshot.Equipped[category]==id end
+local function canAfford(currency,cost)return cost&lt;=0 or ((snapshot[currency] or 0) &gt;= cost) end
 local function clearList() for _,c in ipairs(list:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end end
 local function card(y,titleText,desc,cost,currency,badge,onBuy,onEquip,buyText,equipText,affordable)
-    local c=Instance.new("Frame");c.Size=UDim2.new(1,-12,0,118);c.Position=UDim2.new(0,0,0,y);c.BackgroundColor3=Color3.fromRGB(24,28,48);c.Parent=list;corner(c,14);stroke(c,Color3.fromRGB(80,225,255))
+    local c=Instance.new("Frame");c.Size=UDim2.new(1,-12,0,124);c.Position=UDim2.new(0,0,0,y);c.BackgroundColor3=Color3.fromRGB(24,28,48);c.Parent=list;corner(c,14);stroke(c,Color3.fromRGB(80,225,255))
     label(c,titleText..(badge and badge~="" and ("  • "..badge) or ""),UDim2.new(.62,0,0,32),UDim2.new(0,14,0,10),Color3.new(1,1,1),Enum.Font.GothamBlack)
-    label(c,desc,UDim2.new(.62,0,0,60),UDim2.new(0,14,0,46),Color3.fromRGB(215,225,255),Enum.Font.GothamBold)
-    label(c,cost.." "..currency,UDim2.new(.25,0,0,30),UDim2.new(.67,0,0,12),affordable~=false and Color3.fromRGB(255,240,160) or Color3.fromRGB(255,120,120),Enum.Font.GothamBlack)
-    local buy=button(c,buyText or "Buy",UDim2.new(0,112,0,38),UDim2.new(1,-248,1,-50),affordable~=false and Color3.fromRGB(55,145,255) or Color3.fromRGB(95,95,110));buy.Activated:Connect(onBuy)
-    if onEquip then local eq=button(c,equipText or "Equip",UDim2.new(0,112,0,38),UDim2.new(1,-126,1,-50),Color3.fromRGB(120,200,95));eq.Activated:Connect(onEquip) end
+    label(c,desc,UDim2.new(.62,0,0,68),UDim2.new(0,14,0,46),Color3.fromRGB(215,225,255),Enum.Font.GothamBold)
+    label(c,cost&gt;0 and (cost.." "..currency) or "No cost",UDim2.new(.25,0,0,30),UDim2.new(.67,0,0,12),affordable~=false and Color3.fromRGB(255,240,160) or Color3.fromRGB(255,120,120),Enum.Font.GothamBlack)
+    local buy=button(c,buyText or "Buy",UDim2.new(0,118,0,38),UDim2.new(1,-258,1,-50),affordable~=false and Color3.fromRGB(55,145,255) or Color3.fromRGB(95,95,110));buy.Activated:Connect(onBuy)
+    if onEquip then local eq=button(c,equipText or "Equip",UDim2.new(0,118,0,38),UDim2.new(1,-130,1,-50),Color3.fromRGB(120,200,95));eq.Activated:Connect(onEquip) end
+end
+
+local function renderMissions()
+    local y=0
+    for listKey, defs in pairs(MissionConfig.GetAll()) do
+        for _,def in ipairs(defs) do
+            local state=snapshot.Missions and snapshot.Missions[listKey] and snapshot.Missions[listKey][def.id] or {progress=0,completed=false,claimed=false}
+            local status=state.claimed and "Claimed" or (state.completed and "Complete — Claim" or "In Progress")
+            local desc=string.format("%s / %s\nReward: Fans +%d  Coins +%d  XP +%d", tostring(state.progress or 0), tostring(def.target), def.rewardFans or 0, def.rewardCoins or 0, def.rewardXP or 0)
+            card(y,def.title,desc,0,"",listKey.." • "..status,function()
+                if state.completed and not state.claimed and remotes:FindFirstChild("ClaimMission") then remotes.ClaimMission:FireServer({missionId=def.id}) end
+            end,nil,state.claimed and "Claimed" or (state.completed and "Claim" or "Tracked"),nil,true)
+            y += 134
+        end
+    end
+    list.CanvasSize=UDim2.new(0,0,0,y+20)
 end
 
 local function render()
     wallet.Text=string.format("Coins %d • Fans %d • Tickets %d",snapshot.Coins or 0,snapshot.Fans or 0,snapshot.Tickets or 0)
-    title.Text="Store &amp; Upgrades — "..currentTab
+    title.Text="Store &amp; Progression — "..currentTab
     clearList()
     if currentTab=="Upgrades" then
         for i,u in ipairs(upgrades) do
-            local id,name,desc,cost,tag=table.unpack(u)
+            local id,name,desc,cost,tag,max=table.unpack(u)
             local lvl=(snapshot.Upgrades and snapshot.Upgrades[id]) or 0
             local finalCost=math.floor(cost*(1.35^lvl))
-            card((i-1)*128,name,"Level "..lvl.." / 5\n"..desc,finalCost,"Coins",tag,function() remotes.PurchaseItem:FireServer({category="GameplayUpgrades",itemId=id}) end,nil,lvl&gt;=5 and "Maxed" or "Buy Upgrade",nil,canAfford("Coins",finalCost))
+            card((i-1)*134,name,"Level "..lvl.." / "..max.."\n"..desc.."\nNext effect improves future runs.",finalCost,"Coins",tag,function() remotes.PurchaseItem:FireServer({category="GameplayUpgrades",itemId=id}) end,nil,lvl&gt;=max and "Maxed" or "Buy Upgrade",nil,canAfford("Coins",finalCost))
         end
-        list.CanvasSize=UDim2.new(0,0,0,#upgrades*128+20)
+        list.CanvasSize=UDim2.new(0,0,0,#upgrades*134+20)
     elseif currentTab=="Missions" then
-        local missions={{"Get 50 Perfects","0 / 50","Reward: Fans + Coins + XP"},{"Finish 3 songs","0 / 3","Reward: Tickets + XP"},{"Reach 80 Hype","0 / 1","Reward: Fans"},{"Cheer for 2 performances","0 / 2","Reward: Audience XP"}}
-        for i,m in ipairs(missions) do card((i-1)*128,m[1],m[2].."\n"..m[3],0,"", "Daily", function() end, nil, "Server tracks", nil, true) end
-        list.CanvasSize=UDim2.new(0,0,0,#missions*128+20)
+        renderMissions()
     elseif currentTab=="Tour Bus" then
-        local bus={{"Bigger Speakers","+Hype gain"},{"Snack Stand","Passive Fans placeholder"},{"Practice Seat","+XP from retries"},{"Merch Box","+Fans from audience"},{"Road Crew","Lowers venue fees"},{"Neon Wrap","Cosmetic hub style"}}
-        for i,b in ipairs(bus) do card((i-1)*128,b[1],b[2].."\nComing as progression hub upgrades.",0,"", "Hub", function() end, nil, "Coming Soon", nil, true) end
-        list.CanvasSize=UDim2.new(0,0,0,#bus*128+20)
+        for i,b in ipairs(busUpgrades) do
+            local id,name,desc,cost,currency,max=table.unpack(b)
+            local lvl=(snapshot.TourBus and snapshot.TourBus[id]) or 0
+            local finalCost=math.floor(cost*(1.35^lvl))
+            card((i-1)*134,name,"Level "..lvl.." / "..max.."\n"..desc.."\nUpgrade your career bonuses here.",finalCost,currency,"Tour Bus",function() remotes.PurchaseItem:FireServer({category="TourBus",itemId=id}) end,nil,lvl&gt;=max and "Maxed" or "Buy",nil,canAfford(currency,finalCost))
+        end
+        list.CanvasSize=UDim2.new(0,0,0,#busUpgrades*134+20)
     else
         for i,it in ipairs(items[currentTab] or {}) do
             local id,name,desc,cost,currency,category=table.unpack(it)
             local isOwned=owned(category,id) or cost==0
             local isEquipped=equipped(category,id)
-            card((i-1)*128,name,desc,cost,currency,isEquipped and "Equipped" or (isOwned and "Owned" or ""),function() remotes.PurchaseItem:FireServer({category=category,itemId=id}) end,function() remotes.EquipItem:FireServer({category=category,itemId=id}) end,isOwned and "Owned" or "Buy",isEquipped and "Equipped" or "Equip",canAfford(currency,cost))
+            card((i-1)*134,name,desc,cost,currency,isEquipped and "Equipped" or (isOwned and "Owned" or ""),function() remotes.PurchaseItem:FireServer({category=category,itemId=id}) end,function() remotes.EquipItem:FireServer({category=category,itemId=id}) end,isOwned and "Owned" or "Buy",isEquipped and "Equipped" or "Equip",canAfford(currency,cost))
         end
-        list.CanvasSize=UDim2.new(0,0,0,math.max(1,#(items[currentTab] or {}))*128+20)
+        list.CanvasSize=UDim2.new(0,0,0,math.max(1,#(items[currentTab] or {}))*134+20)
     end
 end
 
@@ -4033,5 +4827,9 @@ gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Op
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
 render()
+RunService.RenderStepped:Connect(function()
+    local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
+    panelScale.Scale=math.clamp(math.min(viewport.X/880, viewport.Y/600), .58, 1)
+end)
 </ProtectedString></Properties></Item></Item><Item class="StarterCharacterScripts" referent="RBX55"><Properties><string name="Name">StarterCharacterScripts</string></Properties></Item></Item><Item class="StarterGui" referent="RBX63"><Properties><string name="Name">StarterGui</string></Properties><Item class="Folder" referent="RBX57"><Properties><string name="Name">RhythmGui</string></Properties></Item><Item class="Folder" referent="RBX58"><Properties><string name="Name">AudienceGui</string></Properties></Item><Item class="Folder" referent="RBX59"><Properties><string name="Name">StoreGui</string></Properties></Item><Item class="Folder" referent="RBX60"><Properties><string name="Name">UpgradeGui</string></Properties></Item><Item class="Folder" referent="RBX61"><Properties><string name="Name">MissionsGui</string></Properties></Item><Item class="Folder" referent="RBX62"><Properties><string name="Name">ProfileGui</string></Properties></Item></Item><Item class="Workspace" referent="RBX68"><Properties><string name="Name">Workspace</string></Properties><Item class="Camera" referent="RBX64"><Properties><string name="Name">Camera</string></Properties></Item><Item class="Terrain" referent="RBX65"><Properties><string name="Name">Terrain</string></Properties></Item><Item class="Folder" referent="RBX66"><Properties><string name="Name">Stage</string></Properties></Item><Item class="Folder" referent="RBX67"><Properties><string name="Name">TourBus</string></Properties></Item></Item></Item>
 </roblox>
