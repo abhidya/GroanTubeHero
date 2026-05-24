@@ -231,6 +231,10 @@ songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
 makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+closeSongSelect.Activated:Connect(function()
+    songSelect.Visible = false
+end)
 makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local test charts are separated and not public-release content.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local selectedDifficulty = "Easy"
 local selectedSegment = "30s"
@@ -295,6 +299,10 @@ results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
+local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+closeResults.Activated:Connect(function()
+    results.Visible = false
+end)
 local resultsText = makeLabel(results, "ResultsText", "", UDim2.new(1, -40, 1, -130), UDim2.new(0, 20, 0, 16), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
 local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))

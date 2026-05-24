@@ -10,6 +10,55 @@ local seen = {}
 
 local DEFAULT_MODULES = {}
 
+local TITLE_OVERRIDES = {
+    LocalAudioSong001 = "Thick of it Thomas the train remix",
+    LocalAudioSong005 = "Decorate Ur Life",
+    LocalAudioSong008 = "Flawed Mangoes Dramamine",
+    LocalAudioSong009 = "Ordinary",
+    LocalAudioSong011 = "Lose Control The Village Sessions",
+    LocalAudioSong015 = "Spoiled Cover",
+    LocalAudioSong016 = "Anything You Can Do I Can Do Better",
+    LocalAudioSong017 = "Girl Like Me 2",
+    LocalAudioSong018 = "Sneak Out",
+    LocalAudioSong021 = "Feat",
+    LocalAudioSong022 = "Assumptions",
+    LocalAudioSong024 = "It Is Going Down Now",
+    LocalAudioSong026 = "Oiia Oiia Spinning Cat",
+    LocalAudioSong027 = "Heaven On This Earth",
+    LocalAudioSong028 = "Tattletale Parents Revenge",
+    LocalAudioSong032 = "Legends Never Die Tribute",
+    LocalAudioSong033 = "Up Where We Belong",
+    LocalAudioSong036 = "I Am Fine",
+    LocalAudioSong037 = "Surrender",
+    LocalAudioSong038 = "Love Me Not",
+    LocalAudioSong039 = "You Are The Poison I Keep Choosing Still",
+}
+
+local function trim(value)
+    return tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function titleCase(value)
+    local lowered = tostring(value or ""):lower()
+    return (lowered:gsub("(%a)([%w']*)", function(first, rest)
+        local word = first .. rest
+        if word == "of" or word == "the" or word == "and" or word == "or" or word == "to" or word == "in" or word == "on" then
+            return word
+        end
+        return first:upper() .. rest
+    end):gsub("^%l", string.upper))
+end
+
+local function cleanRawTitle(raw)
+    local title = tostring(raw or "")
+    title = title:gsub("^%d+%s*[%-%–]%s*", ""):gsub("%b[]", ""):gsub("_", " ")
+    title = title:gsub("%f[%a]Official%f[%A]", ""):gsub("%f[%a]Lyric%f[%A]", "")
+    title = title:gsub("%f[%a]Video%f[%A]", ""):gsub("%f[%a]Visualizer%f[%A]", "")
+    title = title:gsub("%f[%a]Audio%f[%A]", ""):gsub("%f[%a]Music%f[%A]", "")
+    title = title:gsub("%f[%a]Extended%f[%A]", ""):gsub("%s+", " ")
+    return trim(titleCase(title))
+end
+
 local function validSong(song)
     if type(song) ~= "table" or type(song.Id) ~= "string" or song.Id == "" then
         return false
@@ -80,7 +129,7 @@ for _, module in ipairs(generatedModules) do
         local number = module.Name:match("Chart_LocalAudioSong(%d+)$")
         if number then
             song.Id = "LocalAudioSong" .. number
-            song.Title = "Local Audio Song " .. number
+            song.Title = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
         end
         addSong(song, "LocalTest")
     else
@@ -120,8 +169,14 @@ function SongCatalog.GetDefaultSong()
 end
 
 function SongCatalog.PrettyTitle(songOrId)
-    local id = type(songOrId) == "table" and (songOrId.Title or songOrId.Id) or tostring(songOrId or "")
-    local number = id:match("LocalAudioSong(%d+)") or id:match("Local Audio Song (%d+)")
+    local id = type(songOrId) == "table" and songOrId.Id or tostring(songOrId or "")
+    if TITLE_OVERRIDES[id] then
+        return TITLE_OVERRIDES[id]
+    end
+    if type(songOrId) == "table" and type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
+        return cleanRawTitle(songOrId.Title)
+    end
+    local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
     if number then
         return "Local Audio Song " .. number
     end
