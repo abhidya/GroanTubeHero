@@ -304,16 +304,21 @@ setPerformanceUiVisible(false)
 
 local songSelect = Instance.new("Frame")
 songSelect.Name = "SongSelectModal"
-songSelect.AnchorPoint = Vector2.new(1, 0.5)
-songSelect.Position = UDim2.new(1, -18, 0.55, 0)
-songSelect.Size = UDim2.new(0, 620, 0, 650)
+songSelect.AnchorPoint = Vector2.new(0.5, 0.5)
+songSelect.Position = UDim2.fromScale(0.5, 0.5)
+songSelect.Size = UDim2.new(0.92, 0, 0.86, 0)
 songSelect.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
 songSelect.BackgroundTransparency = 0.16
 songSelect.Visible = false
 songSelect.Parent = root
+local songSelectSize = Instance.new("UISizeConstraint")
+songSelectSize.Name = "ResponsiveBounds"
+songSelectSize.MaxSize = Vector2.new(680, 650)
+songSelectSize.MinSize = Vector2.new(320, 280)
+songSelectSize.Parent = songSelect
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
-makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -176, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeSongSelect.Activated:Connect(function()
     songSelect.Visible = false
@@ -365,17 +370,33 @@ refreshOptionButtons()
 local songList = Instance.new("ScrollingFrame")
 songList.Name = "SongCards"
 songList.BackgroundTransparency = 1
-songList.Size = UDim2.new(1, -40, 1, -220)
+songList.Size = UDim2.new(1, -40, 1, -214)
 songList.Position = UDim2.new(0, 20, 0, 204)
 songList.ScrollBarThickness = 8
 songList.CanvasSize = UDim2.new(0, 0, 0, 0)
 songList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 songList.Parent = songSelect
 local songGrid = Instance.new("UIGridLayout")
-songGrid.CellSize = UDim2.new(0, 270, 0, 250)
-songGrid.CellPadding = UDim2.new(0, 12, 0, 12)
+songGrid.CellSize = UDim2.new(0, 250, 0, 230)
+songGrid.CellPadding = UDim2.new(0, 10, 0, 10)
 songGrid.SortOrder = Enum.SortOrder.LayoutOrder
 songGrid.Parent = songList
+
+local function applySongSelectResponsiveLayout()
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    local isShort = viewport.Y <= 430
+    local isNarrow = viewport.X <= 900
+    songSelect.Position = UDim2.fromScale(0.5, 0.5)
+    songSelect.Size = UDim2.new(isNarrow and 0.94 or 0.88, 0, isShort and 0.92 or 0.86, 0)
+    songSelectSize.MaxSize = Vector2.new(math.min(680, viewport.X - 24), math.min(650, viewport.Y - 24))
+    optionPanel.Size = UDim2.new(1, -40, 0, isShort and 76 or 92)
+    optionPanel.Position = UDim2.new(0, 20, 0, isShort and 88 or 104)
+    songList.Position = UDim2.new(0, 20, 0, isShort and 172 or 204)
+    songList.Size = UDim2.new(1, -40, 1, isShort and -184 or -214)
+    songGrid.CellSize = isNarrow and UDim2.new(1, -12, 0, isShort and 164 or 190) or UDim2.new(0, 250, 0, 230)
+end
+
 
 local results = Instance.new("Frame")
 results.Name = "ResultsFrame"
@@ -624,15 +645,15 @@ local function buildSongCards()
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
         card.LayoutOrder = index
-        card.Size = UDim2.new(0, 270, 0, 250)
+        card.Size = UDim2.new(0, 250, 0, 230)
         card.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
         card.Parent = songList
         corner(card, 18)
         stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. SongCatalog.PrettyTitle(song), UDim2.new(1, -20, 0, 62), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 76), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-        makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 96), UDim2.new(0, 10, 0, 108), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
-        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
+        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. SongCatalog.PrettyTitle(song), UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 26), UDim2.new(0, 10, 0, 66), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 88), UDim2.new(0, 10, 0, 98), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
+        local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 36), UDim2.new(0, 17, 1, -44), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
         start.Activated:Connect(function()
             startSong(song.Id)
         end)
@@ -642,6 +663,7 @@ end
 buildSongCards()
 
 function openSongSelect()
+    applySongSelectResponsiveLayout()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
@@ -656,6 +678,12 @@ local function consumeOpenSongSelectAttribute()
         screenGui:SetAttribute("OpenSongSelect", false)
         openSongSelect()
     end
+end
+
+if workspace.CurrentCamera then
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        if songSelect.Visible then applySongSelectResponsiveLayout() end
+    end)
 end
 
 screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSelectAttribute)

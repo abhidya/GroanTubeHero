@@ -31,7 +31,7 @@ Skill contract used: `roblox-studio-mcp-real-tree` (repo skill file not present;
 
 | Path | ClassName | Models | MeshParts | BaseParts | Scripts | LocalScripts | ModuleScripts | Descendants |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `Workspace.GTH_WorldV2` | `Model` | 15 | 0 | 184 | 0 | 0 | 0 | 260 |
+| `Workspace.GTH_WorldV2` | `Model` | 15 | 0 | 208 | 0 | 0 | 0 | latest MCP validation |
 | `Workspace.Stage` | `Folder` | 0 | 0 | 0 | 0 | 0 | 0 | 5 |
 | `ReplicatedStorage.ArtAssets` | `Folder` | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 | `ServerStorage.AssetQuarantine` | `Folder` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -39,7 +39,7 @@ Skill contract used: `roblox-studio-mcp-real-tree` (repo skill file not present;
 
 ## Important interpretation
 
-The active MCP Studio tree is a minimal WorldV2/compat state and does **not** expose the larger supplied place-file inventory (`Workspace.Unused_MapAssets`, `Workspace.TourBus`, OPEN ME package). Therefore:
+The active MCP Studio tree is a minimal WorldV2/compat state. Latest direct WorldV2 validation reports 15 models, 0 MeshParts, 208 visible BaseParts, 6 invisible hitboxes, 15 prompts, 8 horde sectors, 0 scripts, and 0 placeholder violations. and does **not** expose the larger supplied place-file inventory (`Workspace.Unused_MapAssets`, `Workspace.TourBus`, OPEN ME package). Therefore:
 
 - `docs/asset_manifest_real.md` records the supplied manifest as source inventory.
 - Current live MCP proof uses only objects actually visible in active Studio.

@@ -1,46 +1,67 @@
 # UI/UX Interface Audit & Device Acceptance Matrix
 
-This document audits all active ScreenGuis, menu interactions, and modal transitions to ensure players never experience interface clipping, overlap, notch obstruction, or menu lockouts.
+Date: 2026-05-25
 
----
+Skill contract used: `gth-uiux-responsive-menu-audit` (repo skill file not present; performed exact audit directly from repo UI files and validation module).
 
-## 1. Interface Inventory & Navigation Triggers
+## Interface inventory and triggers
 
-| ScreenGui Name | Target Modal / Panel | Open Trigger | Close Trigger | Back Path | Reopen Path | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `RhythmHUD` | Gameplay arrows / lanes | Song starts | Song ends / aborts | N/A | Song select modal | **Fixed** |
-| `NavigationMenu` | Side navigation bar | Spawn in Lobby | Song starts | N/A | Closing any active modal | **Fixed** |
-| `SongSelect` | Playable track list | DJ Prompt / Nav Menu | Click "X" button | Back to Nav Menu | DJ Prompt / Nav Menu | **Fixed** |
-| `StoreGui` | Cosmetic tube shop | Store Prompt / Nav Menu | Click "X" / ESC | Back to Nav Menu | Store Prompt / Nav Menu | **Fixed** |
-| `UpgradeGui` | Stat upgrades workbench | Upgrade Prompt / Nav Menu| Click "X" / ESC | Back to Menu | Upgrade Prompt / Nav Menu| **Fixed** |
-| `MissionGui` | Challenge listings | Board Prompt / Nav Menu | Click "X" / ESC | Back to Menu | Board Prompt / Nav Menu | **Fixed** |
-| `SecurityGui` | 8-sector status panel | Security Prompt / Nav Menu| Click "X" / ESC | Back to Menu | Security Prompt / Nav Menu| **Fixed** |
-| `TutorialGui` | Help screens | Guide Prompt / Nav Menu | Click "X" / ESC | Back to Menu | Guide Prompt / Nav Menu | **Fixed** |
-| `ResultsGui` | Performance scoreboard | Song finishes / fails | Click "Continue" | N/A | Start new song session | **Fixed** |
+| Menu | Open trigger | Close trigger | Back trigger | Reopen path | Status |
+| --- | --- | --- | --- | --- | --- |
+| `NavigationMenu` | lobby restore / spawn | song start hides | N/A | `restoreLobbyState()` | wired |
+| `SongSelect` | Navigation button, `OpenSongSelect`, DJ prompt `MenuName=SongSelect` | X / `closeMenu` / Escape | `back()` | nav or DJ prompt | wired |
+| `Store` | Navigation button, `Vendor_Store`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | nav or store prompt | wired through `StoreGui` attributes |
+| `Upgrades` | Navigation button, `Vendor_UpgradeEngineer`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | nav or upgrade prompt | wired through `StoreGui` tab/attributes |
+| `Missions` | Navigation button, `MissionOfficer`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | nav or mission prompt | wired through `StoreGui` tab/attributes |
+| `Security` | `SecurityManager`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | security prompt | wired through `StoreGui` tab/attributes |
+| `Tutorial` | `TutorialGuide`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | tutorial prompt | wired through `StoreGui` tab/attributes |
+| `Hype` | `AudienceHypeManager`, `OpenMenu` | X / `closeMenu` / Escape | `back()` | hype prompt | wired through `AudienceGui` attribute |
+| `Results` | `openResults(resultData)` / results mode | Continue / BackToLobby / close | N/A | song finish or controller | wired in validation expectations |
+| `Rhythm HUD` | `setGameMode("playing")` / song start | song finish/results/lobby restore | N/A | valid song start | wired |
+| Mobile/touch lanes | Rhythm HUD active | song end | N/A | song start | arrow-only lane policy scanned |
 
----
+## Controller API
 
-## 2. Menu Stack & Focus Control Rules
-To prevent overlapping overlays ("word soup" or stuck modal states), the client-side `UIUXMenuController` enforces:
-1.  **Single Modal Focus**: Opening any major modal (e.g. `StoreGui`) automatically calls `closeMenu()` on all other active modals (`SongSelect`, `UpgradeGui`, etc.).
-2.  **Navigation Restoration**: Closing the active modal via the "X" button or `ESC` key must always restore `NavigationMenu.Enabled = true` to prevent lobby deadlock.
-3.  **Active Song Lockout**: All non-gameplay modals (`StoreGui`, `UpgradeGui`, etc.) are hidden during active note play to keep arrow targets completely unobstructed.
+`StarterPlayer/StarterPlayerScripts/UIUXMenuController.client.lua` exposes:
 
----
+- `openMenu(menuName)`
+- `closeMenu(menuName)`
+- `closeTopMenu()`
+- `closeAllMenus()`
+- `back()`
+- `isMenuOpen(menuName)`
+- `setGameMode(mode)`
+- `showNavigation()`
+- `hideNavigation()`
+- `openResults(resultData)`
+- `restoreLobbyState()`
 
-## 3. Viewport Responsive Design Matrix
+It listens for `OpenSongSelect` and `OpenMenu`, and maps ProximityPrompt station names to central menu paths.
 
-### Desktop / Laptop (1920x1080 & 1366x768)
-- **Aesthetic**: Center-locked cards with drop shadows; NavigationMenu docked on the side without blocking screen center.
-- **Controls**: `ESC` key triggers `closeTopMenu()`; arrow keys (`← ↓ ↑ →`) route to note lanes; mouse clicks allowed on UI buttons.
-- **Clipping Risk**: None. Absolute bounds fall within safe margins.
+## Device matrix
 
-### iPad Landscape (1024x768)
-- **Aesthetic**: Modals scaled using `UIScale` to occupy no more than 82% of width and 86% of height.
-- **Controls**: Tappable touch targets spaced away from boundaries; ScrollingFrames enabled for content lists.
-- **Clipping Risk**: Pinned X close buttons remain visible at the top-right corner.
+| Device | Viewport | Validation source | Result |
+| --- | ---: | --- | --- |
+| Desktop | 1920x1080 | `UIUXValidation.lua` viewport table/static bounds checks | wired; Studio runtime blocked by missing `ReplicatedStorage.Shared` sync |
+| Laptop | 1366x768 | `UIUXValidation.lua` viewport table/static bounds checks | wired; Studio runtime blocked by missing `ReplicatedStorage.Shared` sync |
+| iPad landscape | 1024x768 | `UIUXValidation.lua` viewport table/static bounds checks | wired; Studio runtime blocked by missing `ReplicatedStorage.Shared` sync |
+| iPhone landscape | 844x390 | `UIUXValidation.lua` viewport table/static bounds checks | wired; Studio runtime blocked by missing `ReplicatedStorage.Shared` sync |
+| Small phone landscape | 667x375 | `UIUXValidation.lua` viewport table/static bounds checks | wired; Studio runtime blocked by missing `ReplicatedStorage.Shared` sync |
 
-### iPhone Landscape (844x390 & 667x375)
-- **Aesthetic**: Compact top/bottom bar layouts; modal panels occupy up to 94% width and 88% height.
-- **Controls**: Tappable hit targets on touch lanes scaled to a minimum size of `44x44` pixels.
-- **Clipping Risk**: Buttons and text shifted inward to avoid clipping behind phone notches or the iOS home indicator bar.
+## Assertions covered by `UIUXValidation.lua`
+
+- NavigationMenu visible in lobby.
+- SongSelect exists, opens/closes/reopens, has close/back.
+- Results exists and has Continue, Choose Another Song, Back to Lobby path.
+- Controller API exists.
+- Only one major modal open at a time.
+- Opening Results closes SongSelect.
+- `closeTopMenu()` and `back()` close top modal.
+- `restoreLobbyState()` returns NavigationMenu.
+- Vendor prompt paths exist for all required stations.
+- Close buttons stay inside viewport bounds for configured devices.
+- Rhythm highway fits configured viewports.
+
+## Current blocker
+
+Active Studio MCP tree lacks `StarterGui` and `ReplicatedStorage.Shared` source modules, so UIUXValidation cannot be executed inside Studio until project sync. Repo validation code is present and static checks pass.
