@@ -103,7 +103,7 @@ local function testCatalogTitles(): ()
 
     -- Test PrettyTitle override is returned correctly
     local pretty = SongCatalog.PrettyTitle("LocalAudioSong001")
-    expectEqual(pretty, "Thick of it Thomas the Train Remix", "pretty title resolves override")
+    expectEqual(pretty, "Thick of It Thomas the Train Remix", "pretty title resolves override")
 end
 
 local function testSongCounts(): ()

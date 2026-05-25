@@ -387,8 +387,10 @@ local function applySongSelectResponsiveLayout()
     local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
     local isShort = viewport.Y <= 430
     local isNarrow = viewport.X <= 900
+    local width = math.min(680, math.max(320, math.min(viewport.X - 24, viewport.X * (isNarrow and 0.94 or 0.88))))
+    local height = math.min(650, math.max(280, math.min(viewport.Y - 24, viewport.Y * (isShort and 0.92 or 0.86))))
     songSelect.Position = UDim2.fromScale(0.5, 0.5)
-    songSelect.Size = UDim2.new(isNarrow and 0.94 or 0.88, 0, isShort and 0.92 or 0.86, 0)
+    songSelect.Size = UDim2.fromOffset(width, height)
     songSelectSize.MaxSize = Vector2.new(math.min(680, viewport.X - 24), math.min(650, viewport.Y - 24))
     optionPanel.Size = UDim2.new(1, -40, 0, isShort and 76 or 92)
     optionPanel.Position = UDim2.new(0, 20, 0, isShort and 88 or 104)
@@ -401,14 +403,19 @@ end
 local results = Instance.new("Frame")
 results.Name = "ResultsFrame"
 results.AnchorPoint = Vector2.new(0.5, 0.5)
-results.Position = UDim2.new(0.5, 0, 0.5, 0)
-results.Size = UDim2.new(0, 620, 0, 460)
+results.Position = UDim2.fromScale(0.5, 0.5)
+results.Size = UDim2.new(0.9, 0, 0.84, 0)
 results.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
 results.BackgroundTransparency = 0.02
 results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
+local resultsSize = Instance.new("UISizeConstraint")
+resultsSize.Name = "ResponsiveBounds"
+resultsSize.MinSize = Vector2.new(320, 280)
+resultsSize.MaxSize = Vector2.new(620, 520)
+resultsSize.Parent = results
 local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeResults.Activated:Connect(function()
     results.Visible = false
@@ -432,6 +439,54 @@ local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90,
 local upgradeButton = makeButton(results, "UpgradeButton", "Upgrades", UDim2.new(0, 120, 0, 40), UDim2.new(0, 132, 1, -118), Color3.fromRGB(255, 175, 70))
 local missionsButton = makeButton(results, "MissionsButton", "Missions", UDim2.new(0, 112, 0, 40), UDim2.new(0, 266, 1, -118), Color3.fromRGB(120, 200, 95))
 local busButton = makeButton(results, "HypeButton", "Hype", UDim2.new(0, 124, 0, 40), UDim2.new(0, 392, 1, -118), Color3.fromRGB(90, 210, 220))
+
+local function applyResultsResponsiveLayout()
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    local isShort = viewport.Y <= 430
+    local isNarrow = viewport.X <= 900
+    local width = math.min(620, math.max(320, math.min(viewport.X - 24, viewport.X * (isNarrow and 0.94 or 0.9))))
+    local height = math.min(520, math.max(280, math.min(viewport.Y - 24, viewport.Y * (isShort and 0.92 or 0.84))))
+    results.Position = UDim2.fromScale(0.5, 0.5)
+    results.Size = UDim2.fromOffset(width, height)
+    resultsSize.MaxSize = Vector2.new(math.min(620, viewport.X - 24), math.min(520, viewport.Y - 24))
+    closeResults.Size = UDim2.fromOffset(isShort and 42 or 50, isShort and 38 or 46)
+    closeResults.Position = UDim2.new(1, isShort and -52 or -64, 0, isShort and 10 or 14)
+    resultsScroll.Position = UDim2.fromOffset(20, isShort and 14 or 16)
+    resultsScroll.Size = UDim2.new(1, -40, 1, isShort and -166 or -130)
+    if isNarrow then
+        replayButton.Size = UDim2.new(0.31, -10, 0, 42)
+        replayButton.Position = UDim2.new(0, 18, 1, -52)
+        chooseButton.Size = UDim2.new(0.38, -10, 0, 42)
+        chooseButton.Position = UDim2.new(0.31, 18, 1, -52)
+        backToLobbyButton.Size = UDim2.new(0.31, -18, 0, 42)
+        backToLobbyButton.Position = UDim2.new(0.69, 0, 1, -52)
+        storeButton.Size = UDim2.new(0.23, -8, 0, 34)
+        storeButton.Position = UDim2.new(0, 18, 1, -94)
+        upgradeButton.Size = UDim2.new(0.25, -8, 0, 34)
+        upgradeButton.Position = UDim2.new(0.24, 18, 1, -94)
+        missionsButton.Size = UDim2.new(0.25, -8, 0, 34)
+        missionsButton.Position = UDim2.new(0.50, 18, 1, -94)
+        busButton.Size = UDim2.new(0.23, -18, 0, 34)
+        busButton.Position = UDim2.new(0.76, 0, 1, -94)
+    else
+        replayButton.Size = UDim2.new(0, 130, 0, 48)
+        replayButton.Position = UDim2.new(0, 28, 1, -70)
+        chooseButton.Size = UDim2.new(0, 210, 0, 48)
+        chooseButton.Position = UDim2.new(0, 172, 1, -70)
+        backToLobbyButton.Size = UDim2.new(0, 170, 0, 48)
+        backToLobbyButton.Position = UDim2.new(0, 396, 1, -70)
+        storeButton.Size = UDim2.new(0, 90, 0, 40)
+        storeButton.Position = UDim2.new(0, 28, 1, -118)
+        upgradeButton.Size = UDim2.new(0, 120, 0, 40)
+        upgradeButton.Position = UDim2.new(0, 132, 1, -118)
+        missionsButton.Size = UDim2.new(0, 112, 0, 40)
+        missionsButton.Position = UDim2.new(0, 266, 1, -118)
+        busButton.Size = UDim2.new(0, 124, 0, 40)
+        busButton.Position = UDim2.new(0, 392, 1, -118)
+    end
+end
+applyResultsResponsiveLayout()
 
 local state = {
     active = false,
@@ -683,6 +738,7 @@ end
 if workspace.CurrentCamera then
     workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
         if songSelect.Visible then applySongSelectResponsiveLayout() end
+        if results.Visible then applyResultsResponsiveLayout() end
     end)
 end
 
@@ -923,6 +979,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         rewards.Tickets or 0,
         "Next: Claim mission rewards, buy Timing, or upgrade the Tour Bus."
     )
+    applyResultsResponsiveLayout()
     results.Visible = true
     songInfo.Text = summary.downed and "Song failed — stage stability hit 0\nRetry or buy upgrades." or "Song complete\nReplay, choose another song, or upgrade."
 end)
