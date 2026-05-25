@@ -9,6 +9,7 @@ local ChartService = require(Shared.ChartService)
 local SongCatalog = require(Shared.SongCatalog)
 local WorldValidation = require(Shared.WorldV2.WorldValidation)
 local AssetAuditService = require(Shared.WorldV2.AssetAuditService)
+local AssetRegistry = require(Shared.WorldV2.AssetRegistry)
 
 local AntiExploitService
 if RunService:IsServer() then
@@ -142,6 +143,27 @@ local function testAssetAuditService(): ()
     folder:Destroy()
 end
 
+local function testAssetRegistryMissingBehavior(): ()
+    local missing, reason = AssetRegistry.Resolve("Truss")
+    expect(missing == nil, "missing optional truss returns nil")
+    expect(reason == "MissingOptionalAsset" or reason == nil, "missing optional truss reports optional missing")
+    local unknown, unknownReason = AssetRegistry.Resolve("DoesNotExist")
+    expect(unknown == nil, "unknown registry entry returns nil")
+    expectEqual(unknownReason, "UnknownAssetRegistryEntry", "unknown registry reason")
+end
+
+local function testWorldValidationPlaceholderDetection(): ()
+    local model = Instance.new("Model")
+    model.Name = "PlaceholderFixture"
+    local raw = Instance.new("Part")
+    raw.Name = "Block"
+    raw.Transparency = 0
+    raw.Parent = model
+    local counts = WorldValidation.CountActive(model)
+    expectEqual(counts.visiblePlaceholderViolations, 1, "visible placeholder Block counted")
+    model:Destroy()
+end
+
 local function testConfigLanes(): ()
     for _, lane in ipairs(Config.Lanes) do
         expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
@@ -243,6 +265,8 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testCatalogTitles,
         testSongCounts,
         testAssetAuditService,
+        testAssetRegistryMissingBehavior,
+        testWorldValidationPlaceholderDetection,
         testConfigLanes,
         testAntiExploit,
         testHordeRootPivot,

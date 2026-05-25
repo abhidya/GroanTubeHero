@@ -4,7 +4,7 @@ local Workspace = game:GetService("Workspace")
 
 local WorldValidation = {}
 
-local REQUIRED_ROOTS = { "ArenaCore", "FenceRing", "VendorRing", "AudienceRing", "HordeRing", "OuterVolcanoRing", "InvisibleGameplayHitboxes", "CompatibilityAdapters" }
+local REQUIRED_ROOTS = { "ArenaCore", "StageCircle", "InnerPlayerRing", "VendorRing", "FenceRing", "HordeRing", "AudienceRing", "VolcanoOuterRing", "OuterVolcanoRing", "LightingAnchors", "InvisibleGameplayHitboxes", "CompatibilityAdapters" }
 local REQUIRED_VENDORS = { "DJ_GroanMaster", "Vendor_Store", "Vendor_UpgradeEngineer", "MissionOfficer", "SecurityManager", "TutorialGuide" }
 local REQUIRED_SECTORS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local REQUIRED_SECTOR_CHILDREN = { "FenceSegment", "FenceDamageVFX", "SecurityLight", "SirenLight", "HordeCluster", "HordePressureMeter", "WeakPointMarker" }
@@ -67,7 +67,12 @@ local function countActive(world)
         end
     end
     local artAssets = ReplicatedStorage:FindFirstChild("ArtAssets")
-    counts.artAssetSourceModels = artAssets and #artAssets:GetChildren() or 0
+    counts.artAssetSourceModels = 0
+    if artAssets then
+        for _, child in ipairs(artAssets:GetChildren()) do
+            if child:IsA("Model") then counts.artAssetSourceModels += 1 end
+        end
+    end
     if artAssets then
         for _, requiredName in ipairs(REQUIRED_ART_ASSETS) do
             if not artAssets:FindFirstChild(requiredName) then
@@ -156,7 +161,7 @@ function WorldValidation.Run()
                 add(errors, desc.AlwaysOnTop == false, "BillboardGui AlwaysOnTop true: " .. desc:GetFullName())
                 add(errors, desc.MaxDistance <= 40, "BillboardGui MaxDistance > 40: " .. desc:GetFullName())
             end
-            if isVisibleBasePart(desc) and PLACEHOLDER_NAMES[desc.Name] and not desc:IsDescendantOf(world.InvisibleGameplayHitboxes) then
+            if isVisibleBasePart(desc) and PLACEHOLDER_NAMES[desc.Name] and world:FindFirstChild("InvisibleGameplayHitboxes") and not desc:IsDescendantOf(world.InvisibleGameplayHitboxes) then
                 add(errors, false, "Visible placeholder BasePart: " .. desc:GetFullName())
             end
             if isVisibleBasePart(desc) and desc:GetAttribute("RawFallbackArt") == true then

@@ -1,104 +1,91 @@
 # Current State Audit - Groan Tube Hero
 
-This document records legacy V1 place structure and how it maps into hardened `WorldV2`. `Workspace.GTH_WorldV2` is primary active rebuild root; legacy `Workspace.Stage` paths are source/compatibility only.
+Date: 2026-05-25
 
----
+Skill contract used: `gth-current-state-audit` (repo skill file not present; performed exact audit directly from repo files and MCP evidence).
 
-## 1. Live Studio Roots Observed
+## Current world-generation files/functions
 
-- `Workspace.GTH_WorldV2`: current circular WorldV2 root built/validated by MCP.
-- `Workspace.Stage`: legacy V1 stage art and anchors; not primary WorldV2 structure.
-- `Workspace.TourBus`: legacy tour bus art source candidate.
-- `Workspace.Unused_MapAssets`: imported local package assets and 98 brainrot template models.
+| File | Functions / responsibility |
+| --- | --- |
+| `ServerScriptService/Services/GameBootstrap.server.lua` | `createRemotes`, `loadServices`, `wireRemotes`, `installWorldV2Diagnostics`, `startWorldV2Atmosphere`; bootstrap now delegates world construction to `WorldV2Builder` |
+| `ServerScriptService/Services/WorldV2Builder.lua` | `EnsureAssetRoots`, `ArchiveOldWorld`, `Build`, `RunValidation`; creates `Workspace.GTH_WorldV2`, archives explicit V1 visuals, creates rings/vendors/sectors/hitboxes |
+| `ServerScriptService/Services/AssetAuditService.lua` | `EnsureRoots`, `Audit`, `QuarantineScripts`; creates quarantine/inbox/ArtAssets folders and scans suspicious script patterns |
+| `ServerScriptService/Services/VendorPromptService.lua` | `Bind`; binds vendor prompts to menu remotes/attributes |
+| `ServerScriptService/Services/CircularHordeVisualService.lua` | `ApplyUpdate`; updates sector fence/siren visuals from horde payloads |
+| `ReplicatedStorage/Shared/WorldV2/PolarLayout.lua` | `position`, `cframeFacingCenter`, `cframeFacingOut`, `distribute`; polar placement convention |
+| `ReplicatedStorage/Shared/WorldV2/WorldV2Config.lua` | root names, ring radii, ArtAssets folders, validation constants |
+| `ReplicatedStorage/Shared/WorldV2/AssetRegistry.lua` | exact preferred Studio/ArtAssets paths, required/fallback policy, missing-required reporting |
+| `ReplicatedStorage/Shared/WorldV2/VendorDefinitions.lua` | exact vendor station IDs, prompt text, menu names, angles, radii |
+| `ReplicatedStorage/Shared/WorldV2/HordeSectorDefinitions.lua` | 8 sector IDs and angles under 0°=East/+X convention |
 
----
+## Old visible objects designated for archival
 
-## 2. Legacy Objects Designated for Archival / Compatibility
-
-Archive only explicit V1/placeholder visuals, not every Workspace child outside WorldV2.
-
-| Legacy path | Disposition | Reason |
+| Old path | Archive path | Why archived |
 | --- | --- | --- |
-| `Workspace.Stage.ArenaFloor` | Archive/hide if present | Rectangular generated floor |
-| `Workspace.Stage.LavaMoat` | Archive/hide if present | Placeholder moat block |
-| `Workspace.Stage.StageTopGlow` | Archive/hide if present | Procedural neon indicator plate |
-| `Workspace.Stage.HordeLane` | Archive/hide if present | Single rectangular horde lane |
-| `Workspace.Stage.BrainrotClimbRamp` | Archive/hide if present | Blocky V1 ramp |
-| `Workspace.Stage.StoreKiosk` / `UpgradeKiosk` / `MissionBoard` | Copy/audit useful art or keep invisible compatibility anchors only | Old primary vendor paths replaced by `Workspace.GTH_WorldV2.VendorRing.*` |
-| `Workspace.Stage.SpeakerStacks` | Source candidate only | Copy/audit before V2 art use |
-| `Workspace.Stage.AudienceZone` | Invisible trigger/compat only | Old crowd zone visual not primary V2 audience ring |
-| `Workspace.Stage.CleanSigns` | Source signage candidate only | Avoid duplicate BillboardGui spam |
-| `Workspace.Stage.Spotlights` | Source candidate only | Copy/audit before V2 art use |
+| `Workspace.TourBus` | `ServerStorage.WorldArchive.TourBus` | V1/prototype tour bus visual; source candidate only after audit |
+| `Workspace.ImportedArenaAssets` | `ServerStorage.WorldArchive.ImportedArenaAssets` | imported/prototype visual root if present |
+| `Workspace.Stage.*` except compatibility aliases | `ServerStorage.WorldArchive.<child>` | V1 stage visuals replaced by `Workspace.GTH_WorldV2`; do not use Stage as primary world |
+| `Workspace.Stage.StartPrompt`, `StoreKiosk`, `UpgradeKiosk`, `MissionBoard`, `AudienceZone`, `BrainrotHorde.HordeRoot` | invisible `ObjectValue` compatibility aliases | preserved only for old script references |
 
-Never archive: `Camera`, `Terrain`, player characters, `Workspace.Unused_MapAssets`, `Workspace.AssetInbox`, `SpawnLocation` until replacement spawn exists, active runtime folders, or `Workspace.GTH_WorldV2`.
+Never archive: `Camera`, `Terrain`, player characters, `Workspace.Unused_MapAssets`, `Workspace.AssetInbox`, `SpawnLocation` before replacement exists, services/remotes/UI/gameplay logic, or `Workspace.GTH_WorldV2`.
 
----
+## UI/menu roots found
 
-## 3. UI/Menu Hierarchy Audit
+| Root/file | Purpose |
+| --- | --- |
+| `StarterGui.RhythmGui` | note highway, SongSelect modal, results frame, navigation menu |
+| `StarterGui.StoreGui` | store/upgrades/security/tutorial/settings-style external panel via attributes |
+| `StarterGui.UpgradeGui` | upgrade UI root exists in repo |
+| `StarterGui.MissionsGui` | missions UI root exists in repo |
+| `StarterGui.AudienceGui` | Hype/Audience UI root |
+| `StarterGui.ProfileGui` | profile UI |
+| `StarterPlayer/StarterPlayerScripts/UIUXMenuController.client.lua` | central menu API and prompt/menu routing |
+| `StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua` | rhythm HUD, SongSelect, song start, note input |
+| `StarterPlayer/StarterPlayerScripts/StoreClient.client.lua` | StoreGui interactions |
+| `StarterPlayer/StarterPlayerScripts/AudienceClient.client.lua` | Audience/Hype client interactions |
+| `StarterPlayer/StarterPlayerScripts/HordeClient.client.lua` | horde meter/sector visuals |
 
-Active screen interfaces reside under `StarterGui` / `PlayerGui`:
+## Remotes/events
 
-- `RhythmHUD`: gameplay note highway and touch lanes.
-- `NavigationMenu`: lobby menu buttons.
-- `SongSelect`: playable chart list.
-- `StoreGui`: shop interface.
-- `UpgradeGui`: upgrade interface.
-- `MissionGui`: mission interface.
-- Optional/created menus: `SecurityGui`, `TutorialGui`, `HypeGui`, `ResultsGui`, `SettingsGui`, `PauseGui` when present.
+From `ReplicatedStorage/Shared/Config.lua` and `GameBootstrap.server.lua`:
 
-`StarterPlayer.StarterPlayerScripts.UIUXMenuController.client.lua` is central controller. Required API: `openMenu`, `closeMenu`, `closeTopMenu`, `closeAllMenus`, `back`, `isMenuOpen`, `setGameMode`, `showNavigation`, `hideNavigation`, `openResults`, `restoreLobbyState`.
+- `StartSongRequest`: client requests song start.
+- `StartSong`: existing compatibility remote name in config.
+- `NoteHit`: client sends note-hit candidate payload.
+- `NoteJudged`: server/client scoring update flow.
+- `ScoreUpdate`: score state update.
+- `SongFinished`: song completion/results.
+- `UseBuff`, `UseAttack`, `AudienceAction`: gameplay actions.
+- `PurchaseItem`, `EquipItem`, `ClaimMission`, `DataSnapshot`: economy/profile/mission flows.
+- `OpenSongSelect`: vendor/nav opens SongSelect.
+- `OpenMenu`: WorldV2 vendor prompt opens non-SongSelect menus.
+- `HordeUpdate`: horde distance/stability + `sectorHealths`, `activeSectorId`, `sectorPressure`, `sectorAngles`, `warningSectorId`.
 
----
+## Current playable song chart modules
 
-## 4. Network Remotes & Event Mapping
+Playable direct `ReplicatedStorage.Shared` modules: `Chart_LocalAudioSong001`, `005`, `008`, `009`, `011`, `015`, `016`, `017`, `018`, `021`, `022`, `024`, `026`, `027`, `028`, `032`, `033`, `036`, `037`, `038`, `039`.
 
-Communication uses `ReplicatedStorage.Remotes`:
+Uked/quarantined chart modules under `ReplicatedStorage.Shared.UkedCharts`: `002`, `003`, `004`, `006`, `007`, `010`, `012`, `013`, `014`, `019`, `020`, `023`, `025`, `029`, `030`, `031`, `034`, `035`.
 
-- `StartSong` (`RemoteFunction`): client starts a chart session.
-- `NoteJudged` (`RemoteEvent`): server broadcasts scoring judgements.
-- `HordeUpdate` (`RemoteEvent`): server broadcasts horde state. WorldV2 payload adds `sectorHealths`, `activeSectorId`, and sector pressure data while preserving old distance/stability compatibility fields.
-- `SongComplete` (`RemoteEvent`): server signals chart completion.
+## Current horde logic
 
----
+| File | Exact behavior |
+| --- | --- |
+| `ServerScriptService/Services/HordeService.lua` | keeps old `distance`, `stability`, `state`, `intensity`, `disasterMode`; adds 8-sector `sectorHealths`, `activeSectorId`, `sectorPressure`, `sectorAngles`, `warningSectorId`; miss damages active sector; perfect streak repairs weakest sector; finish repairs all sectors |
+| `StarterPlayer/StarterPlayerScripts/HordeClient.client.lua` | reads sector payload if present; animates `Workspace.GTH_WorldV2.HordeRing.HordeSector_*`; does not crash if sector data missing |
 
-## 5. Local Asset Sources Available For Audit
+## Current bugs found / guarded
 
-These are real place-file sources, not Creator Store IDs:
+| Bug | Status |
+| --- | --- |
+| `GameBootstrap` used to contain large V1 procedural map generation and Stage-first visuals | Fixed: delegated to `WorldV2Builder`, active world root is `Workspace.GTH_WorldV2` |
+| Existing `ensurePart` early-return risk | Guarded by builder-local `part()` that updates size/CFrame/Anchored/CanCollide/Transparency/Material on every call |
+| Billboard word-soup risk | Guarded: WorldV2 uses `SurfaceGui` labels; `WorldValidation` rejects unsafe BillboardGui settings |
+| AntiExploit latency always-miss risk | Guarded: `ValidateNoteHit` reads/trusts `payload.clientDelta` only inside visual window and latency grace; duplicate/wrong-lane tests exist |
+| Old `workspace.Stage` primary prompt paths | Fixed: prompt station definitions use `Workspace.GTH_WorldV2.VendorRing.*` and `AudienceRing.AudienceHypeManager`; Stage has ObjectValue compatibility only |
+| Missing repo skill files requested by user | UNKNOWN location; skill names were not present under repo, `~/.codex/skills`, or `~/.agents/skills`; work performed directly against each named skill contract |
 
-- `Workspace.Stage.StagePlatform`: textured stage mesh candidate.
-- `Workspace.Stage.SpeakerStacks.SpeakerStack1` and `SpeakerStack2`: speaker model candidates.
-- `Workspace.Stage.MicrophoneStand`: microphone stand candidate.
-- `Workspace.Stage.BrainrotBackdrop`: volcano/cliff candidate meshes.
-- `Workspace.Unused_MapAssets`: 98 brainrot character template candidates.
-- `Workspace.Unused_MapAssets.OPEN ME! (READ THE READ ME)`: MaterialService, Lighting, and Waves package candidates.
-- `Workspace.TourBus`: bus body/wheel candidates.
+## Exact files modified for this pass
 
-Rule: copy local candidates into `ServerStorage.AssetQuarantine` or `Workspace.AssetInbox`, run `AssetAuditService`, quarantine scripts, then publish clean copy under `ReplicatedStorage.ArtAssets`. Until then, they are source candidates, not active WorldV2 proof counts.
-
----
-
-## 6. Known Codebase Bugs Addressed / Guarded
-
-1. `AntiExploitService.lua`: timing validation must account for client/network offset; do not regress into always-miss behavior.
-2. `GameBootstrap.server.lua`: `ensurePart` must update existing runtime anchors instead of early-returning stale CFrames/sizes.
-3. `GameBootstrap.server.lua`: `createBillboard` must keep `AlwaysOnTop=false`, `MaxDistance<=40`, and avoid duplicate label spam.
-4. `HordeClient.client.lua`: horde visuals should respect server sector data and not force V1 under-stage placement.
-5. `RhythmClient.client.lua` / `UIUXMenuController.client.lua`: closing modals must restore NavigationMenu in lobby and never trap user.
-
----
-
-## 7. Modified Codebase Files For WorldV2
-
-- `ServerScriptService/Services/GameBootstrap.server.lua`
-- `ServerScriptService/Services/HordeService.lua`
-- `ServerScriptService/Services/AntiExploitService.lua`
-- `ReplicatedStorage/Shared/SongCatalog.lua`
-- `StarterPlayer/StarterPlayerScripts/UIUXMenuController.client.lua`
-- `StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua`
-- `StarterPlayer/StarterPlayerScripts/HordeClient.client.lua`
-- `ReplicatedStorage/Shared/WorldV2/PolarLayout.lua`
-- `ReplicatedStorage/Shared/WorldV2/AssetAuditService.lua`
-- `ReplicatedStorage/Shared/WorldV2/WorldValidation.lua`
-- `ReplicatedStorage/Shared/WorldV2/UIUXValidation.lua`
-- `ReplicatedStorage/Shared/UnitTests.lua`
-- `ReplicatedStorage/Shared/GameTestHarness.lua`
+See final proof table. Core implementation files: `GameBootstrap.server.lua`, `WorldV2Builder.lua`, `AssetAuditService.lua`, `VendorPromptService.lua`, `CircularHordeVisualService.lua`, `WorldV2Config.lua`, `AssetRegistry.lua`, `VendorDefinitions.lua`, `HordeSectorDefinitions.lua`, `WorldValidation.lua`, `UnitTests.lua`, `UIUXMenuController.client.lua`, and docs.

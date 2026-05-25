@@ -144,6 +144,9 @@ _G.UIUXMenuController = Controller
 if remotes:FindFirstChild("OpenSongSelect") then
     remotes.OpenSongSelect.OnClientEvent:Connect(function() Controller.openMenu("SongSelect") end)
 end
+if remotes:FindFirstChild("OpenMenu") then
+    remotes.OpenMenu.OnClientEvent:Connect(function(menuName) Controller.openMenu(menuName) end)
+end
 
 ProximityPromptService.PromptTriggered:Connect(function(prompt)
     if not prompt or not prompt.Parent then return end
