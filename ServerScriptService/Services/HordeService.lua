@@ -82,6 +82,9 @@ function HordeService:_payload(session, horde, lastJudgement)
         sectorPressure = horde.sectorPressure,
         sectorAngles = horde.sectorAngles,
         warningSectorId = horde.warningSectorId,
+        activeSectorPressure = horde.activeSectorId and horde.sectorPressure and horde.sectorPressure[horde.activeSectorId] or 0,
+        eventSerial = horde.eventSerial or 0,
+        movementCue = horde.movementCue,
     }
 end
 
@@ -90,6 +93,8 @@ function HordeService:_broadcast(session, lastJudgement)
     if not horde or not self.context or not self.context.Remotes or not self.context.Remotes.HordeUpdate then
         return
     end
+    horde.eventSerial = (horde.eventSerial or 0) + 1
+    horde.movementCue = lastJudgement or horde.lastJudgement
     local payload = self:_payload(session, horde, lastJudgement)
     self.context.Remotes.HordeUpdate:FireAllClients(payload)
 end
@@ -121,6 +126,8 @@ function HordeService:StartSession(session)
         sectorAngles = angles,
         perfectStreak = 0,
         step = 0,
+        eventSerial = 0,
+        movementCue = "Start",
     }
     session.hordeDistance = 100
     session.hordeState = "Far"
@@ -206,6 +213,7 @@ function HordeService:Update(dt)
                     local sectorId = self:_pickActiveSector(horde, "PassiveCreep")
                     horde.activeSectorId = sectorId
                     horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + horde.passiveBank, 0, 100)
+                    horde.warningSectorId = weakestSector(horde.sectorHealths)
                     horde.passiveBank = 0
                     session.hordeDistance = horde.distance
                     session.hordeState = stateFor(horde.distance)
@@ -239,6 +247,7 @@ function HordeService:RepairSector(player, sectorId, amount)
         horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + amount)
         horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - amount)
         horde.activeSectorId = sectorId
+        horde.warningSectorId = weakestSector(horde.sectorHealths)
         session.sectorHealths = horde.sectorHealths
         session.activeSectorId = sectorId
         self:_broadcast(session, "Repair")
