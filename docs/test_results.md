@@ -11,7 +11,8 @@ Date: 2026-05-25
 | Regression tests added | PASS | `UnitTests.lua` now checks HordeClient source has `colorForCue`, `tweenCluster(...)`, heartbeat idle motion, and HordeService does not overwrite movement cues. |
 | `rojo build default.project.json --output /private/tmp/GroanTubeHero-horde-surge-fix.rbxlx` | PASS | Latest repo scripts build cleanly. |
 | `git diff --check` | PASS | No whitespace errors after horde surge fix. |
-| Live Studio MCP sync/runtime | BLOCKED | `StudioMCP --stdio` currently returns `Not connected to the WS host`; repo fix is built, but live Studio script sync/runtime rerun could not be performed from this turn. |
+| Live Studio MCP sync/runtime | PASS | Rechecked through `StudioMCP --stdio` against `GroanTubeHero.synced.rbxlx`; live source contract has `colorForCue`, `tweenCluster`, heartbeat idle motion, `activeSectorPressure`, movement cue preservation, and UnitTests regression source. |
+| Live horde surge probe | PASS | Temporary server+client probe fired `HordeUpdate` in Play and measured `HordeSector_N.HordeCluster` moving from `-4.3, 3, 64` to `0, 2.72, 30`, delta `34.27` studs; sector health `55`, pressure `88`; temp probe cleaned after run. |
 
 
 ## Post-team Studio MCP live Play rerun — 2026-05-25
