@@ -85,6 +85,22 @@ local idleBases = {}
 local clusterCache = {}
 local lastClusterScan = 0
 
+local function colorForCue(cue)
+    local cueName = type(cue) == "table" and cue.type or cue
+    if cueName == "Miss" or cueName == "PassiveCreep" then
+        return Color3.fromRGB(255, 65, 45)
+    elseif cueName == "Repair" then
+        return Color3.fromRGB(80, 255, 140)
+    elseif cueName == "Finish" then
+        return Color3.fromRGB(120, 255, 255)
+    elseif cueName == "Perfect" then
+        return Color3.fromRGB(95, 255, 120)
+    elseif cueName == "Good" or cueName == "Audience" then
+        return Color3.fromRGB(90, 210, 255)
+    end
+    return Color3.fromRGB(255, 130, 35)
+end
+
 local function cueType(payload)
     local cue = type(payload.movementCue) == "table" and payload.movementCue or nil
     return cue and cue.type or payload.lastJudgement

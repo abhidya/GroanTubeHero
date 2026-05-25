@@ -79,6 +79,7 @@ function HordeService:Init(runtimeContext)
 end
 
 function HordeService:_payload(session, horde, lastJudgement)
+    local activeSectorId = horde.activeSectorId
     return {
         performerUserId = session.playerId,
         sessionId = session.id,
@@ -89,8 +90,9 @@ function HordeService:_payload(session, horde, lastJudgement)
         lastJudgement = lastJudgement or horde.lastJudgement,
         disasterMode = (horde.distance or 100) <= 0,
         sectorHealths = horde.sectorHealths,
-        activeSectorId = horde.activeSectorId,
+        activeSectorId = activeSectorId,
         sectorPressure = horde.sectorPressure,
+        activeSectorPressure = horde.sectorPressure and activeSectorId and horde.sectorPressure[activeSectorId] or 0,
         sectorAngles = horde.sectorAngles,
         warningSectorId = horde.warningSectorId,
         movementCue = horde.movementCue,
@@ -115,7 +117,6 @@ function HordeService:_broadcast(session, lastJudgement)
         return
     end
     horde.eventSerial = (horde.eventSerial or 0) + 1
-    horde.movementCue = lastJudgement or horde.lastJudgement
     local payload = self:_payload(session, horde, lastJudgement)
     self.context.Remotes.HordeUpdate:FireAllClients(payload)
 end

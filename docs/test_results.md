@@ -2,6 +2,18 @@
 
 Date: 2026-05-25
 
+## Horde surge regression hotfix — 2026-05-25
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Root cause audit | PASS | `HordeClient.client.lua` called `colorForCue(...)` from the `HordeUpdate` handler but had no local function definition, so the client could error before `tweenCluster(...)` ran. |
+| Movement payload audit | PASS | `HordeService:_broadcast` no longer overwrites the movement cue table with a string; payload now keeps `movementCue` and includes `activeSectorPressure`. |
+| Regression tests added | PASS | `UnitTests.lua` now checks HordeClient source has `colorForCue`, `tweenCluster(...)`, heartbeat idle motion, and HordeService does not overwrite movement cues. |
+| `rojo build default.project.json --output /private/tmp/GroanTubeHero-horde-surge-fix.rbxlx` | PASS | Latest repo scripts build cleanly. |
+| `git diff --check` | PASS | No whitespace errors after horde surge fix. |
+| Live Studio MCP sync/runtime | BLOCKED | `StudioMCP --stdio` currently returns `Not connected to the WS host`; repo fix is built, but live Studio script sync/runtime rerun could not be performed from this turn. |
+
+
 ## Post-team Studio MCP live Play rerun — 2026-05-25
 
 | Test | Result | Notes |

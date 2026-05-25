@@ -306,6 +306,36 @@ local function testWorldV2Validation(): ()
     end
 end
 
+local function testHordeClientMovementSource(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping HordeClient source test (not on server)")
+        return
+    end
+    local StarterPlayer = game:GetService("StarterPlayer")
+    local scripts = StarterPlayer:FindFirstChild("StarterPlayerScripts")
+    local hordeClient = scripts and scripts:FindFirstChild("HordeClient")
+    expect(hordeClient ~= nil and hordeClient:IsA("LocalScript"), "HordeClient LocalScript exists")
+    local source = hordeClient and hordeClient.Source or ""
+    expect(source:find("local function colorForCue", 1, true) ~= nil, "HordeClient defines colorForCue before HordeUpdate uses it")
+    expect(source:find("tweenCluster(cluster, distance, sectorId, payload)", 1, true) ~= nil, "HordeClient HordeUpdate calls tweenCluster")
+    expect(source:find("RunService.Heartbeat:Connect", 1, true) ~= nil, "HordeClient has idle horde motion heartbeat")
+end
+
+local function testHordeServiceMovementPayloadSource(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping HordeService source test (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    local hordeService = services and services:FindFirstChild("HordeService")
+    expect(hordeService ~= nil and hordeService:IsA("ModuleScript"), "HordeService ModuleScript exists")
+    local source = hordeService and hordeService.Source or ""
+    expect(source:find("activeSectorPressure", 1, true) ~= nil, "HordeService payload includes activeSectorPressure")
+    expect(source:find("movementCue = horde.movementCue", 1, true) ~= nil, "HordeService payload preserves movementCue table")
+    expect(source:find("horde.movementCue = lastJudgement", 1, true) == nil, "HordeService broadcast does not overwrite movementCue table")
+end
+
 function UnitTests.Run(): { passed: number, failed: number, failures: { string } }
     local tests = {
         testScoring,
@@ -322,6 +352,8 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testAntiExploit,
         testHordeRootPivot,
         testWorldV2Validation,
+        testHordeClientMovementSource,
+        testHordeServiceMovementPayloadSource,
     }
     local failures = {}
     for _, test in ipairs(tests) do
