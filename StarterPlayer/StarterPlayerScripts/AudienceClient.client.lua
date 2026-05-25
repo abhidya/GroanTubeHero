@@ -67,20 +67,27 @@ local hint = Instance.new("TextLabel")
 hint.BackgroundTransparency = 1
 hint.Size = UDim2.new(1, -28, 0, 42)
 hint.Position = UDim2.new(0, 14, 0, 48)
-hint.Text = "Cheer the performer. Watch horde/stage action."
+hint.Text = "Hype Manager: choose a crowd callout to help the performer."
 hint.TextScaled = true
 hint.TextWrapped = true
 hint.Font = Enum.Font.GothamBold
 hint.TextColor3 = Color3.fromRGB(220, 235, 255)
 hint.Parent = panel
 
-local actions = { "Clap", "Cheer", "Encore", "Laugh", "Support" }
+local actions = {
+    { id = "Clap", label = "Clap", prompt = "Keep the beat chain alive." },
+    { id = "Cheer", label = "Cheer", prompt = "Boost hype for the performer." },
+    { id = "Encore", label = "Encore", prompt = "Call for a big finish." },
+    { id = "Laugh", label = "Laugh", prompt = "React to a groan-worthy miss." },
+    { id = "Support", label = "Support", prompt = "Push back the horde pressure." },
+}
 for i, action in ipairs(actions) do
     local col = ((i - 1) % 2)
     local row = math.floor((i - 1) / 2)
-    local b = button(panel, action .. "Button", action, UDim2.new(0.44, -8, 0, 44), UDim2.new(0.06 + col * 0.47, 0, 0, 102 + row * 52), Color3.fromRGB(40, 40, 70))
+    local b = button(panel, action.id .. "Button", action.label .. "\n" .. action.prompt, UDim2.new(0.44, -8, 0, 44), UDim2.new(0.06 + col * 0.47, 0, 0, 102 + row * 52), Color3.fromRGB(40, 40, 70))
     b.Activated:Connect(function()
-        remotes.AudienceAction:FireServer({ action = action })
+        hint.Text = "Hype Manager: " .. action.prompt
+        remotes.AudienceAction:FireServer({ action = action.id })
     end)
 end
 

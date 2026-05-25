@@ -1,9 +1,9 @@
 return {
-    { Id = "DJ_GroanMaster", Menu = "SongSelect", Prompt = "Choose Song", Angle = 270, Radius = 42, Color = Color3.fromRGB(170, 95, 255), Root = "VendorRing" },
-    { Id = "Vendor_Store", Menu = "Store", Prompt = "Open Store", Angle = 225, Radius = 43, Color = Color3.fromRGB(55, 145, 255), Root = "VendorRing" },
-    { Id = "Vendor_UpgradeEngineer", Menu = "Upgrades", Prompt = "Upgrade Gear", Angle = 315, Radius = 43, Color = Color3.fromRGB(255, 175, 70), Root = "VendorRing" },
-    { Id = "MissionOfficer", Menu = "Missions", Prompt = "View Missions", Angle = 180, Radius = 44, Color = Color3.fromRGB(120, 200, 95), Root = "VendorRing" },
-    { Id = "SecurityManager", Menu = "Security", Prompt = "Security Status", Angle = 0, Radius = 44, Color = Color3.fromRGB(255, 90, 90), Root = "VendorRing" },
-    { Id = "TutorialGuide", Menu = "Tutorial", Prompt = "How To Play", Angle = 135, Radius = 44, Color = Color3.fromRGB(90, 210, 220), Root = "VendorRing" },
-    { Id = "AudienceHypeManager", Menu = "Hype", Prompt = "Hype Rewards", Angle = 90, Radius = 92, Color = Color3.fromRGB(255, 220, 90), Root = "AudienceRing" },
+    { Id = "DJ_GroanMaster", Menu = "SongSelect", Prompt = "Pick a Track", ObjectText = "DJ Groan Master", Dialogue = "Yo hero, choose the next groan anthem.", ActionPrompt = "Open song select", Angle = 270, Radius = 42, Color = Color3.fromRGB(170, 95, 255), Root = "VendorRing" },
+    { Id = "Vendor_Store", Menu = "Store", Prompt = "Browse Merch", ObjectText = "Merch Vendor", Dialogue = "Fresh tube sounds and cosmetics for your fans.", ActionPrompt = "Open store", Angle = 225, Radius = 43, Color = Color3.fromRGB(55, 145, 255), Root = "VendorRing" },
+    { Id = "Vendor_UpgradeEngineer", Menu = "Upgrades", Prompt = "Tune Gear", ObjectText = "Upgrade Engineer", Dialogue = "I can make your rig louder, safer, and weirder.", ActionPrompt = "Open upgrades", Angle = 315, Radius = 43, Color = Color3.fromRGB(255, 175, 70), Root = "VendorRing" },
+    { Id = "MissionOfficer", Menu = "Missions", Prompt = "Check Gigs", ObjectText = "Mission Officer", Dialogue = "Daily gigs are posted. Bring back proof and fans.", ActionPrompt = "Open missions", Angle = 180, Radius = 44, Color = Color3.fromRGB(120, 200, 95), Root = "VendorRing" },
+    { Id = "SecurityManager", Menu = "Security", Prompt = "Repair Fence", ObjectText = "Security Manager", Dialogue = "Brainrot pressure is rising. Patch weak sectors fast.", ActionPrompt = "Open security status", Angle = 0, Radius = 44, Color = Color3.fromRGB(255, 90, 90), Root = "VendorRing" },
+    { Id = "TutorialGuide", Menu = "Tutorial", Prompt = "Learn the Riff", ObjectText = "Tutorial Guide", Dialogue = "Follow arrows, build hype, and keep the horde back.", ActionPrompt = "Open tutorial", Angle = 135, Radius = 44, Color = Color3.fromRGB(90, 210, 220), Root = "VendorRing" },
+    { Id = "AudienceHypeManager", Menu = "Hype", Prompt = "Lead the Crowd", ObjectText = "Audience Hype Manager", Dialogue = "Clap, cheer, support, or call encore to help the performer.", ActionPrompt = "Open audience actions", Angle = 90, Radius = 92, Color = Color3.fromRGB(255, 220, 90), Root = "AudienceRing" },
 }

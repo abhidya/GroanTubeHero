@@ -4,26 +4,13 @@ local VendorDefinitions = require(ReplicatedStorage.Shared.WorldV2.VendorDefinit
 
 local VendorPromptService = {}
 
-local DIALOGUE_LINES = {
-    SongSelect = "DJ GroanMaster: Pick a track. Every clean hit shoves the brainrot back.",
-    Store = "Store Vendor: Fresh tube sounds, stage effects, poses, audience packs, and safe cosmetics.",
-    Upgrades = "Upgrade Engineer: Speaker power, fence durability, stability recovery, combo, security, hype.",
-    Missions = "Mission Officer: Clear objectives, claim rewards, then get back on stage.",
-    Security = "Security Manager: Watch the eight sectors. Repair weak fences before the horde breaks through.",
-    Tutorial = "Tutorial Guide: Arrows only: ← ↓ ↑ →, or tap the lanes on mobile.",
-    Hype = "Hype Manager: Cheer, clap, encore. The crowd can help push the horde back.",
-    TourBus = "Road Crew: Upgrade the tour bus, backstage gear, and crew support between songs.",
-}
-
-local function fireDialogue(context, player, menuName, action)
-    local remote = context.Remotes and context.Remotes.NPCDialogue
-    if remote then
-        remote:FireClient(player, {
-            menuName = menuName,
-            action = action,
-            text = DIALOGUE_LINES[menuName] or "Crew: Keep the stage alive and keep moving.",
-        })
-    end
+local function configurePrompt(prompt, def)
+    prompt.ActionText = def.Prompt
+    prompt.ObjectText = def.ObjectText or def.Menu
+    prompt:SetAttribute("MenuName", def.Menu)
+    prompt:SetAttribute("Dialogue", def.Dialogue or "")
+    prompt:SetAttribute("ActionPrompt", def.ActionPrompt or def.Prompt)
+    prompt:SetAttribute("StationId", def.Id)
 end
 
 function VendorPromptService.Bind(context)
@@ -33,6 +20,8 @@ function VendorPromptService.Bind(context)
     if stageMicPrompt and not stageMicPrompt:GetAttribute("WorldV2Bound") then
         stageMicPrompt:SetAttribute("WorldV2Bound", true)
         stageMicPrompt:SetAttribute("MenuName", "SongSelect")
+        stageMicPrompt:SetAttribute("Dialogue", "Step to the glowing mic and launch the next Groan Tube run.")
+        stageMicPrompt:SetAttribute("ActionPrompt", "Open song select")
         stageMicPrompt.Triggered:Connect(function(player)
             if context.Remotes.OpenSongSelect then
                 context.Remotes.OpenSongSelect:FireClient(player)
@@ -45,9 +34,11 @@ function VendorPromptService.Bind(context)
     for _, def in ipairs(VendorDefinitions) do
         local station = world:FindFirstChild(def.Id, true)
         local prompt = station and station:FindFirstChildWhichIsA("ProximityPrompt", true)
+        if prompt then
+            configurePrompt(prompt, def)
+        end
         if prompt and not prompt:GetAttribute("WorldV2Bound") then
             prompt:SetAttribute("WorldV2Bound", true)
-            prompt:SetAttribute("MenuName", def.Menu)
             prompt.Triggered:Connect(function(player)
                 fireDialogue(context, player, def.Menu, def.Prompt)
                 if def.Menu == "SongSelect" and context.Remotes.OpenSongSelect then

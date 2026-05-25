@@ -6,6 +6,14 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local AudienceService = {}
 AudienceService.__index = AudienceService
 
+local ACTION_PROMPTS = {
+    Clap = "Keep the beat chain alive.",
+    Cheer = "Boost hype for the performer.",
+    Encore = "Call for a big finish.",
+    Laugh = "React to a groan-worthy miss.",
+    Support = "Push back the horde pressure.",
+}
+
 function AudienceService:Init(runtimeContext)
     self.context = runtimeContext
     self.watchers = {}
@@ -56,6 +64,9 @@ function AudienceService:ApplyAudienceAction(player, payload)
     end
 
     local action = payload.action
+    if not ACTION_PROMPTS[action] then
+        return false, "UnknownAction"
+    end
     local performer = self.context.Services.SongSessionService:GetSessionById(session.id)
     if not performer then
         return false, "MissingPerformer"
@@ -110,6 +121,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
         fans = rewardFans,
         xp = rewardXP,
         hypeBoost = hypeBoost,
+        prompt = ACTION_PROMPTS[action],
     }
 end
 

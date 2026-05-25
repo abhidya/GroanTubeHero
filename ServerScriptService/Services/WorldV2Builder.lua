@@ -571,7 +571,7 @@ local function hideProceduralScaffoldWhenAuditedArtReady(world)
     return hidden
 end
 
-function prompt(anchor, action, objectText, menuName)
+function prompt(anchor, action, objectText, menuName, dialogue, actionPrompt)
     local pr = anchor:FindFirstChildOfClass("ProximityPrompt") or Instance.new("ProximityPrompt")
     pr.Name = "ProximityPrompt"
     pr.ActionText = action
@@ -580,6 +580,8 @@ function prompt(anchor, action, objectText, menuName)
     pr.MaxActivationDistance = 18
     pr.RequiresLineOfSight = false
     pr:SetAttribute("MenuName", menuName or objectText)
+    pr:SetAttribute("Dialogue", dialogue or "")
+    pr:SetAttribute("ActionPrompt", actionPrompt or action)
     pr.Parent = anchor
     return pr
 end
@@ -695,9 +697,9 @@ function WorldV2Builder.Build()
         artPart(model, "VendorBeaconLeft_" .. def.Id, Vector3.new(0.55, 3.4, 0.55), cf * CFrame.new(-4, 2.5, -1.8), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " station beacon")
         artPart(model, "VendorBeaconRight_" .. def.Id, Vector3.new(0.55, 3.4, 0.55), cf * CFrame.new(4, 2.5, -1.8), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " station beacon")
         local sign = artPart(model, "ReadableMenuSign_" .. def.Id, Vector3.new(7, 3, 0.35), cf * CFrame.new(0, 5.2, -2.9), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " menu sign")
-        surfaceLabel(sign, def.Menu, Enum.NormalId.Front)
+        surfaceLabel(sign, def.Menu .. "\n" .. (def.ActionPrompt or def.Prompt), Enum.NormalId.Front)
         local anchor = invisible(model, "PromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 3, 0), false)
-        prompt(anchor, def.Prompt, def.Menu, def.Menu)
+        prompt(anchor, def.Prompt, def.ObjectText or def.Menu, def.Menu, def.Dialogue, def.ActionPrompt)
         model.PrimaryPart = plinth
         plinth:SetAttribute("FacesCenter", true)
     end

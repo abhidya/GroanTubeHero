@@ -10,6 +10,7 @@ local SongCatalog = require(Shared.SongCatalog)
 local WorldValidation = require(Shared.WorldV2.WorldValidation)
 local AssetAuditService = require(Shared.WorldV2.AssetAuditService)
 local AssetRegistry = require(Shared.WorldV2.AssetRegistry)
+local VendorDefinitions = require(Shared.WorldV2.VendorDefinitions)
 
 local AntiExploitService
 if RunService:IsServer() then
@@ -189,6 +190,15 @@ local function testFanNpcCreatorLocalManifest(): ()
     expect(source:find("Audited_FanNPCCreatorLocalCrowd_", 1, true) ~= nil, "fan NPC Creator clean pack is placed as audited audience crowd")
 end
 
+local function testVendorDialoguePrompts(): ()
+    for _, def in ipairs(VendorDefinitions) do
+        expect(type(def.Prompt) == "string" and def.Prompt ~= "", "vendor prompt text exists for " .. tostring(def.Id))
+        expect(type(def.ObjectText) == "string" and def.ObjectText ~= "", "vendor object text exists for " .. tostring(def.Id))
+        expect(type(def.Dialogue) == "string" and def.Dialogue ~= "", "vendor dialogue exists for " .. tostring(def.Id))
+        expect(type(def.ActionPrompt) == "string" and def.ActionPrompt ~= "", "vendor action prompt exists for " .. tostring(def.Id))
+    end
+end
+
 local function testConfigLanes(): ()
     for _, lane in ipairs(Config.Lanes) do
         expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
@@ -293,6 +303,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testAssetRegistryMissingBehavior,
         testWorldValidationPlaceholderDetection,
         testFanNpcCreatorLocalManifest,
+        testVendorDialoguePrompts,
         testConfigLanes,
         testAntiExploit,
         testHordeRootPivot,
