@@ -409,7 +409,7 @@ local function testCreatorMenuExpansionBuilderSource(): ()
     local source = builderScript and builderScript.Source or ""
     expect(source:find("buildCreatorMenuExpansionPlacements", 1, true) ~= nil, "builder creates Creator menu expansion placements")
     expect(source:find("Clean_Creator_CS_StageTruss", 1, true) ~= nil, "builder uses audited Creator StageTruss source")
-    expect(source:find("Clean_Creator_CS_CartoonNPC", 1, true) ~= nil, "builder uses audited Creator NPC source")
+    expect(source:find("Clean_FanNPCCreatorLocalPack", 1, true) ~= nil, "builder replaces blocked Creator NPC source with safe local fan pack")
     expect(source:find("CreatorMenuExpansionPlacements", 1, true) ~= nil, "builder records Creator expansion placement count")
     expect(source:find("not 1,000 distinct source asset IDs", 1, true) ~= nil, "builder documents placement-vs-source-ID boundary")
 end

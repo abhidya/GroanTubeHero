@@ -585,7 +585,7 @@ local function buildCreatorMenuExpansionPlacements(roots)
         LavaRock = findArtAsset("Volcano", "Clean_Creator_CS_LavaRock"),
         CashRegister = findArtAsset("Props", "Clean_Creator_CS_CashRegister"),
         ConcertLights = findArtAsset("Lighting", "Clean_Creator_CS_ConcertLights"),
-        CartoonNPC = findArtAsset("Vendors", "Clean_Creator_CS_CartoonNPC"),
+        AudienceFanPack = findArtAsset("Audience", "Clean_FanNPCCreatorLocalPack"),
     }
 
     local counts = {
@@ -633,7 +633,7 @@ local function buildCreatorMenuExpansionPlacements(roots)
     placeMany("fenceRing", "NeonSigns", 80, 57, 4, 2, 0.22)
     placeMany("hordeRing", "NeonSigns", 120, 70, 4, 0, 0.18)
     placeMany("hordeRing", "LavaRock", 100, 75, 2.6, 5, 0.08)
-    placeMany("audienceRing", "CartoonNPC", 80, 94, 3, 8, 0.16)
+    placeMany("audienceRing", "AudienceFanPack", 80, 94, 3, 8, 0.16)
     placeMany("audienceRing", "NeonSigns", 80, 99, 4, 13, 0.20)
     placeMany("volcanoOuterRing", "LavaRock", 120, 132, 4, 0, 0.16)
     placeMany("tourBusAndSpawn", "StageTruss", 40, 38, 4, 210, 0.22)
