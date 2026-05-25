@@ -8,6 +8,7 @@ local Scoring = require(Shared.Scoring)
 local ChartService = require(Shared.ChartService)
 local SongCatalog = require(Shared.SongCatalog)
 local WorldValidation = require(Shared.WorldV2.WorldValidation)
+local AssetAuditService = require(Shared.WorldV2.AssetAuditService)
 
 local AntiExploitService
 if RunService:IsServer() then
@@ -122,6 +123,25 @@ local function testSongCounts(): ()
     expectEqual(count, 18, "18 quarantined charts in UkedCharts")
 end
 
+
+local function testAssetAuditService(): ()
+    local folder = Instance.new("Folder")
+    folder.Name = "AuditFixture"
+    local part = Instance.new("Part")
+    part.Name = "FixturePart"
+    part.Parent = folder
+    local sound = Instance.new("Sound")
+    sound.Parent = folder
+    local emitter = Instance.new("ParticleEmitter")
+    emitter.Parent = part
+    local counts = AssetAuditService.Audit(folder)
+    expectEqual(counts.parts, 1, "asset audit counts parts")
+    expectEqual(counts.sounds, 1, "asset audit counts sounds")
+    expectEqual(counts.emitters, 1, "asset audit counts emitters")
+    expectEqual(counts.scripts, 0, "asset audit no scripts")
+    folder:Destroy()
+end
+
 local function testConfigLanes(): ()
     for _, lane in ipairs(Config.Lanes) do
         expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
@@ -211,6 +231,8 @@ local function testWorldV2Validation(): ()
     if RunService:IsServer() then
         local result = WorldValidation.Run()
         expect(result.ok == true, "WorldValidation passes")
+        expect(result.counts.missingRequiredAssets == 0, "WorldValidation missing required assets is zero")
+        expect(type(result.counts.auditParts) == "number", "WorldValidation includes audit counts")
     end
 end
 
@@ -220,6 +242,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testChartSegments,
         testCatalogTitles,
         testSongCounts,
+        testAssetAuditService,
         testConfigLanes,
         testAntiExploit,
         testHordeRootPivot,

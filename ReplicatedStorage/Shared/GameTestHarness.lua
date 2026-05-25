@@ -145,6 +145,14 @@ function GameTestHarness.Run()
         print("[GameTestHarness] Quarantined scripts: " .. tostring(counts.quarantinedScripts or 0))
         print("[GameTestHarness] Missing required assets: " .. tostring(counts.missingRequiredAssets or 0))
         print("[GameTestHarness] Visible placeholder violations: " .. tostring(counts.visiblePlaceholderViolations or 0))
+        print("[GameTestHarness] Audit scripts: " .. tostring(counts.auditScripts or 0))
+        print("[GameTestHarness] Audit MeshParts: " .. tostring(counts.auditMeshParts or 0))
+        print("[GameTestHarness] Audit parts: " .. tostring(counts.auditParts or 0))
+        print("[GameTestHarness] Audit sounds: " .. tostring(counts.auditSounds or 0))
+        print("[GameTestHarness] Audit emitters: " .. tostring(counts.auditEmitters or 0))
+        print("[GameTestHarness] Audit lights: " .. tostring(counts.auditLights or 0))
+        print("[GameTestHarness] Audit decals: " .. tostring(counts.auditDecals or 0))
+        print("[GameTestHarness] Audit SurfaceAppearances: " .. tostring(counts.auditSurfaceAppearances or 0))
     end
 
     -- 4. If on Client, test UI modals

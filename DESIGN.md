@@ -99,12 +99,12 @@ To prevent security vulnerabilities (backdoors, remote executions), all external
 - **Speaker Towers**: `ReplicatedStorage.ArtAssets.Stage.Speaker` (Mesh)
 - **Classic Drum Kit**: Asset ID `rbxassetid://33866728` (Audited Model)
 - **Guitar Amplifiers**: Asset IDs `rbxassetid://102586922975375` & `rbxassetid://77407520836149` (Audited Models)
-- **Concert Spotlights**: Asset ID `rbxassetid://4568232546` (Audited Model)
-- **Overhead Trusses**: Asset ID `rbxassetid://9336505787` (Audited Model)
-- **Lava Floor Plates**: Asset ID `rbxassetid://77944906937375` (Audited Mesh)
-- **Fences / Barricades**: Asset ID `rbxassetid://7985176404` (Audited Model)
-- **Stadium Seats**: Asset ID `rbxassetid://6810383674` (Audited Model)
-- **Nuclear Silo Centerpiece**: Asset ID `rbxassetid://86284878579506` (Audited Model)
+- **Concert Spotlights**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
+- **Overhead Trusses**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
+- **Lava Floor Plates**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
+- **Fences / Barricades**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
+- **Stadium Seats**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
+- **Nuclear Silo Centerpiece**: TODO replace with audited `ReplicatedStorage.ArtAssets` source; no hardcoded Creator Store ID is trusted.
 
 *Note: Visual fallback block parts are prohibited. If an asset is missing or blocked, keep it invisible with a TODO in docs.*
 

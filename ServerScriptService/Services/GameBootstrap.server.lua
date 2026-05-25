@@ -887,6 +887,55 @@ local function wireRemotes(context)
 
 end
 
+
+local function installWorldV2Diagnostics()
+    local diagnostics = ensureFolder(ReplicatedStorage, "Diagnostics")
+    local runner = diagnostics:FindFirstChild("RunWorldV2Validation")
+    if not runner then
+        runner = Instance.new("BindableFunction")
+        runner.Name = "RunWorldV2Validation"
+        runner.Parent = diagnostics
+    end
+    runner.OnInvoke = function(options)
+        options = type(options) == "table" and options or {}
+        local Shared = ReplicatedStorage:WaitForChild("Shared")
+        local result = {
+            worldValidation = nil,
+            unitTests = nil,
+            gameTestHarness = nil,
+        }
+        local okWorld, worldResult = pcall(function()
+            return require(Shared.WorldV2.WorldValidation).Run()
+        end)
+        result.worldValidation = okWorld and worldResult or { ok = false, error = tostring(worldResult) }
+        if options.runUnitTests then
+            local okUnit, unitResult = pcall(function()
+                return require(Shared.UnitTests).Run()
+            end)
+            result.unitTests = okUnit and unitResult or { ok = false, error = tostring(unitResult) }
+        end
+        if options.runHarness then
+            local okHarness, harnessResult = pcall(function()
+                return require(Shared.GameTestHarness).Run()
+            end)
+            result.gameTestHarness = okHarness and harnessResult or { ok = false, error = tostring(harnessResult) }
+        end
+        print("[WorldV2Diagnostics] world", result.worldValidation and result.worldValidation.ok, "unit", result.unitTests and result.unitTests.failed, "harness", result.gameTestHarness ~= nil)
+        return result
+    end
+    if ReplicatedStorage:GetAttribute("RunWorldV2HarnessOnBoot") or Workspace:GetAttribute("RunWorldV2HarnessOnBoot") then
+        task.defer(function()
+            local ok, err = pcall(function()
+                runner:Invoke({ runUnitTests = true, runHarness = true })
+            end)
+            if not ok then
+                warn("[WorldV2Diagnostics] boot harness failed", err)
+            end
+        end)
+    end
+    return runner
+end
+
 local function makeClientReadmeString()
     return ProjectReadme
 end
@@ -947,6 +996,7 @@ end)
 
 context.Services.DataService:StartAutosave()
 startServices(context)
+installWorldV2Diagnostics()
 startStageAtmosphere()
 
 RunService.Heartbeat:Connect(function(dt)

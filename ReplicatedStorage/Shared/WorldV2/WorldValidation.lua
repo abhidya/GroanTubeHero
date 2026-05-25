@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local WorldValidation = {}
@@ -8,6 +9,7 @@ local REQUIRED_VENDORS = { "DJ_GroanMaster", "Vendor_Store", "Vendor_UpgradeEngi
 local REQUIRED_SECTORS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local REQUIRED_SECTOR_CHILDREN = { "FenceSegment", "FenceDamageVFX", "SecurityLight", "SirenLight", "HordeCluster", "HordePressureMeter", "WeakPointMarker" }
 local PLACEHOLDER_NAMES = { Part = true, Block = true, Circle = true, Cylinder = true, Temp = true, Debug = true }
+local REQUIRED_ART_ASSETS = { "WorldV2_SafeProceduralKit" }
 
 local function add(errors, condition, message)
     if not condition then table.insert(errors, message) end
@@ -17,8 +19,33 @@ local function isVisibleBasePart(inst)
     return inst:IsA("BasePart") and inst.Transparency < 0.95
 end
 
+local function getServerStorage()
+    if RunService:IsServer() then
+        return game:GetService("ServerStorage")
+    end
+    return nil
+end
+
 local function countActive(world)
-    local counts = { models = 0, meshParts = 0, visibleBaseParts = 0, invisibleHitboxes = 0, quarantinedScripts = 0, vendorPrompts = 0, hordeSectors = 0, missingRequiredAssets = 0, visiblePlaceholderViolations = 0 }
+    local counts = {
+        models = 0,
+        meshParts = 0,
+        visibleBaseParts = 0,
+        invisibleHitboxes = 0,
+        quarantinedScripts = 0,
+        vendorPrompts = 0,
+        hordeSectors = 0,
+        missingRequiredAssets = 0,
+        visiblePlaceholderViolations = 0,
+        auditScripts = 0,
+        auditMeshParts = 0,
+        auditParts = 0,
+        auditSounds = 0,
+        auditEmitters = 0,
+        auditLights = 0,
+        auditDecals = 0,
+        auditSurfaceAppearances = 0,
+    }
     local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
     if world then
         for _, desc in ipairs(world:GetDescendants()) do
@@ -41,7 +68,31 @@ local function countActive(world)
     end
     local artAssets = ReplicatedStorage:FindFirstChild("ArtAssets")
     counts.artAssetSourceModels = artAssets and #artAssets:GetChildren() or 0
-    local quarantine = game:GetService("ServerStorage"):FindFirstChild("AssetQuarantine")
+    if artAssets then
+        for _, requiredName in ipairs(REQUIRED_ART_ASSETS) do
+            if not artAssets:FindFirstChild(requiredName) then
+                counts.missingRequiredAssets += 1
+            end
+        end
+        local ok, AssetAuditService = pcall(function()
+            return require(ReplicatedStorage.Shared.WorldV2.AssetAuditService)
+        end)
+        if ok and AssetAuditService then
+            local auditCounts = AssetAuditService.Audit(artAssets)
+            counts.auditScripts = auditCounts.scripts or 0
+            counts.auditMeshParts = auditCounts.meshParts or 0
+            counts.auditParts = auditCounts.parts or 0
+            counts.auditSounds = auditCounts.sounds or 0
+            counts.auditEmitters = auditCounts.emitters or 0
+            counts.auditLights = auditCounts.lights or 0
+            counts.auditDecals = auditCounts.decals or 0
+            counts.auditSurfaceAppearances = auditCounts.surfaceAppearances or 0
+        end
+    else
+        counts.missingRequiredAssets += #REQUIRED_ART_ASSETS
+    end
+    local serverStorage = getServerStorage()
+    local quarantine = serverStorage and serverStorage:FindFirstChild("AssetQuarantine")
     if quarantine then
         for _, desc in ipairs(quarantine:GetDescendants()) do
             if desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then counts.quarantinedScripts += 1 end
@@ -70,6 +121,13 @@ function WorldValidation.Run()
         local audience = world:FindFirstChild("AudienceRing") and world.AudienceRing:FindFirstChild("AudienceHypeManager")
         add(errors, audience ~= nil, "AudienceHypeManager exists")
         add(errors, audience and audience:FindFirstChildWhichIsA("ProximityPrompt", true) ~= nil, "AudienceHypeManager prompt exists")
+        local artAssets = ReplicatedStorage:FindFirstChild("ArtAssets")
+        add(errors, artAssets ~= nil, "ReplicatedStorage.ArtAssets exists")
+        if artAssets then
+            for _, requiredName in ipairs(REQUIRED_ART_ASSETS) do
+                add(errors, artAssets:FindFirstChild(requiredName) ~= nil, "Required ArtAssets source missing: " .. requiredName)
+            end
+        end
         local hordeRing = world:FindFirstChild("HordeRing")
         add(errors, hordeRing ~= nil, "HordeRing exists")
         if hordeRing then
@@ -114,6 +172,15 @@ function WorldValidation.Run()
     print("[WorldValidation] Quarantined scripts", counts.quarantinedScripts)
     print("[WorldValidation] Missing required assets", counts.missingRequiredAssets)
     print("[WorldValidation] Visible placeholder violations", counts.visiblePlaceholderViolations)
+    print("[WorldValidation] Audit scripts", counts.auditScripts)
+    print("[WorldValidation] Audit meshParts", counts.auditMeshParts)
+    print("[WorldValidation] Audit parts", counts.auditParts)
+    print("[WorldValidation] Audit sounds", counts.auditSounds)
+    print("[WorldValidation] Audit emitters", counts.auditEmitters)
+    print("[WorldValidation] Audit lights", counts.auditLights)
+    print("[WorldValidation] Audit decals", counts.auditDecals)
+    print("[WorldValidation] Audit SurfaceAppearances", counts.auditSurfaceAppearances)
+    add(errors, counts.missingRequiredAssets == 0, "Missing required assets: " .. tostring(counts.missingRequiredAssets))
     assert(#errors == 0, table.concat(errors, " | "))
     return { ok = true, counts = counts, errors = errors }
 end
