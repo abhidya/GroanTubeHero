@@ -4,6 +4,26 @@ local VendorDefinitions = require(ReplicatedStorage.Shared.WorldV2.VendorDefinit
 
 local VendorPromptService = {}
 
+local function getDialogue(menuName, fallbackText)
+    for _, def in ipairs(VendorDefinitions) do
+        if def.Menu == menuName or def.Id == menuName then
+            return def.Dialogue or fallbackText
+        end
+    end
+    return fallbackText
+end
+
+local function fireDialogue(context, player, menuName, fallbackText, preferFallback)
+    local remote = context and context.Remotes and context.Remotes.NPCDialogue
+    if not (remote and player) then return end
+    local text = (preferFallback and fallbackText) or getDialogue(menuName, fallbackText) or "Crew: Keep the stage alive."
+    remote:FireClient(player, {
+        menu = menuName,
+        speaker = menuName or "Crew",
+        text = text,
+    })
+end
+
 local function configurePrompt(prompt, def)
     prompt.ActionText = def.Prompt
     prompt.ObjectText = def.ObjectText or def.Menu
@@ -23,6 +43,7 @@ function VendorPromptService.Bind(context)
         stageMicPrompt:SetAttribute("Dialogue", "Step to the glowing mic and launch the next Groan Tube run.")
         stageMicPrompt:SetAttribute("ActionPrompt", "Open song select")
         stageMicPrompt.Triggered:Connect(function(player)
+            fireDialogue(context, player, "SongSelect", stageMicPrompt:GetAttribute("Dialogue"), true)
             if context.Remotes.OpenSongSelect then
                 context.Remotes.OpenSongSelect:FireClient(player)
             elseif context.Remotes.OpenMenu then
@@ -77,8 +98,8 @@ function VendorPromptService.Bind(context)
                         sector = sector.Parent
                     end
                     local sectorId = sector and tostring(sector.Name):gsub("^HordeSector_", "")
+                    fireDialogue(context, player, "Security", "Repair Fence")
                     if sectorId and context.Services and context.Services.HordeService then
-                        fireDialogue(context, player, "Security", "Repair Fence")
                         context.Services.HordeService:RepairSector(player, sectorId, 25)
                     end
                     if context.Remotes.OpenMenu then

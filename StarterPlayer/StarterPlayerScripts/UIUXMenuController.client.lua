@@ -46,10 +46,24 @@ local function setResults(visible, resultData)
     if resultData and modal then modal:SetAttribute("ResultDataReady", true) end
 end
 
+local function focusMessageFor(menuName)
+    local messages = {
+        Store = "Browse tube sounds, stage effects, poses, audiences, and themes.",
+        Upgrades = "Buy career upgrades that improve future runs.",
+        Missions = "Track gigs and claim completed mission rewards.",
+        Security = "Review horde pressure, repair sectors, and learn defensive priorities.",
+        Tutorial = "Learn the rhythm loop, horde pressure, and progression path.",
+        Hype = "Choose crowd callouts and audience support actions.",
+        Settings = "Tune comfort and control options.",
+    }
+    return messages[menuName] or "Choose an option for a visible outcome."
+end
+
 local function openStoreLike(menuName)
     local storeGui = playerGui:FindFirstChild("StoreGui")
     if storeGui then
         storeGui.Enabled = true
+        storeGui:SetAttribute("FocusMessage", focusMessageFor(menuName))
         storeGui:SetAttribute("Open", true)
         storeGui:SetAttribute("Tab", menuName == "Store" and "Tube Sounds" or menuName)
     end
@@ -57,7 +71,11 @@ end
 
 local function openAudience()
     local gui = playerGui:FindFirstChild("AudienceGui")
-    if gui then gui:SetAttribute("Open", true) end
+    if gui then
+        gui:SetAttribute("Open", true)
+    else
+        openStoreLike("Hype")
+    end
 end
 
 local function closeExternal(menuName)
@@ -67,6 +85,8 @@ local function closeExternal(menuName)
     elseif menuName == "Hype" then
         local gui = playerGui:FindFirstChild("AudienceGui")
         if gui then gui:SetAttribute("Open", false) end
+        local storeGui = playerGui:FindFirstChild("StoreGui")
+        if storeGui then storeGui:SetAttribute("Open", false) end
     end
 end
 
