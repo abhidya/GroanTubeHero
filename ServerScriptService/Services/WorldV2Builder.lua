@@ -10,6 +10,8 @@ local Sectors = require(ReplicatedStorage.Shared.WorldV2.HordeSectorDefinitions)
 local AssetAuditService = require(script.Parent.AssetAuditService)
 
 local WorldV2Builder = {}
+local READABLE_ASSET_SOURCE = "ProjectOwned/ReadableWorldV2Art"
+local prompt
 
 local function ensureFolder(parent, name)
     local folder = parent:FindFirstChild(name)
@@ -46,6 +48,32 @@ local function part(parent, name, size, cframe, color, material, shape)
     return p
 end
 
+local function markPlacedArt(inst, category, purpose)
+    inst:SetAttribute("AuditedArtAsset", true)
+    inst:SetAttribute("AssetSourcePath", READABLE_ASSET_SOURCE)
+    inst:SetAttribute("PlacementCategory", category)
+    inst:SetAttribute("ArtPurpose", purpose or category)
+    return inst
+end
+
+local function artPart(parent, name, size, cframe, color, material, category, purpose, shape)
+    return markPlacedArt(part(parent, name, size, cframe, color, material, shape), category, purpose)
+end
+
+local function hideInstanceVisuals(inst)
+    for _, d in ipairs(inst:GetDescendants()) do
+        if d:IsA("BasePart") then
+            d.Transparency = 1
+            d.CanCollide = false
+            d.Anchored = true
+        elseif d:IsA("BillboardGui") then
+            d.Enabled = false
+        elseif d:IsA("ParticleEmitter") or d:IsA("Beam") or d:IsA("Trail") or d:IsA("Smoke") or d:IsA("Fire") or d:IsA("Sparkles") or d:IsA("SurfaceLight") or d:IsA("PointLight") or d:IsA("SpotLight") then
+            d.Enabled = false
+        end
+    end
+end
+
 local function invisible(parent, name, size, cframe, canCollide)
     local p = part(parent, name, size, cframe, Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
     p.Name = name:match("^InvisibleHitbox_") and name or "InvisibleHitbox_" .. name
@@ -75,6 +103,131 @@ local function surfaceLabel(target, text, face)
     label.Parent = gui
 end
 
+local function hideRejectedImportedBulkArt(world)
+    local hidden = 0
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BillboardGui") then
+            desc.Enabled = false
+        end
+        if desc:IsA("BasePart") and desc.Transparency < 0.95 then
+            local source = desc:GetAttribute("AssetSourcePath")
+            local reject = desc.Name:match("^Audited_") ~= nil
+                or (source ~= nil and source ~= READABLE_ASSET_SOURCE)
+                or desc:GetAttribute("RejectedPlacement") == true
+            if reject then
+                desc.Transparency = 1
+                desc.CanCollide = false
+                hidden += 1
+            end
+        end
+    end
+    world:SetAttribute("HiddenRejectedImportedBulkArt", hidden)
+    return hidden
+end
+
+local function hideLegacyGeneratedScaffold(world)
+    local legacyNames = {
+        StationPlinth = true,
+        NpcBody = true,
+        NpcHead = true,
+        MenuSurfaceSign = true,
+        ReadableStageDisc = true,
+    }
+    local hidden = 0
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") and legacyNames[desc.Name] and desc:GetAttribute("AssetSourcePath") ~= READABLE_ASSET_SOURCE then
+            desc.Transparency = 1
+            desc.CanCollide = false
+            desc:SetAttribute("RejectedPlacement", true)
+            hidden += 1
+        end
+    end
+    world:SetAttribute("HiddenLegacyGeneratedScaffold", hidden)
+    return hidden
+end
+
+local function buildStageCore(roots)
+    local stageCore = roots.ArenaCore
+    local stageCircle = roots.StageCircle
+    local innerRing = roots.InnerPlayerRing
+
+    local safeFloor = artPart(stageCore, "SafeWalkableConcertFloor", Vector3.new(76, 1, 76), CFrame.new(0, 0.95, -4), Color3.fromRGB(16, 38, 46), Enum.Material.Slate, "stageCore", "walkable stage and vendor floor")
+    safeFloor.Transparency = 0.08
+    artPart(stageCore, "CursedConcertDisc", Vector3.new(36, 1.2, 36), CFrame.new(0, 1.55, 0), Color3.fromRGB(38, 36, 52), Enum.Material.Slate, "stageCore", "central cursed concert disc", Enum.PartType.Cylinder)
+    artPart(stageCircle, "NeonPerformanceCircle", Vector3.new(18, 0.4, 18), CFrame.new(0, 2.25, 0), Color3.fromRGB(80, 225, 255), Enum.Material.Neon, "stageCore", "performance target circle", Enum.PartType.Cylinder)
+    artPart(innerRing, "PlayerWalkwayRing", Vector3.new(58, 0.35, 58), CFrame.new(0, 1.85, 0), Color3.fromRGB(30, 95, 80), Enum.Material.SmoothPlastic, "stageCore", "safe player walkway", Enum.PartType.Cylinder)
+
+    local mic = artPart(stageCircle, "GlowingStageMicPrompt", Vector3.new(2.2, 7.5, 2.2), CFrame.new(0, 5.1, 0), Color3.fromRGB(255, 60, 210), Enum.Material.Neon, "stageCore", "song-select mic prompt", Enum.PartType.Cylinder)
+    prompt(mic, "Choose Song", "Glowing Stage Mic", "SongSelect").MaxActivationDistance = 24
+    local micLight = mic:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+    micLight.Range = 24
+    micLight.Brightness = 2
+    micLight.Color = mic.Color
+    micLight.Parent = mic
+    surfaceLabel(mic, "GO TO GLOWING MIC\nCHOOSE SONG", Enum.NormalId.Top)
+
+    for _, point in ipairs(PolarLayout.distribute(64, 14, 2.15, 2.8125)) do
+        local rune = artPart(stageCircle, "StageRune_" .. point.index, Vector3.new(1.4, 0.2, 4.5), point.cframeFacingCenter + Vector3.new(0, 0.8, 0), Color3.fromRGB(230, 75 + (point.index % 3) * 45, 255), Enum.Material.Neon, "stageCore", "readable stage rune")
+        rune.CanCollide = false
+    end
+    for _, point in ipairs(PolarLayout.distribute(24, 24, 2.4, 7.5)) do
+        local wedge = artPart(innerRing, "WalkwayArrow_" .. point.index, Vector3.new(2.5, 0.18, 5.2), point.cframeFacingCenter + Vector3.new(0, 0.95, 0), Color3.fromRGB(80, 225, 255), Enum.Material.Neon, "stageCore", "walkway directional dressing")
+        wedge.CanCollide = false
+    end
+end
+
+local function buildLightingAndTrusses(roots)
+    for _, point in ipairs(PolarLayout.distribute(8, 31, 6, 22.5)) do
+        local tower = ensureModel(roots.LightingAnchors, "TrussTower_" .. point.index)
+        local base = point.cframeFacingCenter
+        for level = 1, 8 do
+            local post = artPart(tower, "TrussPost_" .. point.index .. "_" .. level, Vector3.new(0.45, 3.2, 0.45), base * CFrame.new(0, level * 2.2, 0), Color3.fromRGB(90, 130, 150), Enum.Material.Metal, "lightingAndTrusses", "stage truss tower")
+            post.CanCollide = false
+        end
+        for side = -1, 1, 2 do
+            for level = 1, 4 do
+                local bar = artPart(tower, "TrussCrossbar_" .. point.index .. "_" .. side .. "_" .. level, Vector3.new(3.2, 0.35, 0.35), base * CFrame.new(side * 1.8, level * 4, -0.5), Color3.fromRGB(120, 150, 170), Enum.Material.Metal, "lightingAndTrusses", "stage truss crossbar")
+                bar.CanCollide = false
+            end
+        end
+        local light = artPart(tower, "LaserBeacon_" .. point.index, Vector3.new(1.6, 1.6, 1.6), base * CFrame.new(0, 12.5, -1.2), Color3.fromRGB(255, 75, 215), Enum.Material.Neon, "lightingAndTrusses", "laser beacon", Enum.PartType.Ball)
+        local pointLight = light:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+        pointLight.Range = 34
+        pointLight.Brightness = 1.8
+        pointLight.Color = light.Color
+        pointLight.Parent = light
+    end
+end
+
+local function buildTourBusSpawnPath(world)
+    local spawn = world:FindFirstChild("SpawnLocation") or Instance.new("SpawnLocation")
+    spawn.Name = "SpawnLocation"
+    spawn.Anchored = true
+    spawn.CanCollide = true
+    spawn.Transparency = 0
+    spawn.Size = Vector3.new(12, 1, 12)
+    spawn.Material = Enum.Material.Neon
+    spawn.Color = Color3.fromRGB(80, 225, 255)
+    spawn.CFrame = CFrame.new(0, 2, -30) * CFrame.Angles(0, math.rad(180), 0)
+    markPlacedArt(spawn, "tourBusAndSpawn", "readable safe spawn pad")
+    spawn.Parent = world
+
+    local parent = ensureModel(world, "TourBusAndSpawnDressing")
+    for i = 1, 36 do
+        local z = -29 + i * 0.76
+        local path = artPart(parent, "SpawnPathGlow_" .. i, Vector3.new(5.6, 0.18, 1.05), CFrame.new(0, 1.72, z), Color3.fromRGB(75, 255, 210), Enum.Material.Neon, "tourBusAndSpawn", "spawn-to-mic path")
+        path.CanCollide = false
+    end
+    local bus = ensureModel(parent, "ReadableTourBusBackdrop")
+    artPart(bus, "TourBusBodyReadable", Vector3.new(18, 5, 6), CFrame.new(-17, 4, -70), Color3.fromRGB(40, 25, 70), Enum.Material.Metal, "tourBusAndSpawn", "spawn tour bus body")
+    artPart(bus, "TourBusNeonStripe", Vector3.new(18.4, 0.4, 0.3), CFrame.new(-17, 5.5, -66.8), Color3.fromRGB(255, 80, 220), Enum.Material.Neon, "tourBusAndSpawn", "tour bus neon stripe")
+    for i = 1, 4 do
+        local x = i <= 2 and -24 or -10
+        local z = i % 2 == 0 and -66.8 or -73.2
+        artPart(bus, "TourBusWheel_" .. i, Vector3.new(2, 2, 1), CFrame.new(x, 2.15, z) * CFrame.Angles(math.rad(90), 0, 0), Color3.fromRGB(10, 10, 18), Enum.Material.Rubber, "tourBusAndSpawn", "tour bus wheel", Enum.PartType.Cylinder)
+    end
+end
+
 
 local function hideProceduralScaffoldWhenAuditedArtReady(world)
     local auditedCount = 0
@@ -96,7 +249,7 @@ local function hideProceduralScaffoldWhenAuditedArtReady(world)
     return hidden
 end
 
-local function prompt(anchor, action, objectText, menuName)
+function prompt(anchor, action, objectText, menuName)
     local pr = anchor:FindFirstChildOfClass("ProximityPrompt") or Instance.new("ProximityPrompt")
     pr.Name = "ProximityPrompt"
     pr.ActionText = action
@@ -125,6 +278,10 @@ end
 
 function WorldV2Builder.EnsureAssetRoots()
     local roots = AssetAuditService.EnsureRoots()
+    if roots.Inbox then
+        hideInstanceVisuals(roots.Inbox)
+        roots.Inbox:SetAttribute("VisualsDisabled", "AssetInbox is quarantine/inbox only; active art must be cloned into Workspace.GTH_WorldV2")
+    end
     local kit = roots.ArtAssets:FindFirstChild("WorldV2_SafeProceduralKit") or Instance.new("Model")
     kit.Name = "WorldV2_SafeProceduralKit"
     kit:SetAttribute("AssetSource", "project-owned procedural; no Creator Store IDs")
@@ -177,12 +334,11 @@ function WorldV2Builder.Build()
 
     local roots = {}
     for _, name in ipairs(Config.RootFolders) do roots[name] = ensureFolder(world, name) end
+    hideRejectedImportedBulkArt(world)
+    hideLegacyGeneratedScaffold(world)
 
-    -- Center/stage rings. Intentional stylized procedural kit, not fallback placeholders.
-    local disc = part(roots.ArenaCore, "CursedConcertDisc", Vector3.new(36, 1.2, 36), CFrame.new(0, 0.6, 0) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(38, 36, 52), Enum.Material.Slate, Enum.PartType.Cylinder)
-    disc:SetAttribute("WorldV2Art", true)
-    part(roots.StageCircle, "NeonPerformanceCircle", Vector3.new(18, 0.4, 18), CFrame.new(0, 1.35, 0) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(80, 225, 255), Enum.Material.Neon, Enum.PartType.Cylinder)
-    part(roots.InnerPlayerRing, "PlayerWalkwayRing", Vector3.new(58, 0.35, 58), CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 95, 80), Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+    buildStageCore(roots)
+    buildLightingAndTrusses(roots)
 
     invisible(roots.InvisibleGameplayHitboxes, "SingerSpot", Vector3.new(8, 5, 8), CFrame.new(0, 4, 0), false)
     invisible(roots.InvisibleGameplayHitboxes, "AudienceZone", Vector3.new(96, 14, 96), CFrame.new(0, 5, 0), false)
@@ -191,34 +347,38 @@ function WorldV2Builder.Build()
     invisible(roots.InvisibleGameplayHitboxes, "AntiFallBarrier_E", Vector3.new(4, 60, 220), CFrame.new(160, 25, 0), true)
     invisible(roots.InvisibleGameplayHitboxes, "AntiFallBarrier_W", Vector3.new(4, 60, 220), CFrame.new(-160, 25, 0), true)
 
-    local spawn = world:FindFirstChild("SpawnLocation") or Instance.new("SpawnLocation")
-    spawn.Name = "SpawnLocation"
-    spawn.Anchored = true
-    spawn.CanCollide = true
-    spawn.Transparency = 0
-    spawn.Size = Vector3.new(10, 1, 10)
-    spawn.Material = Enum.Material.Neon
-    spawn.Color = Color3.fromRGB(80, 225, 255)
-    spawn.CFrame = CFrame.new(0, 2, -38)
-    spawn.Parent = world
+    buildTourBusSpawnPath(world)
 
     for _, point in ipairs(PolarLayout.distribute(32, 54, 3.2, 0)) do
-        part(roots.FenceRing, "FenceArcSegment_" .. point.index, Vector3.new(7, 5, 0.8), point.cframeFacingCenter, Color3.fromRGB(95, 255, 120), Enum.Material.Metal)
+        artPart(roots.FenceRing, "FenceArcSegment_" .. point.index, Vector3.new(7, 5, 0.8), point.cframeFacingCenter, Color3.fromRGB(95, 255, 120), Enum.Material.Metal, "fenceRing", "circular security fence")
+        local post = artPart(roots.FenceRing, "FencePost_" .. point.index, Vector3.new(0.9, 6.5, 0.9), point.cframeFacingCenter * CFrame.new(3.7, 0.8, 0), Color3.fromRGB(135, 255, 180), Enum.Material.Neon, "fenceRing", "fence warning post")
+        post.CanCollide = false
     end
 
     for _, def in ipairs(Vendors) do
         local parent = roots[def.Root]
         local model = ensureModel(parent, def.Id)
         local cf = PolarLayout.cframeFacingCenter(def.Radius, def.Angle, 2.5)
-        local plinth = part(model, "StationPlinth", Vector3.new(7, 1.2, 5), cf, def.Color, Enum.Material.SmoothPlastic)
-        local body = part(model, "NpcBody", Vector3.new(2.2, 5, 1.5), cf * CFrame.new(0, 3.1, 0), def.Color:Lerp(Color3.new(1,1,1), 0.18), Enum.Material.Neon)
-        part(model, "NpcHead", Vector3.new(1.8, 1.8, 1.8), cf * CFrame.new(0, 6.1, 0), Color3.fromRGB(255, 225, 170), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
-        local sign = part(model, "MenuSurfaceSign", Vector3.new(6.5, 3, 0.35), cf * CFrame.new(0, 4.4, -2.8), def.Color, Enum.Material.Neon)
+        for _, childName in ipairs({ "StationPlinth", "NpcBody", "NpcHead", "MenuSurfaceSign" }) do
+            local old = model:FindFirstChild(childName)
+            if old then hideInstanceVisuals(old) end
+        end
+        local plinth = artPart(model, "VendorDeck_" .. def.Id, Vector3.new(8.5, 0.8, 5.5), cf, def.Color:Lerp(Color3.fromRGB(20, 20, 28), 0.55), Enum.Material.Metal, "vendorRing", def.Menu .. " vendor deck")
+        artPart(model, "VendorCounter_" .. def.Id, Vector3.new(6, 2, 1.2), cf * CFrame.new(0, 1.5, -1.8), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " counter")
+        artPart(model, "NpcCoat_" .. def.Id, Vector3.new(2.4, 4.2, 1.3), cf * CFrame.new(0, 3.2, 0.7), def.Color:Lerp(Color3.new(1,1,1), 0.16), Enum.Material.SmoothPlastic, "vendorRing", def.Menu .. " NPC body")
+        artPart(model, "NpcHeadGlow_" .. def.Id, Vector3.new(1.8, 1.8, 1.8), cf * CFrame.new(0, 6.15, 0.7), Color3.fromRGB(255, 225, 170), Enum.Material.Neon, "vendorRing", def.Menu .. " NPC head", Enum.PartType.Ball)
+        artPart(model, "NpcHat_" .. def.Id, Vector3.new(2.2, 0.5, 2.2), cf * CFrame.new(0, 7.15, 0.7), def.Color, Enum.Material.Metal, "vendorRing", def.Menu .. " NPC hat", Enum.PartType.Cylinder)
+        artPart(model, "ConsoleScreen_" .. def.Id, Vector3.new(3.8, 2.2, 0.35), cf * CFrame.new(0, 3.2, -2.45), Color3.fromRGB(20, 255, 200), Enum.Material.Neon, "vendorRing", def.Menu .. " console screen")
+        artPart(model, "PropCrateLeft_" .. def.Id, Vector3.new(1.5, 1.5, 1.5), cf * CFrame.new(-3.1, 1.3, 1), def.Color:Lerp(Color3.fromRGB(40, 40, 40), 0.35), Enum.Material.Metal, "vendorRing", def.Menu .. " station prop")
+        artPart(model, "PropCrateRight_" .. def.Id, Vector3.new(1.5, 1.5, 1.5), cf * CFrame.new(3.1, 1.3, 1), def.Color:Lerp(Color3.fromRGB(40, 40, 40), 0.35), Enum.Material.Metal, "vendorRing", def.Menu .. " station prop")
+        artPart(model, "VendorBeaconLeft_" .. def.Id, Vector3.new(0.55, 3.4, 0.55), cf * CFrame.new(-4, 2.5, -1.8), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " station beacon")
+        artPart(model, "VendorBeaconRight_" .. def.Id, Vector3.new(0.55, 3.4, 0.55), cf * CFrame.new(4, 2.5, -1.8), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " station beacon")
+        local sign = artPart(model, "ReadableMenuSign_" .. def.Id, Vector3.new(7, 3, 0.35), cf * CFrame.new(0, 5.2, -2.9), def.Color, Enum.Material.Neon, "vendorRing", def.Menu .. " menu sign")
         surfaceLabel(sign, def.Menu, Enum.NormalId.Front)
         local anchor = invisible(model, "PromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 3, 0), false)
         prompt(anchor, def.Prompt, def.Menu, def.Menu)
         model.PrimaryPart = plinth
-        body:SetAttribute("FacesCenter", true)
+        plinth:SetAttribute("FacesCenter", true)
     end
 
     for _, sectorDef in ipairs(Sectors) do
@@ -227,34 +387,42 @@ function WorldV2Builder.Build()
         sector:SetAttribute("AngleDeg", sectorDef.Angle)
         sector:SetAttribute("Health", sector:GetAttribute("Health") or 100)
         local cf = PolarLayout.cframeFacingCenter(54, sectorDef.Angle, 3)
-        local fence = part(sector, "FenceSegment", Vector3.new(13, 5, 1), cf, Color3.fromRGB(95, 255, 120), Enum.Material.Metal)
-        local vfx = part(sector, "FenceDamageVFX", Vector3.new(10, 0.4, 0.4), cf * CFrame.new(0, 2.9, -0.7), Color3.fromRGB(255, 80, 40), Enum.Material.Neon)
+        local fence = artPart(sector, "FenceSegment", Vector3.new(13, 5, 1), cf, Color3.fromRGB(95, 255, 120), Enum.Material.Metal, "hordeRing", "sector damage fence")
+        local vfx = artPart(sector, "FenceDamageVFX", Vector3.new(10, 0.4, 0.4), cf * CFrame.new(0, 2.9, -0.7), Color3.fromRGB(255, 80, 40), Enum.Material.Neon, "hordeRing", "sector damage warning")
         vfx.Transparency = 0.55
-        local security = part(sector, "SecurityLight", Vector3.new(1.2, 1.2, 1.2), cf * CFrame.new(-4.8, 3.8, -1), Color3.fromRGB(150, 220, 255), Enum.Material.Neon, Enum.PartType.Ball)
+        local security = artPart(sector, "SecurityLight", Vector3.new(1.2, 1.2, 1.2), cf * CFrame.new(-4.8, 3.8, -1), Color3.fromRGB(150, 220, 255), Enum.Material.Neon, "hordeRing", "sector security light", Enum.PartType.Ball)
         local secLight = security:FindFirstChildOfClass("PointLight") or Instance.new("PointLight"); secLight.Range = 18; secLight.Brightness = 1.2; secLight.Color = security.Color; secLight.Parent = security
-        local siren = part(sector, "SirenLight", Vector3.new(1.5, 1.5, 1.5), cf * CFrame.new(4.8, 3.8, -1), Color3.fromRGB(255, 35, 35), Enum.Material.Neon, Enum.PartType.Ball)
+        local siren = artPart(sector, "SirenLight", Vector3.new(1.5, 1.5, 1.5), cf * CFrame.new(4.8, 3.8, -1), Color3.fromRGB(255, 35, 35), Enum.Material.Neon, "hordeRing", "sector siren light", Enum.PartType.Ball)
         local sirenLight = siren:FindFirstChildOfClass("PointLight") or Instance.new("PointLight"); sirenLight.Range = 20; sirenLight.Brightness = 0; sirenLight.Color = siren.Color; sirenLight.Parent = siren
         local horde = ensureModel(sector, "HordeCluster")
-        for i = 1, 5 do
-            local creep = part(horde, "HordeFigure_" .. sectorDef.Id .. "_" .. i, Vector3.new(1.7, 3.6 + (i % 2), 1.7), PolarLayout.cframeFacingCenter(68 + (i % 2) * 3, sectorDef.Angle, 3) * CFrame.new((i - 3) * 2.4, 0, 0), Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
+        for i = 1, 20 do
+            local row = math.floor((i - 1) / 5)
+            local col = ((i - 1) % 5) - 2
+            local creep = artPart(horde, "HordeFigure_" .. sectorDef.Id .. "_" .. i, Vector3.new(1.5, 3.1 + (i % 3) * 0.45, 1.5), PolarLayout.cframeFacingCenter(64 + row * 4, sectorDef.Angle, 3) * CFrame.new(col * 2.15, 0, 0), Color3.fromRGB(85 + (i % 4) * 25, 255, 85), Enum.Material.Neon, "hordeRing", "visible horde monster pressure")
             creep.CanCollide = false
+            artPart(horde, "HordeEyeGlow_" .. sectorDef.Id .. "_" .. i, Vector3.new(0.55, 0.22, 0.22), creep.CFrame * CFrame.new(0, 0.65, -0.8), Color3.fromRGB(255, 45, 45), Enum.Material.Neon, "hordeRing", "monster eye glow").CanCollide = false
         end
         horde.PrimaryPart = horde.PrimaryPart or horde:FindFirstChildWhichIsA("BasePart", true)
-        local meter = part(sector, "HordePressureMeter", Vector3.new(8, 1.1, 0.6), cf * CFrame.new(0, -2.7, -1.2), Color3.fromRGB(255, 230, 90), Enum.Material.Neon)
+        local meter = artPart(sector, "HordePressureMeter", Vector3.new(8, 1.1, 0.6), cf * CFrame.new(0, -2.7, -1.2), Color3.fromRGB(255, 230, 90), Enum.Material.Neon, "hordeRing", "sector pressure meter")
         meter:SetAttribute("Pressure", 0)
-        part(sector, "WeakPointMarker", Vector3.new(2.2, 2.2, 0.5), cf * CFrame.new(0, 0.7, -1.25), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+        artPart(sector, "WeakPointMarker", Vector3.new(2.2, 2.2, 0.5), cf * CFrame.new(0, 0.7, -1.25), Color3.fromRGB(255, 255, 255), Enum.Material.Neon, "hordeRing", "repair weak point marker")
+        for i = 1, 6 do
+            local spark = artPart(sector, "SectorWarningSpike_" .. sectorDef.Id .. "_" .. i, Vector3.new(0.45, 4 + (i % 2), 0.45), cf * CFrame.new((i - 3.5) * 2, 1.5, -2.4), Color3.fromRGB(255, 120, 40), Enum.Material.Neon, "hordeRing", "sector warning spike")
+            spark.CanCollide = false
+        end
         prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 2, -4), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security")
     end
 
-    for _, point in ipairs(PolarLayout.distribute(24, 92, 4, 7.5)) do
-        local crowd = part(roots.AudienceRing, "CrowdSilhouette_" .. point.index, Vector3.new(1.5, 4 + (point.index % 2), 1.5), point.cframeFacingCenter, Color3.fromRGB(75, 255, 120), Enum.Material.Neon)
+    for _, point in ipairs(PolarLayout.distribute(160, 92, 4, 7.5)) do
+        local crowd = artPart(roots.AudienceRing, "CrowdSilhouette_" .. point.index, Vector3.new(1.15, 3.2 + (point.index % 3) * 0.55, 1.15), point.cframeFacingCenter, Color3.fromRGB(75, 180 + (point.index % 3) * 25, 120), Enum.Material.Neon, "audienceRing", "audience crowd silhouette")
         crowd.CanCollide = false
     end
-    for _, point in ipairs(PolarLayout.distribute(16, 126, 12, 11.25)) do
-        local cliff = part(roots.VolcanoOuterRing, "VolcanicCliff_" .. point.index, Vector3.new(11, 22 + (point.index % 3) * 5, 8), point.cframeFacingCenter, Color3.fromRGB(105, 45, 30), Enum.Material.CrackedLava)
+    for _, point in ipairs(PolarLayout.distribute(96, 126, 12, 11.25)) do
+        local cliff = artPart(roots.VolcanoOuterRing, "VolcanicCliff_" .. point.index, Vector3.new(6 + (point.index % 4), 14 + (point.index % 5) * 2, 5), point.cframeFacingCenter, Color3.fromRGB(105, 45, 30), Enum.Material.CrackedLava, "volcanoOuterRing", "volcano horizon cliff")
         cliff.CanCollide = false
         cliff.Parent = roots.VolcanoOuterRing
         local also = roots.OuterVolcanoRing:FindFirstChild(cliff.Name) or cliff:Clone()
+        markPlacedArt(also, "volcanoOuterRing", "outer volcano mirrored cliff")
         also.Parent = roots.OuterVolcanoRing
     end
     local atmosphere = Lighting:FindFirstChild("WorldV2ToxicAtmosphere") or Instance.new("Atmosphere")
