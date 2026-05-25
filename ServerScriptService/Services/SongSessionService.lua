@@ -142,6 +142,9 @@ function SongSessionService:StartSong(player, payload)
     if profile and profile.Equipped then
         session.visuals = require(ReplicatedStorage.Shared.CosmeticConfig).GetVisualProfile(profile.Equipped)
     end
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:StartSession(session)
+    end
     self.context.Remotes.StartSong:FireClient(player, {
         sessionId = session.id,
         song = session.song,
@@ -198,6 +201,12 @@ function SongSessionService:NoteHit(player, payload)
     end
 
     local summaryState = self.context.Services.ScoreService:ApplyJudgement(session, note, judgement, profile)
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:ApplyJudgement(session, judgement, note)
+    end
+    if Config.DebugRhythm then
+        print("[RhythmDebug][SongSessionService]", "judgement", judgement, "offset", result, "note", note.id, "lane", note.lane)
+    end
     if judgement == "Perfect" then
         self.context.Services.HypeService:ApplyPerfect(session, profile, note)
         self.context.Services.MissionService:RecordEvent(profile, "PerfectHit", 1, { player = player, songId = session.songId })
@@ -329,6 +338,12 @@ function SongSessionService:Update(dt)
                         session.judgedNotes = session.judgedNotes + 1
                         local profile = self.context.Services.DataService:GetProfile(session.player)
                         session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", profile)
+                        if self.context.Services.HordeService then
+                            self.context.Services.HordeService:ApplyJudgement(session, "Miss", note)
+                        end
+                        if Config.DebugRhythm then
+                            print("[RhythmDebug][SongSessionService]", "autoMiss", note.id, "lane", note.lane, "songTime", now() - session.startServerTime)
+                        end
                         self.context.Services.HypeService:ApplyMiss(session, profile)
                         self.context.Remotes.NoteJudged:FireClient(session.player, {
                             sessionId = session.id,
@@ -375,6 +390,9 @@ function SongSessionService:FinishSession(player)
     end
     session.state = "Finished"
     local summary = self.context.Services.ScoreService:Finalize(session)
+    summary.hordeDistance = session.hordeDistance or 100
+    summary.hordeState = session.hordeState or "Far"
+    summary.disasterMode = session.disasterMode == true
     local rewards = self.context.Services.EconomyService:FinalizeSong(player, session, summary)
     self.context.Remotes.SongFinished:FireClient(player, {
         sessionId = session.id,
@@ -384,6 +402,9 @@ function SongSessionService:FinishSession(player)
         visuals = session.visuals,
     })
     self.context.Remotes.DataSnapshot:FireClient(player, self.context.Services.DataService:GetSnapshot(player))
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:FinishSession(session)
+    end
     if session.mode == Config.Modes.Battle then
         self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "BattleWin", 1, { player = player })
     end
@@ -393,6 +414,9 @@ end
 function SongSessionService:RemoveSession(player)
     local session = self.sessions[player.UserId]
     if session then
+        if self.context and self.context.Services and self.context.Services.HordeService then
+            self.context.Services.HordeService:RemoveSession(session)
+        end
         self.sessionById[session.id] = nil
     end
     self.sessions[player.UserId] = nil

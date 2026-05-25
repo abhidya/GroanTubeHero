@@ -16,10 +16,10 @@ Config.Lanes = {
 }
 
 Config.Difficulties = {
-    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1 },
-    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3 },
-    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6 },
-    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10 },
+    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1, hordeMissAdvance = 8 },
+    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3, hordeMissAdvance = 12 },
+    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6, hordeMissAdvance = 16 },
+    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10, hordeMissAdvance = 20 },
 }
 Config.DifficultyOrder = { "Easy", "Hard", "Extreme", "Brainrot" }
 

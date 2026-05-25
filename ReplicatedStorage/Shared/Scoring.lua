@@ -10,7 +10,7 @@ function Scoring.ResolveJudgement(offsetSeconds, timingBonusSeconds)
     local absValue = math.abs(offsetSeconds)
     local perfectWindow = Config.Judgement.PerfectWindow + (timingBonusSeconds or 0)
     local goodWindow = Config.Judgement.GoodWindow + (timingBonusSeconds or 0)
-    local acceptWindow = Config.Judgement.AcceptWindow
+    local acceptWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
 
     if absValue <= perfectWindow then
         return "Perfect"
@@ -78,7 +78,7 @@ function Scoring.GetNoteWindowState(offsetSeconds)
         return "Perfect"
     elseif absValue <= Config.Judgement.GoodWindow then
         return "Good"
-    elseif absValue <= Config.Judgement.AcceptWindow then
+    elseif absValue <= ((Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)) then
         return "Miss"
     end
     return "Reject"

@@ -33,12 +33,23 @@ gui:ClearAllChildren()
 
 local openButton=button(gui,"Store",UDim2.new(0,120,0,42),UDim2.new(1,-138,1,-58),Color3.fromRGB(170,95,255))
 local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.52,0);panel.Size=UDim2.new(0,800,0,520);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.BackgroundTransparency=.10;panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
-local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
+
+local scale = Instance.new("UIScale")
+scale.Name = "ResponsiveScale"
+scale.Parent = panel
+
+local function updateScale()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
+end
+RunService.RenderStepped:Connect(updateScale)
+updateScale()
+
 local title=label(panel,"Store & Progression",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
-local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
+local close=button(panel,"X",UDim2.new(0,50,0,46),UDim2.new(1,-64,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
 local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,190,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
-local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Parent=panel
+local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Active=true;list.Parent=panel
 
 local currentTab="Upgrades"
 local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={},TourBus={},Missions={Daily={},Weekly={}}}
@@ -124,8 +135,23 @@ close.Activated:Connect(function() panel.Visible=false end)
 gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; render(); gui:SetAttribute("Open",false) end end)
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
-render()
-RunService.RenderStepped:Connect(function()
-    local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
-    panelScale.Scale=math.clamp(math.min(viewport.X/880, viewport.Y/600), .58, 1)
+
+local function watchRhythmGui(rg)
+    local function update()
+        local songActive = rg:GetAttribute("SongActive") == true
+        openButton.Visible = not songActive
+        if songActive then
+            panel.Visible = false
+        end
+    end
+    update()
+    rg:GetAttributeChangedSignal("SongActive"):Connect(update)
+end
+
+local rhythm = playerGui:FindFirstChild("RhythmGui")
+if rhythm then watchRhythmGui(rhythm) end
+playerGui.ChildAdded:Connect(function(c)
+    if c.Name == "RhythmGui" then watchRhythmGui(c) end
 end)
+
+render()

@@ -92,10 +92,10 @@ Config.Lanes = {
 }
 
 Config.Difficulties = {
-    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1 },
-    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3 },
-    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6 },
-    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10 },
+    Easy = { id = "Easy", label = "Easy", noteSpeed = 1.0, densityMultiplier = 1.0, doubleNotes = false, bursts = false, fakeouts = false, chaosSections = false, rewardMultiplier = 1.0, hpDamageMiss = 8, recommendedLevel = 1, hordeMissAdvance = 8 },
+    Hard = { id = "Hard", label = "Hard", noteSpeed = 1.25, densityMultiplier = 1.5, doubleNotes = true, bursts = true, fakeouts = false, chaosSections = false, rewardMultiplier = 1.5, hpDamageMiss = 12, recommendedLevel = 3, hordeMissAdvance = 12 },
+    Extreme = { id = "Extreme", label = "Extreme", noteSpeed = 1.5, densityMultiplier = 2.0, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = false, rewardMultiplier = 2.25, hpDamageMiss = 16, recommendedLevel = 6, hordeMissAdvance = 16 },
+    Brainrot = { id = "Brainrot", label = "Brainrot", noteSpeed = 1.75, densityMultiplier = 2.5, doubleNotes = true, bursts = true, fakeouts = true, chaosSections = true, glitchVisuals = true, rewardMultiplier = 3.0, hpDamageMiss = 20, recommendedLevel = 10, hordeMissAdvance = 20 },
 }
 Config.DifficultyOrder = { "Easy", "Hard", "Extreme", "Brainrot" }
 
@@ -453,7 +453,7 @@ function Scoring.ResolveJudgement(offsetSeconds, timingBonusSeconds)
     local absValue = math.abs(offsetSeconds)
     local perfectWindow = Config.Judgement.PerfectWindow + (timingBonusSeconds or 0)
     local goodWindow = Config.Judgement.GoodWindow + (timingBonusSeconds or 0)
-    local acceptWindow = Config.Judgement.AcceptWindow
+    local acceptWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
 
     if absValue &lt;= perfectWindow then
         return "Perfect"
@@ -521,7 +521,7 @@ function Scoring.GetNoteWindowState(offsetSeconds)
         return "Perfect"
     elseif absValue &lt;= Config.Judgement.GoodWindow then
         return "Good"
-    elseif absValue &lt;= Config.Judgement.AcceptWindow then
+    elseif absValue &lt;= ((Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)) then
         return "Miss"
     end
     return "Reject"
@@ -860,7 +860,16 @@ function AntiExploitService:ValidateNoteHit(player, payload, session)
     if type(payload) ~= "table" then
         return false, "BadPayload"
     end
+    if payload.sessionId and payload.sessionId ~= session.id then
+        if Config.DebugRhythm then
+            print("[RhythmDebug][AntiExploit]", "reject", "SessionMismatch", "payloadSession", payload.sessionId, "session", session.id)
+        end
+        return false, "SessionMismatch"
+    end
     if payload.songId ~= session.songId then
+        if Config.DebugRhythm then
+            print("[RhythmDebug][AntiExploit]", "reject", "SongMismatch", "payloadSong", payload.songId, "sessionSong", session.songId)
+        end
         return false, "SongMismatch"
     end
     local note = session.notesById[payload.noteId]
@@ -890,10 +899,13 @@ function AntiExploitService:ValidateNoteHit(player, payload, session)
     local visualWindow = Config.ClientHitCandidateWindow or Config.Judgement.DebugWindow or Config.Judgement.AcceptWindow
     local allowedWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
     local offset = serverOffset
-    if clientDelta and math.abs(clientDelta) &lt;= visualWindow then
-        offset = clientDelta
+    if Config.DebugRhythm then
+        print("[RhythmDebug][AntiExploit]", "session", session.id, "note", payload.noteId, "lane", payload.lane, "serverSongTime", songTime, "noteTime", note.time, "serverOffset", serverOffset, "clientDelta", clientDelta, "allowedWindow", allowedWindow)
     end
-    if math.abs(serverOffset) &gt; allowedWindow and (not clientDelta or math.abs(clientDelta) &gt; visualWindow) then
+    if math.abs(serverOffset) &gt; allowedWindow then
+        if Config.DebugRhythm then
+            print("[RhythmDebug][AntiExploit]", "reject", "OutsideWindow", "serverOffset", serverOffset, "clientDelta", clientDelta, "visualWindow", visualWindow)
+        end
         return false, "OutsideWindow"
     end
 
@@ -1034,6 +1046,9 @@ function AudienceService:ApplyAudienceAction(player, payload)
 
     self.context.Services.DataService:Award(player, { Fans = rewardFans, XP = rewardXP })
     performer.stateData.hype = math.min(100, math.max(0, performer.stateData.hype + hypeBoost))
+    if self.context.Services.HordeService and (action == "Clap" or action == "Cheer" or action == "Support" or action == "Encore") then
+        self.context.Services.HordeService:ApplyAudienceSupport(performer, math.max(1, hypeBoost), "Audience")
+    end
     self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "AudienceHelp", 1, { player = player })
     if action == "Cheer" then
         self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "AudienceActionCheer", 1, { player = player })
@@ -1768,6 +1783,46 @@ local function buildMap()
         light.Parent = lightBase
     end
 
+
+    local hordeFolder = ensureFolder(stage, "BrainrotHorde")
+    local farPoint = ensurePart(hordeFolder, "HordeFarPoint", Vector3.new(2, 2, 2), CFrame.new(0, 4, -72), Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
+    farPoint.Transparency = 1
+    farPoint.CanCollide = false
+    local nearPoint = ensurePart(hordeFolder, "HordeNearStagePoint", Vector3.new(2, 2, 2), CFrame.new(0, 4, -16), Color3.fromRGB(255, 255, 80), Enum.Material.Neon)
+    nearPoint.Transparency = 1
+    nearPoint.CanCollide = false
+    local hordeRoot = hordeFolder:FindFirstChild("HordeRoot")
+    if not hordeRoot then
+        hordeRoot = Instance.new("Model")
+        hordeRoot.Name = "HordeRoot"
+        hordeRoot.Parent = hordeFolder
+        for i = 1, 16 do
+            local row = math.floor((i - 1) / 4)
+            local col = ((i - 1) % 4) - 1.5
+            local creep = ensurePart(hordeRoot, "Brainrot" .. i, Vector3.new(2.4, 4 + (i % 3), 2.4), CFrame.new(col * 4, 4, -72 + row * 4), Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
+            creep.CanCollide = false
+            creep.Shape = Enum.PartType.Block
+        end
+        hordeRoot.PrimaryPart = hordeRoot:FindFirstChild("Brainrot1")
+    end
+    local lane = ensurePart(stage, "BrainrotHordeLane", Vector3.new(22, 0.5, 64), CFrame.new(0, 2.8, -44), Color3.fromRGB(80, 30, 30), Enum.Material.CrackedLava)
+    lane.CanCollide = false
+    lane.Transparency = 0.15
+    local backdrop = ensureFolder(stage, "BrainrotBackdrop")
+    for i = 1, 5 do
+        local angle = (i / 5) * math.pi * 2
+        local volcano = ensurePart(backdrop, "Volcano" .. i, Vector3.new(10, 22, 10), CFrame.new(math.cos(angle) * 34, 10, -70 + math.sin(angle) * 12), Color3.fromRGB(130, 45, 25), Enum.Material.CrackedLava)
+        volcano.Anchored = true
+        volcano.CanCollide = false
+        local fire = volcano:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+        fire.Color = Color3.fromRGB(255, 80, 20)
+        fire.Range = 22
+        fire.Brightness = 2
+        fire.Parent = volcano
+    end
+    local hordeSign = ensurePart(stage, "BrainrotHordeSign", Vector3.new(16, 5, 1), CFrame.new(0, 8, -18), Color3.fromRGB(90, 255, 90), Enum.Material.SmoothPlastic)
+    createBillboard(hordeSign, "BRAINROT HORDE")
+
     local venueSigns = ensureFolder(stage, "VenueSigns")
     local sign = ensurePart(venueSigns, "MainSign", Vector3.new(24, 6, 1), CFrame.new(0, 13, -12), Color3.fromRGB(70, 70, 90), Enum.Material.SmoothPlastic)
     createBillboard(sign, "GROAN TUBE HERO")
@@ -1839,6 +1894,7 @@ local function loadServices(context)
         "StoreService",
         "EconomyService",
         "SongSessionService",
+        "HordeService",
         "AudienceService",
     }
 
@@ -1869,6 +1925,9 @@ local function wireRemotes(context)
     end)
 
     context.Remotes.NoteHit.OnServerEvent:Connect(function(player, payload)
+        if Config.DebugRhythm then
+            print("[RhythmDebug][NoteHitRemote]", player.Name, "session", payload and payload.sessionId, "song", payload and payload.songId, "note", payload and payload.noteId, "lane", payload and payload.lane, "clientSongTime", payload and payload.clientSongTime, "clientDelta", payload and payload.clientDelta)
+        end
         if not context.Services.AntiExploitService:CheckRate(player, "noteHit", Config.RateLimits.NoteHitPerSecond) then
             return
         end
@@ -1964,6 +2023,10 @@ end)
 Players.PlayerRemoving:Connect(function(player)
     context.Services.DataService:PlayerRemoving(player)
     context.Services.AntiExploitService:Clear(player)
+    if context.Services.HordeService then
+        local session = context.Services.SongSessionService:GetSession(player)
+        if session then context.Services.HordeService:RemoveSession(session) end
+    end
     context.Services.SongSessionService:RemoveSession(player)
 end)
 
@@ -1973,6 +2036,9 @@ startStageAtmosphere()
 
 RunService.Heartbeat:Connect(function(dt)
     context.Services.SongSessionService:Update(dt)
+    if context.Services.HordeService then
+        context.Services.HordeService:Update(dt)
+    end
     for _, player in ipairs(Players:GetPlayers()) do
         context.Services.AudienceService:RefreshWatcher(player)
     end
@@ -2542,6 +2608,9 @@ function SongSessionService:StartSong(player, payload)
     if profile and profile.Equipped then
         session.visuals = require(ReplicatedStorage.Shared.CosmeticConfig).GetVisualProfile(profile.Equipped)
     end
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:StartSession(session)
+    end
     self.context.Remotes.StartSong:FireClient(player, {
         sessionId = session.id,
         song = session.song,
@@ -2598,6 +2667,12 @@ function SongSessionService:NoteHit(player, payload)
     end
 
     local summaryState = self.context.Services.ScoreService:ApplyJudgement(session, note, judgement, profile)
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:ApplyJudgement(session, judgement, note)
+    end
+    if Config.DebugRhythm then
+        print("[RhythmDebug][SongSessionService]", "judgement", judgement, "offset", result, "note", note.id, "lane", note.lane)
+    end
     if judgement == "Perfect" then
         self.context.Services.HypeService:ApplyPerfect(session, profile, note)
         self.context.Services.MissionService:RecordEvent(profile, "PerfectHit", 1, { player = player, songId = session.songId })
@@ -2729,6 +2804,12 @@ function SongSessionService:Update(dt)
                         session.judgedNotes = session.judgedNotes + 1
                         local profile = self.context.Services.DataService:GetProfile(session.player)
                         session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", profile)
+                        if self.context.Services.HordeService then
+                            self.context.Services.HordeService:ApplyJudgement(session, "Miss", note)
+                        end
+                        if Config.DebugRhythm then
+                            print("[RhythmDebug][SongSessionService]", "autoMiss", note.id, "lane", note.lane, "songTime", now() - session.startServerTime)
+                        end
                         self.context.Services.HypeService:ApplyMiss(session, profile)
                         self.context.Remotes.NoteJudged:FireClient(session.player, {
                             sessionId = session.id,
@@ -2775,6 +2856,9 @@ function SongSessionService:FinishSession(player)
     end
     session.state = "Finished"
     local summary = self.context.Services.ScoreService:Finalize(session)
+    summary.hordeDistance = session.hordeDistance or 100
+    summary.hordeState = session.hordeState or "Far"
+    summary.disasterMode = session.disasterMode == true
     local rewards = self.context.Services.EconomyService:FinalizeSong(player, session, summary)
     self.context.Remotes.SongFinished:FireClient(player, {
         sessionId = session.id,
@@ -2784,6 +2868,9 @@ function SongSessionService:FinishSession(player)
         visuals = session.visuals,
     })
     self.context.Remotes.DataSnapshot:FireClient(player, self.context.Services.DataService:GetSnapshot(player))
+    if self.context.Services.HordeService then
+        self.context.Services.HordeService:FinishSession(session)
+    end
     if session.mode == Config.Modes.Battle then
         self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "BattleWin", 1, { player = player })
     end
@@ -2793,6 +2880,9 @@ end
 function SongSessionService:RemoveSession(player)
     local session = self.sessions[player.UserId]
     if session then
+        if self.context and self.context.Services and self.context.Services.HordeService then
+            self.context.Services.HordeService:RemoveSession(session)
+        end
         self.sessionById[session.id] = nil
     end
     self.sessions[player.UserId] = nil
@@ -3146,6 +3236,147 @@ function VenueService:GetVenueName(venueId)
 end
 
 return VenueService
+</ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX_HordeService"><Properties><string name="Name">HordeService</string><bool name="Disabled">false</bool><ProtectedString name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local HordeService = {}
+HordeService.__index = HordeService
+
+local ACTIONS = {
+    Perfect = 7,
+    Good = 3,
+    Miss = -8,
+    Audience = 2,
+}
+
+local function clampDistance(value)
+    return math.clamp(value or 100, 0, 100)
+end
+
+local function stateFor(distance)
+    if distance &lt;= 0 then return "Disaster" end
+    if distance &lt;= 18 then return "Critical" end
+    if distance &lt;= 38 then return "Close" end
+    if distance &lt;= 68 then return "Approaching" end
+    return "Far"
+end
+
+function HordeService:Init(runtimeContext)
+    self.context = runtimeContext
+    self.sessions = {}
+end
+
+function HordeService:_payload(session, horde, lastJudgement)
+    return {
+        performerUserId = session.playerId,
+        sessionId = session.id,
+        distance = math.floor((horde.distance or 100) * 10 + 0.5) / 10,
+        stability = session.stateData and session.stateData.hp or 100,
+        state = stateFor(horde.distance),
+        intensity = 1 - ((horde.distance or 100) / 100),
+        lastJudgement = lastJudgement or horde.lastJudgement,
+        disasterMode = (horde.distance or 100) &lt;= 0,
+    }
+end
+
+function HordeService:_broadcast(session, lastJudgement)
+    local horde = self.sessions[session.id]
+    if not horde or not self.context or not self.context.Remotes or not self.context.Remotes.HordeUpdate then
+        return
+    end
+    local payload = self:_payload(session, horde, lastJudgement)
+    self.context.Remotes.HordeUpdate:FireAllClients(payload)
+end
+
+function HordeService:StartSession(session)
+    if not session then return end
+    self.sessions[session.id] = {
+        distance = 100,
+        lastJudgement = "Start",
+        disasterMode = false,
+        lastBroadcast = 0,
+        passiveBank = 0,
+    }
+    session.hordeDistance = 100
+    session.hordeState = "Far"
+    self:_broadcast(session, "Start")
+end
+
+function HordeService:ApplyJudgement(session, judgement)
+    if not session then return nil end
+    local horde = self.sessions[session.id]
+    if not horde then
+        self:StartSession(session)
+        horde = self.sessions[session.id]
+    end
+    local delta = ACTIONS[judgement] or 0
+    if judgement == "Miss" then
+        local diff = session.difficultyConfig or Config.Difficulties[session.difficulty or "Easy"] or Config.Difficulties.Easy
+        delta = -(diff.hordeMissAdvance or diff.hpDamageMiss or 8)
+    end
+    horde.distance = clampDistance((horde.distance or 100) + delta)
+    horde.lastJudgement = judgement
+    horde.disasterMode = horde.distance &lt;= 0
+    session.hordeDistance = horde.distance
+    session.hordeState = stateFor(horde.distance)
+    session.disasterMode = horde.disasterMode
+    self:_broadcast(session, judgement)
+    return horde.distance
+end
+
+function HordeService:ApplyAudienceSupport(session, amount, action)
+    if not session then return nil end
+    local horde = self.sessions[session.id]
+    if not horde then
+        self:StartSession(session)
+        horde = self.sessions[session.id]
+    end
+    horde.distance = clampDistance((horde.distance or 100) + (amount or ACTIONS.Audience))
+    horde.lastJudgement = action or "Audience"
+    session.hordeDistance = horde.distance
+    session.hordeState = stateFor(horde.distance)
+    self:_broadcast(session, action or "Audience")
+    return horde.distance
+end
+
+function HordeService:Update(dt)
+    for sessionId, horde in pairs(self.sessions) do
+        local session = self.context.Services.SongSessionService:GetSessionById(sessionId)
+        if not session or session.state == "Finished" then
+            self.sessions[sessionId] = nil
+        elseif session.state == "Playing" then
+            local diffId = session.difficulty or "Easy"
+            if diffId == "Brainrot" then
+                horde.passiveBank = (horde.passiveBank or 0) + (dt or 0) * 1.8
+                if horde.passiveBank &gt;= 1 then
+                    horde.distance = clampDistance(horde.distance - horde.passiveBank)
+                    horde.passiveBank = 0
+                    session.hordeDistance = horde.distance
+                    session.hordeState = stateFor(horde.distance)
+                    session.disasterMode = horde.distance &lt;= 0
+                    self:_broadcast(session, "PassiveCreep")
+                end
+            end
+        end
+    end
+end
+
+function HordeService:FinishSession(session)
+    if session and self.sessions[session.id] then
+        self:_broadcast(session, "Finish")
+        self.sessions[session.id] = nil
+    end
+end
+
+function HordeService:RemoveSession(sessionOrId)
+    local id = type(sessionOrId) == "table" and sessionOrId.id or sessionOrId
+    if id then
+        self.sessions[id] = nil
+    end
+end
+
+return HordeService
 </ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX56"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX54"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX48"><Properties><string name="Name">AudienceClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -3543,26 +3774,29 @@ end)
 local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local laneFolder = playerGui:FindFirstChild("GroanTubeHeroInput") or Instance.new("Folder")
-laneFolder.Name = "GroanTubeHeroInput"
-laneFolder.Parent = playerGui
 
-local channel = laneFolder:FindFirstChild("LaneInput") or Instance.new("BindableEvent")
-channel.Name = "LaneInput"
-channel.Parent = laneFolder
+-- Folder &amp; BindableEvent for input piping
+local inputFolder = playerGui:FindFirstChild("GroanTubeHeroInput") or Instance.new("Folder")
+inputFolder.Name = "GroanTubeHeroInput"
+inputFolder.Parent = playerGui
+
+local laneInput = inputFolder:FindFirstChild("LaneInput") or Instance.new("BindableEvent")
+laneInput.Name = "LaneInput"
+laneInput.Parent = inputFolder
 
 local Config = require(ReplicatedStorage.Shared.Config)
 
-local laneButtons = {}
 local buttonGui
 local inputBar
 local rotateLabel
 local keyToLane = {}
+local laneButtons = {}
+local lastFireAtByLane = {}
 
 for lane = 1, 4 do
     local keyName = Config.Lanes[lane].key
@@ -3572,22 +3806,36 @@ for lane = 1, 4 do
     end
 end
 
-local function isSongActive()
-    local rhythmGui = playerGui:FindFirstChild("RhythmGui")
-    return rhythmGui and rhythmGui:IsA("ScreenGui") and rhythmGui:GetAttribute("SongActive") == true
+local function rhythmGui()
+    local rg = playerGui:FindFirstChild("RhythmGui")
+    return (rg and rg:IsA("ScreenGui")) and rg or nil
 end
 
-local function fireLane(lane, source)
-    local button = laneButtons[lane]
-    if button then
-        local original = button.BackgroundColor3
-        button.BackgroundColor3 = Color3.fromRGB(255, 245, 120)
-        TweenService:Create(button, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { BackgroundColor3 = original }):Play()
+local function isSongActive()
+    local rg = rhythmGui()
+    return rg and rg:GetAttribute("SongActive") == true
+end
+
+local function isAcceptInput()
+    local rg = rhythmGui()
+    return rg and rg:GetAttribute("SongActive") == true and rg:GetAttribute("AcceptInput") == true
+end
+
+local function fireLane(lane, source, keyCodeName)
+    local t = workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock()
+    if lastFireAtByLane[lane] and (t - lastFireAtByLane[lane]) &lt; 0.055 then
+        return
     end
-    channel:Fire({
+    lastFireAtByLane[lane] = t
+    local rg = rhythmGui()
+    if Config.DebugRhythm then
+        print("[RhythmDebug][InputController]", "lane", lane, "source", source, "keyCode", keyCodeName, "SongActive", rg and rg:GetAttribute("SongActive"), "AcceptInput", rg and rg:GetAttribute("AcceptInput"))
+    end
+    laneInput:Fire({
         lane = lane,
         source = source,
-        time = workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock(),
+        time = t,
+        keyCode = keyCodeName,
     })
 end
 
@@ -3602,8 +3850,8 @@ local function bindLane(name, lane)
         if not isSongActive() then
             return Enum.ContextActionResult.Pass
         end
-        if state == Enum.UserInputState.Begin then
-            fireLane(lane, "KeyboardAction")
+        if state == Enum.UserInputState.Begin and isAcceptInput() then
+            fireLane(lane, "KeyboardAction", keyCode.Name)
         end
         return Enum.ContextActionResult.Sink
     end, false, 10001, keyCode)
@@ -3613,29 +3861,37 @@ for lane = 1, 4 do
     bindLane("GroanTubeHeroLane" .. lane, lane)
 end
 
--- ContextActionService handles most cases, but Roblox camera/controller scripts can
--- still consume arrows in some Studio states. This direct fallback guarantees arrows
--- become hits while the song is active.
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not isSongActive() then
+    if not isSongActive() or not isAcceptInput() then
         return
     end
     local lane = keyToLane[input.KeyCode]
     if lane then
-        fireLane(lane, gameProcessed and "KeyboardFallbackProcessed" or "KeyboardFallback")
+        fireLane(lane, gameProcessed and "KeyboardFallbackProcessed" or "KeyboardFallback", input.KeyCode.Name)
     end
 end)
 
 local function setButtonsVisible(visible)
     if buttonGui then
-        buttonGui.Enabled = visible
+        -- Enable buttons on touch devices, and always in Studio for easy testing
+        local showOnMobile = UserInputService.TouchEnabled
+        local showInStudio = RunService:IsStudio()
+        buttonGui.Enabled = visible and (showOnMobile or showInStudio)
     end
 end
+
+local laneColors = {
+    Color3.fromRGB(80, 210, 255),  -- Blue (Lane 1)
+    Color3.fromRGB(140, 255, 150), -- Green (Lane 2)
+    Color3.fromRGB(255, 215, 80),  -- Gold (Lane 3)
+    Color3.fromRGB(255, 110, 210), -- Pink (Lane 4)
+}
 
 local function createMobileButtons()
     if buttonGui then
         return buttonGui
     end
+
     buttonGui = Instance.new("ScreenGui")
     buttonGui.Name = "GroanTubeHeroMobileInput"
     buttonGui.IgnoreGuiInset = false
@@ -3643,29 +3899,36 @@ local function createMobileButtons()
     buttonGui.Enabled = false
     buttonGui.Parent = playerGui
 
+    -- Bottom Center Input Bar Container
     inputBar = Instance.new("Frame")
     inputBar.Name = "BottomArrowInputBar"
     inputBar.AnchorPoint = Vector2.new(0.5, 1)
-    inputBar.Position = UDim2.new(0.5, 0, 0.96, -8)
-    inputBar.Size = UDim2.new(0.54, 0, 0.18, 0)
-    inputBar.BackgroundColor3 = Color3.fromRGB(6, 8, 18)
-    inputBar.BackgroundTransparency = 0.08
+    inputBar.Size = UDim2.fromOffset(560, 100)
+    inputBar.Position = UDim2.new(0.5, 0, 1, -15) -- Safe area margin from bottom edge (clear of Home Indicator)
+    inputBar.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+    inputBar.BackgroundTransparency = 0.15
+    inputBar.BorderSizePixel = 0
     inputBar.Parent = buttonGui
+
     local barCorner = Instance.new("UICorner")
     barCorner.CornerRadius = UDim.new(0, 18)
     barCorner.Parent = inputBar
+
     local barStroke = Instance.new("UIStroke")
     barStroke.Color = Color3.fromRGB(120, 220, 255)
     barStroke.Thickness = 2
     barStroke.Transparency = 0.15
     barStroke.Parent = inputBar
+
     local scale = Instance.new("UIScale")
     scale.Name = "ResponsiveScale"
     scale.Parent = inputBar
+
     local aspect = Instance.new("UIAspectRatioConstraint")
-    aspect.AspectRatio = 5.4
+    aspect.AspectRatio = 5.6
     aspect.AspectType = Enum.AspectType.FitWithinMaxSize
     aspect.Parent = inputBar
+
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Horizontal
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -3674,62 +3937,109 @@ local function createMobileButtons()
     layout.Parent = inputBar
 
     for lane = 1, 4 do
+        -- Frame wrapper to allow smooth button scaling without shifting list siblings
+        local buttonFrame = Instance.new("Frame")
+        buttonFrame.Name = "LaneFrame" .. lane
+        buttonFrame.Size = UDim2.fromOffset(82, 82)
+        buttonFrame.BackgroundTransparency = 1
+        buttonFrame.Parent = inputBar
+
         local button = Instance.new("TextButton")
-        button.Name = "Lane" .. lane
+        button.Name = "Button"
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.Position = UDim2.fromScale(0.5, 0.5)
+        button.Size = UDim2.fromOffset(82, 82)
         button.Text = Config.Lanes[lane].symbol or Config.Lanes[lane].key
-        button.Size = UDim2.new(0.225, 0, 0.82, 0)
-        button.BackgroundColor3 = Color3.fromRGB(24, 28, 52)
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.TextScaled = true
         button.Font = Enum.Font.GothamBlack
+        button.BackgroundColor3 = Color3.fromRGB(24, 28, 52)
+        button.BackgroundTransparency = 0.3
         button.AutoButtonColor = false
         button.ZIndex = 10
+        button.Parent = buttonFrame
+
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 16)
+        corner.CornerRadius = UDim.new(0.5, 0) -- Circular buttons
         corner.Parent = button
+
         local stroke = Instance.new("UIStroke")
-        stroke.Color = Color3.fromRGB(255, 255, 255)
-        stroke.Thickness = 2
-        stroke.Transparency = 0.25
+        stroke.Color = laneColors[lane]
+        stroke.Thickness = 3
+        stroke.Transparency = 0.15
         stroke.Parent = button
-        button.Parent = inputBar
+
         local textSize = Instance.new("UITextSizeConstraint")
         textSize.MinTextSize = 30
         textSize.MaxTextSize = 72
         textSize.Parent = button
-        button.Activated:Connect(function()
-            fireLane(lane, "Mobile")
+
+        -- Press / Release visual micro-animations
+        button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                TweenService:Create(button, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {
+                    Size = UDim2.fromOffset(72, 72),
+                    BackgroundTransparency = 0.05
+                }):Play()
+            end
         end)
+
+        button.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                TweenService:Create(button, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {
+                    Size = UDim2.fromOffset(82, 82),
+                    BackgroundTransparency = 0.3
+                }):Play()
+            end
+        end)
+
+        button.Activated:Connect(function()
+            if isAcceptInput() then
+                fireLane(lane, "Mobile", Config.Lanes[lane].key)
+            end
+        end)
+
         laneButtons[lane] = button
     end
 
+    -- Orientation warning label (if user holds device in portrait, ask to rotate)
     rotateLabel = Instance.new("TextLabel")
     rotateLabel.Name = "RotateDevice"
     rotateLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     rotateLabel.Position = UDim2.fromScale(0.5, 0.5)
     rotateLabel.Size = UDim2.new(0.82, 0, 0.22, 0)
     rotateLabel.BackgroundColor3 = Color3.fromRGB(8, 10, 22)
-    rotateLabel.Text = "Rotate device for rhythm controls"
+    rotateLabel.Text = "Rotate device to Landscape mode"
     rotateLabel.TextColor3 = Color3.fromRGB(255, 245, 150)
     rotateLabel.Font = Enum.Font.GothamBlack
     rotateLabel.TextScaled = true
     rotateLabel.Visible = false
     rotateLabel.Parent = buttonGui
+
     local rotateCorner = Instance.new("UICorner")
     rotateCorner.CornerRadius = UDim.new(0, 18)
     rotateCorner.Parent = rotateLabel
+
+    local rotateStroke = Instance.new("UIStroke")
+    rotateStroke.Color = Color3.fromRGB(255, 110, 210)
+    rotateStroke.Thickness = 2
+    rotateStroke.Parent = rotateLabel
 
     local function updateResponsive()
         local cam = workspace.CurrentCamera
         local viewport = cam and cam.ViewportSize or Vector2.new(1280, 720)
         local portrait = viewport.Y &gt; viewport.X
+
         rotateLabel.Visible = portrait and buttonGui.Enabled
         inputBar.Visible = not portrait
+
         local minSide = math.min(viewport.X, viewport.Y)
-        scale.Scale = math.clamp(minSide / 720, 0.82, 1.18)
+        scale.Scale = math.clamp(minSide / 720, 0.70, 1.25)
     end
+
     RunService.RenderStepped:Connect(updateResponsive)
     updateResponsive()
+
     return buttonGui
 end
 
@@ -3755,7 +4065,7 @@ playerGui.ChildAdded:Connect(function(child)
     end
 end)
 
-channel.Event:Connect(function(payload, legacySource)
+laneInput.Event:Connect(function(payload, legacySource)
     if type(payload) == "number" then
         payload = {
             lane = payload,
@@ -3781,6 +4091,7 @@ local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local SongCatalog = require(ReplicatedStorage.Shared.SongCatalog)
@@ -3901,7 +4212,7 @@ local hudChooseButton = makeButton(root, "HudChooseSong", "Choose Song", UDim2.n
 local highway = Instance.new("Frame")
 highway.Name = "NoteHighway"
 highway.AnchorPoint = Vector2.new(0.5, 0.5)
-highway.Position = UDim2.new(0.5, 0, 0.53, 0)
+highway.Position = UserInputService.TouchEnabled and UDim2.new(0.5, 0, 0.43, 0) or UDim2.new(0.5, 0, 0.53, 0)
 highway.Size = UDim2.new(0, 500, 0, 500)
 highway.BackgroundColor3 = Color3.fromRGB(14, 14, 28)
 highway.BackgroundTransparency = 0.06
@@ -3916,6 +4227,9 @@ local laneKeys = {
     Config.Lanes[3].symbol or Config.Lanes[3].key,
     Config.Lanes[4].symbol or Config.Lanes[4].key,
 }
+local openSongSelect
+local openStore
+
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -3997,12 +4311,54 @@ for lane = 1, 4 do
     text.TextXAlignment = Enum.TextXAlignment.Left
 end
 
+local touchMenu = Instance.new("Frame")
+touchMenu.Name = "TouchNavigationMenu"
+touchMenu.AnchorPoint = Vector2.new(1, 0.5)
+touchMenu.Position = UDim2.new(1, -16, 0.52, 0)
+touchMenu.Size = UDim2.new(0, 160, 0, 310)
+touchMenu.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+touchMenu.BackgroundTransparency = 0.15
+touchMenu.Parent = root
+corner(touchMenu, 18)
+stroke(touchMenu, Color3.fromRGB(170, 95, 255), 2)
+
+local touchMenuScale = Instance.new("UIScale")
+touchMenuScale.Name = "Scale"
+touchMenuScale.Parent = touchMenu
+
+local touchLayout = Instance.new("UIListLayout")
+touchLayout.FillDirection = Enum.FillDirection.Vertical
+touchLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+touchLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+touchLayout.Padding = UDim.new(0, 8)
+touchLayout.Parent = touchMenu
+
+local function makeNavButton(text, onClick, color)
+    local btn = makeButton(touchMenu, "NavBtn_" .. text:gsub("%s+", ""), text, UDim2.new(0.88, 0, 0, 40), UDim2.new(0, 0, 0, 0), color)
+    btn.Activated:Connect(onClick)
+    return btn
+end
+
+makeNavButton("Choose Song", function() openSongSelect() end, Color3.fromRGB(170, 95, 255))
+makeNavButton("Store", function() openStore("Tube Sounds") end, Color3.fromRGB(55, 145, 255))
+makeNavButton("Upgrades", function() openStore("Upgrades") end, Color3.fromRGB(255, 175, 70))
+makeNavButton("Missions", function() openStore("Missions") end, Color3.fromRGB(120, 200, 95))
+makeNavButton("Tour Bus", function() openStore("Tour Bus") end, Color3.fromRGB(90, 210, 220))
+makeNavButton("Watch", function()
+    local audienceGui = playerGui:FindFirstChild("AudienceGui")
+    if audienceGui then
+        audienceGui:SetAttribute("Open", true)
+    end
+end, Color3.fromRGB(110, 110, 150))
+
 local function setPerformanceUiVisible(visible)
     topBar.Visible = visible
     highway.Visible = visible
     bottomHint.Visible = visible
     noteLegend.Visible = visible
     judgement.Visible = visible
+    touchMenu.Visible = not visible
+    hudChooseButton.Visible = not visible
 end
 
 setPerformanceUiVisible(false)
@@ -4019,7 +4375,7 @@ songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
 makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeSongSelect.Activated:Connect(function()
     songSelect.Visible = false
 end)
@@ -4087,7 +4443,7 @@ results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
-local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeResults.Activated:Connect(function()
     results.Visible = false
 end)
@@ -4163,7 +4519,7 @@ local function playSongAudio(song)
     end)
 end
 
-local function openStore(tab)
+function openStore(tab)
     local storeGui = playerGui:FindFirstChild("StoreGui")
     if storeGui then
         storeGui.Enabled = true
@@ -4274,7 +4630,6 @@ end
 
 local pendingStartToken = 0
 local playerSnapshot = {}
-local openSongSelect
 
 local function startSong(songId)
     state.lastSongId = songId
@@ -4359,11 +4714,24 @@ if remotes:FindFirstChild("OpenSongSelect") then
     end)
 end
 
--- Client-side safety net: if the server prompt connection is missing or delayed,
--- pressing E on the START SONG prompt still opens song select for the local player.
 ProximityPromptService.PromptTriggered:Connect(function(prompt)
-    if prompt and prompt.Parent and prompt.Parent.Name == "StartPrompt" then
+    if not prompt or not prompt.Parent then return end
+    local name = prompt.Parent.Name
+    if name == "StartPrompt" then
         openSongSelect()
+    elseif name == "StoreKiosk" then
+        openStore("Tube Sounds")
+    elseif name == "UpgradeKiosk" then
+        openStore("Upgrades")
+    elseif name == "MissionBoard" then
+        openStore("Missions")
+    elseif name == "BusBody" or name == "TourBus" then
+        openStore("Tour Bus")
+    elseif name == "AudienceZone" or name == "AudienceSign" then
+        local audienceGui = playerGui:FindFirstChild("AudienceGui")
+        if audienceGui then
+            audienceGui:SetAttribute("Open", true)
+        end
     end
 end)
 
@@ -4392,6 +4760,9 @@ inputBus.Event:Connect(function(payload)
     if type(payload) ~= "table" or not payload.lane then
         return
     end
+    if payload.lane then
+        flashLane(payload.lane, Color3.fromRGB(60, 70, 100))
+    end
     if not state.active or not state.song then
         return
     end
@@ -4404,7 +4775,6 @@ inputBus.Event:Connect(function(payload)
     local targetNote = nil
     local bestDelta = math.huge
     local candidateWindow = Config.ClientHitCandidateWindow or 0.65
-    local fallbackWindow = math.max(candidateWindow, 1.10)
     for _, note in ipairs(state.notes) do
         if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
@@ -4414,25 +4784,18 @@ inputBus.Event:Connect(function(payload)
             end
         end
     end
-    if not targetNote then
-        for _, note in ipairs(state.notes) do
-            if not note.hit and note.lane == payload.lane then
-                local delta = math.abs(songTime - note.time)
-                if delta &lt;= fallbackWindow and delta &lt; bestDelta then
-                    bestDelta = delta
-                    targetNote = note
-                end
-            end
-        end
+    if Config.DebugRhythm then
+        print("[RhythmDebug][RhythmClient]", "lane", payload.lane, "source", payload.source, "songTime", songTime, "target", targetNote and targetNote.id or "none", "noteTime", targetNote and targetNote.time or "-", "bestDelta", bestDelta)
     end
     if targetNote then
+        local clientDelta = songTime - targetNote.time
         remotes.NoteHit:FireServer({
             sessionId = state.sessionId,
             songId = state.song.Id,
             noteId = targetNote.id,
             lane = payload.lane,
             clientSongTime = songTime,
-            clientDelta = songTime - targetNote.time,
+            clientDelta = clientDelta,
         })
     else
         showJudgement("No note!", Color3.fromRGB(255, 120, 120))
@@ -4549,6 +4912,9 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         summary.grade or "-",
         newBest and "  NEW BEST!" or "",
         summary.hp or 0,
+        summary.hordeState or "Far",
+        summary.hordeDistance or 100,
+        summary.disasterMode and "DISASTER" or "Survived",
         summary.score or 0,
         summary.accuracyPercent or 0,
         summary.perfect or 0,
@@ -4571,7 +4937,11 @@ end)
 
 RunService.PreRender:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.52, 1.15)
+    local factor = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
+    scale.Scale = factor
+    if touchMenuScale then
+        touchMenuScale.Scale = factor
+    end
 
     if not state.active or not state.song then
         return
@@ -4735,12 +5105,23 @@ gui:ClearAllChildren()
 
 local openButton=button(gui,"Store",UDim2.new(0,120,0,42),UDim2.new(1,-138,1,-58),Color3.fromRGB(170,95,255))
 local panel=Instance.new("Frame");panel.Name="StorePanel";panel.AnchorPoint=Vector2.new(.5,.5);panel.Position=UDim2.new(.5,0,.52,0);panel.Size=UDim2.new(0,800,0,520);panel.BackgroundColor3=Color3.fromRGB(12,14,28);panel.BackgroundTransparency=.10;panel.Visible=false;panel.Parent=gui;corner(panel,20);stroke(panel,Color3.fromRGB(80,225,255))
-local panelScale=Instance.new("UIScale");panelScale.Name="ResponsiveScale";panelScale.Parent=panel
+
+local scale = Instance.new("UIScale")
+scale.Name = "ResponsiveScale"
+scale.Parent = panel
+
+local function updateScale()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
+end
+RunService.RenderStepped:Connect(updateScale)
+updateScale()
+
 local title=label(panel,"Store &amp; Progression",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
-local close=button(panel,"X",UDim2.new(0,44,0,44),UDim2.new(1,-56,0,16),Color3.fromRGB(255,95,95))
+local close=button(panel,"X",UDim2.new(0,50,0,46),UDim2.new(1,-64,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
 local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,190,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
-local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Parent=panel
+local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Active=true;list.Parent=panel
 
 local currentTab="Upgrades"
 local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={},TourBus={},Missions={Daily={},Weekly={}}}
@@ -4826,10 +5207,178 @@ close.Activated:Connect(function() panel.Visible=false end)
 gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; render(); gui:SetAttribute("Open",false) end end)
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
-render()
-RunService.RenderStepped:Connect(function()
-    local viewport=workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
-    panelScale.Scale=math.clamp(math.min(viewport.X/880, viewport.Y/600), .58, 1)
+
+local function watchRhythmGui(rg)
+    local function update()
+        local songActive = rg:GetAttribute("SongActive") == true
+        openButton.Visible = not songActive
+        if songActive then
+            panel.Visible = false
+        end
+    end
+    update()
+    rg:GetAttributeChangedSignal("SongActive"):Connect(update)
+end
+
+local rhythm = playerGui:FindFirstChild("RhythmGui")
+if rhythm then watchRhythmGui(rhythm) end
+playerGui.ChildAdded:Connect(function(c)
+    if c.Name == "RhythmGui" then watchRhythmGui(c) end
 end)
+
+render()
+</ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX_HordeClient"><Properties><string name="Name">HordeClient</string><bool name="Disabled">false</bool><ProtectedString name="Source">local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local function ensure(parent, className, name)
+    local found = parent:FindFirstChild(name)
+    if found then return found end
+    local instance = Instance.new(className)
+    instance.Name = name
+    instance.Parent = parent
+    return instance
+end
+
+local function ensureStageHorde()
+    local stage = workspace:FindFirstChild("Stage") or ensure(workspace, "Folder", "Stage")
+    local hordeFolder = ensure(stage, "Folder", "BrainrotHorde")
+    local root = hordeFolder:FindFirstChild("HordeRoot")
+    if not root then
+        root = Instance.new("Model")
+        root.Name = "HordeRoot"
+        root.Parent = hordeFolder
+        for i = 1, 12 do
+            local part = Instance.new("Part")
+            part.Name = "Brainrot" .. i
+            part.Anchored = true
+            part.CanCollide = false
+            part.Size = Vector3.new(2.2, 4 + (i % 3), 2.2)
+            part.Color = Color3.fromRGB(95, 255, 105)
+            part.Material = Enum.Material.Neon
+            part.CFrame = CFrame.new(((i - 1) % 4 - 1.5) * 4, 4, math.floor((i - 1) / 4) * 4)
+            part.Parent = root
+        end
+        root.PrimaryPart = root:FindFirstChild("Brainrot1")
+    end
+    local far = hordeFolder:FindFirstChild("HordeFarPoint") or Instance.new("Part")
+    far.Name = "HordeFarPoint"
+    far.Anchored = true
+    far.CanCollide = false
+    far.Transparency = 1
+    far.Size = Vector3.new(2, 2, 2)
+    far.CFrame = CFrame.new(0, 4, -70)
+    far.Parent = hordeFolder
+    local near = hordeFolder:FindFirstChild("HordeNearStagePoint") or Instance.new("Part")
+    near.Name = "HordeNearStagePoint"
+    near.Anchored = true
+    near.CanCollide = false
+    near.Transparency = 1
+    near.Size = Vector3.new(2, 2, 2)
+    near.CFrame = CFrame.new(0, 4, -16)
+    near.Parent = hordeFolder
+    return root, far, near
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "HordeGui"
+gui.IgnoreGuiInset = false
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local meter = Instance.new("Frame")
+meter.Name = "HordeMeter"
+meter.AnchorPoint = Vector2.new(0, 0)
+meter.Position = UDim2.new(0, 16, 0, 96)
+meter.Size = UDim2.new(0, 300, 0, 54)
+meter.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+meter.BackgroundTransparency = 0.08
+meter.Parent = gui
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = meter
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(95, 255, 105)
+stroke.Thickness = 2
+stroke.Parent = meter
+
+local label = Instance.new("TextLabel")
+label.BackgroundTransparency = 1
+label.Position = UDim2.new(0, 10, 0, 3)
+label.Size = UDim2.new(1, -20, 0, 24)
+label.Text = "Brainrot Horde: Far"
+label.TextColor3 = Color3.fromRGB(235, 255, 235)
+label.Font = Enum.Font.GothamBlack
+label.TextScaled = true
+label.Parent = meter
+
+local back = Instance.new("Frame")
+back.Position = UDim2.new(0, 12, 1, -20)
+back.Size = UDim2.new(1, -24, 0, 10)
+back.BackgroundColor3 = Color3.fromRGB(45, 40, 50)
+back.Parent = meter
+local backCorner = Instance.new("UICorner")
+backCorner.CornerRadius = UDim.new(0, 6)
+backCorner.Parent = back
+local fill = Instance.new("Frame")
+fill.Size = UDim2.fromScale(0, 1)
+fill.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+fill.Parent = back
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 6)
+fillCorner.Parent = fill
+
+local root, farPoint, nearPoint = ensureStageHorde()
+local currentTween
+local modelTweenValue
+local modelTweenConn
+local function moveHorde(distance)
+    root, farPoint, nearPoint = ensureStageHorde()
+    local alpha = 1 - math.clamp((distance or 100) / 100, 0, 1)
+    local cf = farPoint.CFrame:Lerp(nearPoint.CFrame, alpha)
+    if root:IsA("Model") then
+        if currentTween then currentTween:Cancel() end
+        if modelTweenConn then modelTweenConn:Disconnect() end
+        if modelTweenValue then modelTweenValue:Destroy() end
+        modelTweenValue = Instance.new("CFrameValue")
+        modelTweenValue.Value = root:GetPivot()
+        modelTweenConn = modelTweenValue:GetPropertyChangedSignal("Value"):Connect(function()
+            if root then root:PivotTo(modelTweenValue.Value) end
+        end)
+        currentTween = TweenService:Create(modelTweenValue, TweenInfo.new(0.22, Enum.EasingStyle.Back), { Value = cf })
+        currentTween:Play()
+    elseif root:IsA("BasePart") then
+        if currentTween then currentTween:Cancel() end
+        currentTween = TweenService:Create(root, TweenInfo.new(0.22, Enum.EasingStyle.Back), { CFrame = cf })
+        currentTween:Play()
+    end
+end
+
+local function pulse(color)
+    meter.BackgroundColor3 = color
+    TweenService:Create(meter, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { BackgroundColor3 = Color3.fromRGB(12, 14, 28) }):Play()
+end
+
+if remotes:FindFirstChild("HordeUpdate") then
+    remotes.HordeUpdate.OnClientEvent:Connect(function(payload)
+        if type(payload) ~= "table" then return end
+        local distance = tonumber(payload.distance) or 100
+        local state = payload.state or "Far"
+        label.Text = string.format("Brainrot Horde: %s  %d%%", state, math.floor(distance + 0.5))
+        fill.Size = UDim2.fromScale(1 - math.clamp(distance / 100, 0, 1), 1)
+        moveHorde(distance)
+        if payload.lastJudgement == "Miss" or payload.disasterMode then
+            pulse(Color3.fromRGB(120, 25, 35))
+        elseif payload.lastJudgement == "Perfect" then
+            pulse(Color3.fromRGB(25, 120, 70))
+        elseif payload.lastJudgement == "Good" or payload.lastJudgement == "Audience" then
+            pulse(Color3.fromRGB(30, 75, 120))
+        end
+    end)
+end
 </ProtectedString></Properties></Item></Item><Item class="StarterCharacterScripts" referent="RBX55"><Properties><string name="Name">StarterCharacterScripts</string></Properties></Item></Item><Item class="StarterGui" referent="RBX63"><Properties><string name="Name">StarterGui</string></Properties><Item class="Folder" referent="RBX57"><Properties><string name="Name">RhythmGui</string></Properties></Item><Item class="Folder" referent="RBX58"><Properties><string name="Name">AudienceGui</string></Properties></Item><Item class="Folder" referent="RBX59"><Properties><string name="Name">StoreGui</string></Properties></Item><Item class="Folder" referent="RBX60"><Properties><string name="Name">UpgradeGui</string></Properties></Item><Item class="Folder" referent="RBX61"><Properties><string name="Name">MissionsGui</string></Properties></Item><Item class="Folder" referent="RBX62"><Properties><string name="Name">ProfileGui</string></Properties></Item></Item><Item class="Workspace" referent="RBX68"><Properties><string name="Name">Workspace</string></Properties><Item class="Camera" referent="RBX64"><Properties><string name="Name">Camera</string></Properties></Item><Item class="Terrain" referent="RBX65"><Properties><string name="Name">Terrain</string></Properties></Item><Item class="Folder" referent="RBX66"><Properties><string name="Name">Stage</string></Properties></Item><Item class="Folder" referent="RBX67"><Properties><string name="Name">TourBus</string></Properties></Item></Item></Item>
 </roblox>

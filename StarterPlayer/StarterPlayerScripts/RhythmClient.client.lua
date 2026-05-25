@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local SongCatalog = require(ReplicatedStorage.Shared.SongCatalog)
@@ -124,7 +125,7 @@ local hudChooseButton = makeButton(root, "HudChooseSong", "Choose Song", UDim2.n
 local highway = Instance.new("Frame")
 highway.Name = "NoteHighway"
 highway.AnchorPoint = Vector2.new(0.5, 0.5)
-highway.Position = UDim2.new(0.5, 0, 0.53, 0)
+highway.Position = UserInputService.TouchEnabled and UDim2.new(0.5, 0, 0.43, 0) or UDim2.new(0.5, 0, 0.53, 0)
 highway.Size = UDim2.new(0, 500, 0, 500)
 highway.BackgroundColor3 = Color3.fromRGB(14, 14, 28)
 highway.BackgroundTransparency = 0.06
@@ -139,6 +140,9 @@ local laneKeys = {
     Config.Lanes[3].symbol or Config.Lanes[3].key,
     Config.Lanes[4].symbol or Config.Lanes[4].key,
 }
+local openSongSelect
+local openStore
+
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
     Color3.fromRGB(140, 255, 150),
@@ -220,12 +224,54 @@ for lane = 1, 4 do
     text.TextXAlignment = Enum.TextXAlignment.Left
 end
 
+local touchMenu = Instance.new("Frame")
+touchMenu.Name = "TouchNavigationMenu"
+touchMenu.AnchorPoint = Vector2.new(1, 0.5)
+touchMenu.Position = UDim2.new(1, -16, 0.52, 0)
+touchMenu.Size = UDim2.new(0, 160, 0, 310)
+touchMenu.BackgroundColor3 = Color3.fromRGB(12, 14, 28)
+touchMenu.BackgroundTransparency = 0.15
+touchMenu.Parent = root
+corner(touchMenu, 18)
+stroke(touchMenu, Color3.fromRGB(170, 95, 255), 2)
+
+local touchMenuScale = Instance.new("UIScale")
+touchMenuScale.Name = "Scale"
+touchMenuScale.Parent = touchMenu
+
+local touchLayout = Instance.new("UIListLayout")
+touchLayout.FillDirection = Enum.FillDirection.Vertical
+touchLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+touchLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+touchLayout.Padding = UDim.new(0, 8)
+touchLayout.Parent = touchMenu
+
+local function makeNavButton(text, onClick, color)
+    local btn = makeButton(touchMenu, "NavBtn_" .. text:gsub("%s+", ""), text, UDim2.new(0.88, 0, 0, 40), UDim2.new(0, 0, 0, 0), color)
+    btn.Activated:Connect(onClick)
+    return btn
+end
+
+makeNavButton("Choose Song", function() openSongSelect() end, Color3.fromRGB(170, 95, 255))
+makeNavButton("Store", function() openStore("Tube Sounds") end, Color3.fromRGB(55, 145, 255))
+makeNavButton("Upgrades", function() openStore("Upgrades") end, Color3.fromRGB(255, 175, 70))
+makeNavButton("Missions", function() openStore("Missions") end, Color3.fromRGB(120, 200, 95))
+makeNavButton("Tour Bus", function() openStore("Tour Bus") end, Color3.fromRGB(90, 210, 220))
+makeNavButton("Watch", function()
+    local audienceGui = playerGui:FindFirstChild("AudienceGui")
+    if audienceGui then
+        audienceGui:SetAttribute("Open", true)
+    end
+end, Color3.fromRGB(110, 110, 150))
+
 local function setPerformanceUiVisible(visible)
     topBar.Visible = visible
     highway.Visible = visible
     bottomHint.Visible = visible
     noteLegend.Visible = visible
     judgement.Visible = visible
+    touchMenu.Visible = not visible
+    hudChooseButton.Visible = not visible
 end
 
 setPerformanceUiVisible(false)
@@ -242,7 +288,7 @@ songSelect.Parent = root
 corner(songSelect, 22)
 stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
 makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
-local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeSongSelect.Activated:Connect(function()
     songSelect.Visible = false
 end)
@@ -310,7 +356,7 @@ results.Visible = false
 results.Parent = root
 corner(results, 22)
 stroke(results, Color3.fromRGB(255, 230, 120), 3)
-local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 44, 0, 38), UDim2.new(1, -58, 0, 14), Color3.fromRGB(255, 95, 95))
+local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeResults.Activated:Connect(function()
     results.Visible = false
 end)
@@ -386,7 +432,7 @@ local function playSongAudio(song)
     end)
 end
 
-local function openStore(tab)
+function openStore(tab)
     local storeGui = playerGui:FindFirstChild("StoreGui")
     if storeGui then
         storeGui.Enabled = true
@@ -497,7 +543,6 @@ end
 
 local pendingStartToken = 0
 local playerSnapshot = {}
-local openSongSelect
 
 local function startSong(songId)
     state.lastSongId = songId
@@ -582,11 +627,24 @@ if remotes:FindFirstChild("OpenSongSelect") then
     end)
 end
 
--- Client-side safety net: if the server prompt connection is missing or delayed,
--- pressing E on the START SONG prompt still opens song select for the local player.
 ProximityPromptService.PromptTriggered:Connect(function(prompt)
-    if prompt and prompt.Parent and prompt.Parent.Name == "StartPrompt" then
+    if not prompt or not prompt.Parent then return end
+    local name = prompt.Parent.Name
+    if name == "StartPrompt" then
         openSongSelect()
+    elseif name == "StoreKiosk" then
+        openStore("Tube Sounds")
+    elseif name == "UpgradeKiosk" then
+        openStore("Upgrades")
+    elseif name == "MissionBoard" then
+        openStore("Missions")
+    elseif name == "BusBody" or name == "TourBus" then
+        openStore("Tour Bus")
+    elseif name == "AudienceZone" or name == "AudienceSign" then
+        local audienceGui = playerGui:FindFirstChild("AudienceGui")
+        if audienceGui then
+            audienceGui:SetAttribute("Open", true)
+        end
     end
 end)
 
@@ -615,6 +673,9 @@ inputBus.Event:Connect(function(payload)
     if type(payload) ~= "table" or not payload.lane then
         return
     end
+    if payload.lane then
+        flashLane(payload.lane, Color3.fromRGB(60, 70, 100))
+    end
     if not state.active or not state.song then
         return
     end
@@ -627,7 +688,6 @@ inputBus.Event:Connect(function(payload)
     local targetNote = nil
     local bestDelta = math.huge
     local candidateWindow = Config.ClientHitCandidateWindow or 0.65
-    local fallbackWindow = math.max(candidateWindow, 1.10)
     for _, note in ipairs(state.notes) do
         if not note.hit and note.lane == payload.lane then
             local delta = math.abs(songTime - note.time)
@@ -637,25 +697,18 @@ inputBus.Event:Connect(function(payload)
             end
         end
     end
-    if not targetNote then
-        for _, note in ipairs(state.notes) do
-            if not note.hit and note.lane == payload.lane then
-                local delta = math.abs(songTime - note.time)
-                if delta <= fallbackWindow and delta < bestDelta then
-                    bestDelta = delta
-                    targetNote = note
-                end
-            end
-        end
+    if Config.DebugRhythm then
+        print("[RhythmDebug][RhythmClient]", "lane", payload.lane, "source", payload.source, "songTime", songTime, "target", targetNote and targetNote.id or "none", "noteTime", targetNote and targetNote.time or "-", "bestDelta", bestDelta)
     end
     if targetNote then
+        local clientDelta = songTime - targetNote.time
         remotes.NoteHit:FireServer({
             sessionId = state.sessionId,
             songId = state.song.Id,
             noteId = targetNote.id,
             lane = payload.lane,
             clientSongTime = songTime,
-            clientDelta = songTime - targetNote.time,
+            clientDelta = clientDelta,
         })
     else
         showJudgement("No note!", Color3.fromRGB(255, 120, 120))
@@ -772,6 +825,9 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         summary.grade or "-",
         newBest and "  NEW BEST!" or "",
         summary.hp or 0,
+        summary.hordeState or "Far",
+        summary.hordeDistance or 100,
+        summary.disasterMode and "DISASTER" or "Survived",
         summary.score or 0,
         summary.accuracyPercent or 0,
         summary.perfect or 0,
@@ -794,7 +850,11 @@ end)
 
 RunService.PreRender:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.52, 1.15)
+    local factor = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
+    scale.Scale = factor
+    if touchMenuScale then
+        touchMenuScale.Scale = factor
+    end
 
     if not state.active or not state.song then
         return

@@ -113,6 +113,46 @@ local function buildMap()
         light.Parent = lightBase
     end
 
+
+    local hordeFolder = ensureFolder(stage, "BrainrotHorde")
+    local farPoint = ensurePart(hordeFolder, "HordeFarPoint", Vector3.new(2, 2, 2), CFrame.new(0, 4, -72), Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
+    farPoint.Transparency = 1
+    farPoint.CanCollide = false
+    local nearPoint = ensurePart(hordeFolder, "HordeNearStagePoint", Vector3.new(2, 2, 2), CFrame.new(0, 4, -16), Color3.fromRGB(255, 255, 80), Enum.Material.Neon)
+    nearPoint.Transparency = 1
+    nearPoint.CanCollide = false
+    local hordeRoot = hordeFolder:FindFirstChild("HordeRoot")
+    if not hordeRoot then
+        hordeRoot = Instance.new("Model")
+        hordeRoot.Name = "HordeRoot"
+        hordeRoot.Parent = hordeFolder
+        for i = 1, 16 do
+            local row = math.floor((i - 1) / 4)
+            local col = ((i - 1) % 4) - 1.5
+            local creep = ensurePart(hordeRoot, "Brainrot" .. i, Vector3.new(2.4, 4 + (i % 3), 2.4), CFrame.new(col * 4, 4, -72 + row * 4), Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
+            creep.CanCollide = false
+            creep.Shape = Enum.PartType.Block
+        end
+        hordeRoot.PrimaryPart = hordeRoot:FindFirstChild("Brainrot1")
+    end
+    local lane = ensurePart(stage, "BrainrotHordeLane", Vector3.new(22, 0.5, 64), CFrame.new(0, 2.8, -44), Color3.fromRGB(80, 30, 30), Enum.Material.CrackedLava)
+    lane.CanCollide = false
+    lane.Transparency = 0.15
+    local backdrop = ensureFolder(stage, "BrainrotBackdrop")
+    for i = 1, 5 do
+        local angle = (i / 5) * math.pi * 2
+        local volcano = ensurePart(backdrop, "Volcano" .. i, Vector3.new(10, 22, 10), CFrame.new(math.cos(angle) * 34, 10, -70 + math.sin(angle) * 12), Color3.fromRGB(130, 45, 25), Enum.Material.CrackedLava)
+        volcano.Anchored = true
+        volcano.CanCollide = false
+        local fire = volcano:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+        fire.Color = Color3.fromRGB(255, 80, 20)
+        fire.Range = 22
+        fire.Brightness = 2
+        fire.Parent = volcano
+    end
+    local hordeSign = ensurePart(stage, "BrainrotHordeSign", Vector3.new(16, 5, 1), CFrame.new(0, 8, -18), Color3.fromRGB(90, 255, 90), Enum.Material.SmoothPlastic)
+    createBillboard(hordeSign, "BRAINROT HORDE")
+
     local venueSigns = ensureFolder(stage, "VenueSigns")
     local sign = ensurePart(venueSigns, "MainSign", Vector3.new(24, 6, 1), CFrame.new(0, 13, -12), Color3.fromRGB(70, 70, 90), Enum.Material.SmoothPlastic)
     createBillboard(sign, "GROAN TUBE HERO")
@@ -184,6 +224,7 @@ local function loadServices(context)
         "StoreService",
         "EconomyService",
         "SongSessionService",
+        "HordeService",
         "AudienceService",
     }
 
@@ -214,6 +255,9 @@ local function wireRemotes(context)
     end)
 
     context.Remotes.NoteHit.OnServerEvent:Connect(function(player, payload)
+        if Config.DebugRhythm then
+            print("[RhythmDebug][NoteHitRemote]", player.Name, "session", payload and payload.sessionId, "song", payload and payload.songId, "note", payload and payload.noteId, "lane", payload and payload.lane, "clientSongTime", payload and payload.clientSongTime, "clientDelta", payload and payload.clientDelta)
+        end
         if not context.Services.AntiExploitService:CheckRate(player, "noteHit", Config.RateLimits.NoteHitPerSecond) then
             return
         end
@@ -309,6 +353,10 @@ end)
 Players.PlayerRemoving:Connect(function(player)
     context.Services.DataService:PlayerRemoving(player)
     context.Services.AntiExploitService:Clear(player)
+    if context.Services.HordeService then
+        local session = context.Services.SongSessionService:GetSession(player)
+        if session then context.Services.HordeService:RemoveSession(session) end
+    end
     context.Services.SongSessionService:RemoveSession(player)
 end)
 
@@ -318,6 +366,9 @@ startStageAtmosphere()
 
 RunService.Heartbeat:Connect(function(dt)
     context.Services.SongSessionService:Update(dt)
+    if context.Services.HordeService then
+        context.Services.HordeService:Update(dt)
+    end
     for _, player in ipairs(Players:GetPlayers()) do
         context.Services.AudienceService:RefreshWatcher(player)
     end
