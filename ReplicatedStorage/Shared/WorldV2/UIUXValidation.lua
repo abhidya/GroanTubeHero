@@ -4,6 +4,19 @@ local Workspace = game:GetService("Workspace")
 
 local UIUXValidation = {}
 
+-- Creator/Studio audited assets only contract:
+-- Runtime UI should stay style-driven (Frames/Text/gradients/strokes) unless a
+-- Studio-reviewed visual asset is explicitly marked with AuditedArtAsset and
+-- AssetSourcePath. This keeps UI validation aligned with WorldValidation's
+-- visible-art gate without introducing gameplay-affecting dependencies.
+local AUDITED_UI_VISUAL_ASSET_CONTRACT = {
+    disallowedImageClasses = {
+        ImageButton = true,
+        ImageLabel = true,
+    },
+    allowedWhenAuditedAttributesPresent = true,
+}
+
 local VIEWPORTS = {
     Desktop = Vector2.new(1920, 1080),
     Laptop = Vector2.new(1366, 768),
@@ -74,6 +87,44 @@ local function requiredPromptExists(world, stationName)
     return station and station:FindFirstChildWhichIsA("ProximityPrompt", true) ~= nil
 end
 
+local function isAuditedStudioAsset(inst)
+    return inst:GetAttribute("AuditedArtAsset") == true and inst:GetAttribute("AssetSourcePath") ~= nil
+end
+
+local function imagePropertyHasAsset(inst)
+    local ok, image = pcall(function()
+        return inst.Image
+    end)
+    return ok and type(image) == "string" and image ~= ""
+end
+
+local function collectUnauditedUiVisualAssets(root)
+    local violations = {}
+    if not root then return violations end
+    for _, desc in ipairs(root:GetDescendants()) do
+        if AUDITED_UI_VISUAL_ASSET_CONTRACT.disallowedImageClasses[desc.ClassName]
+            and imagePropertyHasAsset(desc)
+            and not isAuditedStudioAsset(desc)
+        then
+            table.insert(violations, desc:GetFullName())
+        end
+    end
+    return violations
+end
+
+function UIUXValidation.GetAuditedUiVisualAssetContract()
+    return AUDITED_UI_VISUAL_ASSET_CONTRACT
+end
+
+function UIUXValidation.ValidateAuditedUiVisualAssets(root)
+    local violations = collectUnauditedUiVisualAssets(root)
+    return {
+        ok = #violations == 0,
+        violations = violations,
+        contract = AUDITED_UI_VISUAL_ASSET_CONTRACT,
+    }
+end
+
 function UIUXValidation.Run(player)
     player = player or Players.LocalPlayer
     local errors = {}
@@ -93,6 +144,7 @@ function UIUXValidation.Run(player)
         local nav = root:FindFirstChild("NavigationMenu", true)
         local songSelect = root:FindFirstChild("SongSelectModal", true)
         local results = root:FindFirstChild("ResultsFrame", true)
+        local uiAssetAudit = UIUXValidation.ValidateAuditedUiVisualAssets(root)
         local controller = rawget(_G, "GTH_UIUXMenuController")
         if not controller then
             local deadline = os.clock() + 3
@@ -101,8 +153,9 @@ function UIUXValidation.Run(player)
                 controller = rawget(_G, "GTH_UIUXMenuController")
             end
         end
+        local starterPlayerScripts = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
         local controllerScript = (player:FindFirstChild("PlayerScripts") and player.PlayerScripts:FindFirstChild("UIUXMenuController", true))
-            or game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts"):FindFirstChild("UIUXMenuController", true)
+            or (starterPlayerScripts and starterPlayerScripts:FindFirstChild("UIUXMenuController", true))
         local controllerSource = controllerScript and controllerScript:IsA("LocalScript") and controllerScript.Source or ""
         local controllerAvailable = controller ~= nil or (controllerSource:find("function Controller.openMenu", 1, true) and controllerSource:find("function Controller.closeAllMenus", 1, true))
         local modals = { SongSelect = songSelect, Results = results }
@@ -116,6 +169,7 @@ function UIUXValidation.Run(player)
         expect(findButton(results, { "ChooseButton", "ChooseAnotherSongButton" }) ~= nil, "Results has Choose Another Song")
         expect(findButton(results, { "BackToLobbyButton", "CloseResults" }) ~= nil, "Results has Back to Lobby path")
         expect(controllerAvailable, "UIUXMenuController API exists")
+        expect(uiAssetAudit.ok, "UI visible art uses only audited Studio assets: " .. table.concat(uiAssetAudit.violations, ", "))
         if controller then
             for _, methodName in ipairs({ "openMenu", "closeMenu", "closeTopMenu", "closeAllMenus", "back", "isMenuOpen", "setGameMode", "showNavigation", "hideNavigation", "openResults", "restoreLobbyState" }) do
                 expect(type(controller[methodName]) == "function", "UIUXMenuController." .. methodName .. " exists")
@@ -168,7 +222,12 @@ function UIUXValidation.Run(player)
         expect(root ~= nil, "Escape/back target root exists")
     end
     assert(#errors == 0, table.concat(errors, " | "))
-    return { ok = true, errors = errors, viewports = VIEWPORTS }
+    return {
+        ok = true,
+        errors = errors,
+        viewports = VIEWPORTS,
+        auditedUiVisualAssetContract = AUDITED_UI_VISUAL_ASSET_CONTRACT,
+    }
 end
 
 return UIUXValidation

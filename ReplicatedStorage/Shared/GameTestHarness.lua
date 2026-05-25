@@ -13,6 +13,45 @@ local UIUXValidation = require(Shared.WorldV2.UIUXValidation)
 
 local GameTestHarness = {}
 
+local function assertCreatorStudioAuditedAssetsOnly(counts: any)
+    -- Regression contract for visible art:
+    -- WorldValidation owns the deep asset traversal; the harness keeps the
+    -- gate explicit in the all-up test output so Creator/Studio audited assets
+    -- cannot be replaced by raw fallback/procedural visible parts unnoticed.
+    assert((counts.missingRequiredAssets or 0) == 0, "Creator/Studio audit: missing required ArtAssets")
+    assert((counts.visiblePlaceholderViolations or 0) == 0, "Creator/Studio audit: visible placeholder art found")
+    assert((counts.unauditedAssetPlacements or 0) == 0, "Creator/Studio audit: unaudited visible placements found")
+    assert((counts.autogenBlankMeshesExcluded or 0) == 0, "Creator/Studio audit: autogen/blank visible placements found")
+    assert((counts.activePlacedArtInstances or 0) > 0, "Creator/Studio audit: expected active audited art placements")
+end
+
+local function assertAuditedUiAssetContract(contract: any)
+    assert(type(contract) == "table", "UI audit contract must be table")
+    assert(contract.allowedWhenAuditedAttributesPresent == true, "UI audit contract must allow explicitly audited Studio assets")
+    assert(type(contract.disallowedImageClasses) == "table", "UI audit contract must list image classes")
+    assert(contract.disallowedImageClasses.ImageButton == true, "UI audit contract must guard ImageButton assets")
+    assert(contract.disallowedImageClasses.ImageLabel == true, "UI audit contract must guard ImageLabel assets")
+end
+
+local function assertUiAuditFixture(root: Instance)
+    local fixture = Instance.new("ImageLabel")
+    fixture.Name = "HarnessUnauditedUiAssetFixture"
+    fixture.BackgroundTransparency = 1
+    fixture.Image = "rbxassetid://1"
+    fixture.Visible = true
+    fixture.Parent = root
+
+    local unauditedResult = UIUXValidation.ValidateAuditedUiVisualAssets(root)
+
+    fixture:SetAttribute("AuditedArtAsset", true)
+    fixture:SetAttribute("AssetSourcePath", "Harness/StudioAuditedUiFixture")
+    local auditedResult = UIUXValidation.ValidateAuditedUiVisualAssets(root)
+    fixture:Destroy()
+
+    assert(unauditedResult.ok == false, "UI audit fixture: unaudited image asset should fail")
+    assert(auditedResult.ok == true, "UI audit fixture: audited Studio image asset should pass")
+end
+
 local function notePayload(sessionId: string, songId: string, note: any, delta: number)
     return {
         sessionId = sessionId,
@@ -96,6 +135,7 @@ function GameTestHarness.Run()
     local worldResult = WorldValidation.Run()
     assert(worldResult.ok == true, "WorldValidation must pass")
     local counts = worldResult.counts or {}
+    assertCreatorStudioAuditedAssetsOnly(counts)
     print("[GameTestHarness] Active WorldV2 Models: " .. tostring(counts.models or 0))
     print("[GameTestHarness] Active WorldV2 MeshParts: " .. tostring(counts.meshParts or 0))
     print("[GameTestHarness] Active WorldV2 visible BaseParts: " .. tostring(counts.visibleBaseParts or 0))
@@ -106,6 +146,7 @@ function GameTestHarness.Run()
     print("[GameTestHarness] Visible placeholder violations: " .. tostring(counts.visiblePlaceholderViolations or 0))
     print("[GameTestHarness] Unaudited asset placements: " .. tostring(counts.unauditedAssetPlacements or 0))
     print("[GameTestHarness] Autogen blank meshes excluded: " .. tostring(counts.autogenBlankMeshesExcluded or 0))
+    print("[GameTestHarness] Creator/Studio audited assets only: PASS")
 
     -- 4. If on Server, test game service integrations
     if RunService:IsServer() then
@@ -163,7 +204,11 @@ function GameTestHarness.Run()
         end
         local rhythmGui = playerGui:FindFirstChild("RhythmGui")
         if rhythmGui then
-            local modal = rhythmGui.Root:FindFirstChild("SongSelectModal")
+            local root = rhythmGui:FindFirstChild("Root")
+            if root then
+                assertUiAuditFixture(root)
+            end
+            local modal = root and root:FindFirstChild("SongSelectModal")
             if modal then
                 modal.Visible = true
                 print("[GameTestHarness] Client UI: SongSelectModal successfully opened")
@@ -177,6 +222,7 @@ function GameTestHarness.Run()
         end
         local uiResult = UIUXValidation.Run(player)
         assert(uiResult.ok == true, "UIUXValidation must pass")
+        assertAuditedUiAssetContract(uiResult.auditedUiVisualAssetContract)
     end
 
     print("[GameTestHarness] ALL HARNESS TESTS PASSED SUCCESSFULLY!")
