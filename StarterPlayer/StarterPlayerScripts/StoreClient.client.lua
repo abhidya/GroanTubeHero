@@ -49,11 +49,12 @@ local title=label(panel,"Store & Progression",UDim2.new(1,-70,0,52),UDim2.new(0,
 local close=button(panel,"X",UDim2.new(0,50,0,46),UDim2.new(1,-64,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
 local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,190,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
+local outcomeBanner=label(panel,"Choose a tab or option for a visible outcome.",UDim2.new(1,-234,0,28),UDim2.new(0,214,0,72),Color3.fromRGB(120,255,180),Enum.Font.GothamBold)
 local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Active=true;list.Parent=panel
 
 local currentTab="Upgrades"
 local snapshot={Coins=0,Fans=0,Tickets=0,OwnedCosmetics={},Equipped={},Upgrades={},TourBus={},Missions={Daily={},Weekly={}}}
-local tabs={"Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Tour Bus"}
+local tabs={"Upgrades","Tube Sounds","Stage Effects","Poses","Audience","Themes","Missions","Security","Tutorial","Hype","Tour Bus"}
 local items={
     ["Tube Sounds"]={{"ClassicTube","Default Groan","Your starter cursed tube.",0,"Coins","TubeSounds"},{"RustyWail","Squeaky Door Tube","Painfully heroic squeaks.",100,"Coins","TubeSounds"}},
     ["Stage Effects"]={{"DefaultGlow","Default Glow","Plain but dependable.",0,"Coins","StageEffects"},{"PurpleRift","Confetti Burst","A neon pop on big hits.",160,"Fans","StageEffects"},{"ChromeSpark","Smoke Machine Fail","Mostly smoke. Some regret.",180,"Coins","StageEffects"}},
@@ -63,6 +64,17 @@ local items={
 }
 local upgrades={{"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended",6},{"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended",10},{"Recovery","Recovery","Miss streaks hurt less.",150,"",5},{"Stagecraft","Stagecraft","Better effects and more Fans.",170,"",10},{"Chaos","Chaos","Battle-ready crowd-control style upgrade.",180,"Coming Soon",5},{"Focus","Focus","Resist battle distractions.",180,"",5},{"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended",10},{"AudiencePower","Audience Power","Audience support gives more Hype.",160,"",8}}
 local busUpgrades={{"BiggerSpeakers","Bigger Speakers","+Hype gain during performances.",120,"Coins",5},{"SnackStand","Snack Stand","Small bonus Fans after completed songs.",140,"Coins",5},{"PracticeSeat","Practice Seat","+XP from retries and replays.",130,"Coins",5},{"MerchBox","Merch Box","+Fans from audience participation.",150,"Fans",5},{"RoadCrew","Road Crew","Reduces venue fees.",180,"Coins",5},{"NeonWrap","Neon Wrap","Cosmetic Tour Bus flex.",100,"Fans",3}}
+local outcomeCards={
+    Security={{"Fence Repair Plan","Use sector prompts around HordeRing to repair weak fences. Watch the Weak sector and red sirens first.","Security plan pinned"},{"Pressure Readout","Green means repaired, red means the horde is close. Misses raise active-sector pressure.","Security readout explained"},{"Emergency Drill","If Disaster mode starts, hit clean notes and repair the weakest sector between songs.","Emergency drill ready"}},
+    Tutorial={{"Rhythm Basics","Choose a song, follow lane arrows, and keep combo alive for Hype and rewards.","Tutorial basics shown"},{"Progression Path","Earn Fans, Coins, XP, and Tickets; then buy upgrades and cosmetics here.","Progression path shown"},{"Horde Lesson","Perfects push the horde back. Misses pull it closer and damage the active sector.","Horde lesson shown"}},
+    Hype={{"Lead the Crowd","Use Hype actions to cheer, clap, support, or call encore during performances.","Crowd leadership ready"},{"Audience Timing","Callouts are strongest when the performer is stable and combo is climbing.","Audience timing tip shown"},{"Encore Cue","Build high Hype to make the end-screen rewards and stage feedback feel bigger.","Encore cue shown"}},
+}
+
+local function showOutcome(message)
+    local text = tostring(message or "Outcome ready")
+    outcomeBanner.Text = text
+    gui:SetAttribute("LastOutcome", text)
+end
 
 local function owned(category,id)return snapshot.OwnedCosmetics and snapshot.OwnedCosmetics[category] and snapshot.OwnedCosmetics[category][id] end
 local function equipped(category,id)return snapshot.Equipped and snapshot.Equipped[category]==id end
@@ -107,6 +119,12 @@ local function render()
         list.CanvasSize=UDim2.new(0,0,0,#upgrades*134+20)
     elseif currentTab=="Missions" then
         renderMissions()
+    elseif outcomeCards[currentTab] then
+        for i,entry in ipairs(outcomeCards[currentTab]) do
+            local name,desc,outcome=table.unpack(entry)
+            card((i-1)*134,name,desc,0,"","Action",function() showOutcome(outcome) end,nil,"Show",nil,true)
+        end
+        list.CanvasSize=UDim2.new(0,0,0,#outcomeCards[currentTab]*134+20)
     elseif currentTab=="Tour Bus" then
         for i,b in ipairs(busUpgrades) do
             local id,name,desc,cost,currency,max=table.unpack(b)
@@ -116,6 +134,7 @@ local function render()
         end
         list.CanvasSize=UDim2.new(0,0,0,#busUpgrades*134+20)
     else
+        if #(items[currentTab] or {}) == 0 then showOutcome("No purchasable cards in "..currentTab.." yet — choose another tab.") end
         for i,it in ipairs(items[currentTab] or {}) do
             local id,name,desc,cost,currency,category=table.unpack(it)
             local isOwned=owned(category,id) or cost==0
@@ -128,12 +147,13 @@ end
 
 for i,t in ipairs(tabs) do
     local b=button(tabsFrame,t,UDim2.new(1,0,0,38),UDim2.new(0,0,0,(i-1)*44),i==1 and Color3.fromRGB(255,175,70) or Color3.fromRGB(40,45,70))
-    b.Activated:Connect(function() currentTab=t; render() end)
+    b.Activated:Connect(function() currentTab=t; showOutcome("Opened "..t.." options."); render() end)
 end
 openButton.Activated:Connect(function() panel.Visible=not panel.Visible; render() end)
 close.Activated:Connect(function() panel.Visible=false end)
-gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; render(); gui:SetAttribute("Open",false) end end)
-gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; render() end)
+gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; showOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render(); gui:SetAttribute("Open",false) end end)
+gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; showOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render() end)
+gui:GetAttributeChangedSignal("FocusMessage"):Connect(function() local msg=gui:GetAttribute("FocusMessage"); if msg then showOutcome(msg) end end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
 
 local function watchRhythmGui(rg)
