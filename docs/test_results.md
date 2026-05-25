@@ -2,6 +2,44 @@
 
 Date: 2026-05-25
 
+## Post-team Studio MCP live Play rerun — 2026-05-25
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Direct Studio MCP reconnect | PASS | `StudioMCP --stdio` listed active Studio `Groan Tube Hero` (`659903e1-c39b-46a7-820b-0b7623a1305f`). |
+| Studio Play start/stop | PASS | `start_stop_play` stopped edit mode, started Play, ran validation after Play boot, then stopped cleanly. |
+| `WorldValidation.Run()` in Play | PASS | `ok=true`; activePlacedArtInstances `14778`; scripts under WorldV2 `0`; visible placeholder violations `0`; unaudited placements `0`; missing required assets `0`. |
+| `UnitTests.Run()` in Play | PASS | `failed=0`, `passed=14`. |
+| `GameTestHarness.Run()` in Play | PASS | Session `Harness-LocalAudioSong001-3952445`; score `4725`; max combo `38`; grade `A`; misses `0`. |
+| Horde/fence runtime visual proof | PASS | `massBrainrotNPCModels=512`, `visibleHordeParts=3680`, `visibleHordeFigureBlocks=0`, `visibleFenceParts=2608`. |
+| Bad sound asset scan | PASS | `badSoundCount=0` for `rbxassetid://3144620759`. |
+| Billboard safety scan | PASS | `billboardUnsafe=0`. |
+
+### Post-team Studio MCP counts
+
+| Count | Value |
+| --- | ---: |
+| Active WorldV2 Models | 2548 |
+| Active WorldV2 MeshParts | 80 |
+| Active visible BaseParts | 14778 |
+| Active placed art instances | 14778 |
+| Stage/core art | 412 |
+| Lighting/trusses art | 1408 |
+| Vendor ring art | 2591 |
+| Fence ring art | 2608 |
+| Horde ring art | 3680 |
+| Audience ring art | 3338 |
+| Volcano outer ring art | 80 |
+| Tour bus/spawn art | 661 |
+| Mass brainrot NPC models | 512 |
+| Invisible hitboxes | 6 |
+| Vendor prompts | 16 |
+| Horde sectors | 8 |
+| Scripts under `Workspace.GTH_WorldV2` | 0 |
+| Visible placeholder violations | 0 |
+| Unaudited visible placements | 0 |
+
+
 ## Post-team finish pass validation — 2026-05-25
 
 | Test | Result | Notes |
@@ -13,7 +51,7 @@ Date: 2026-05-25
 | `rojo build default.project.json --output /private/tmp/GroanTubeHero-postteam-fixed.rbxlx` | PASS | Built latest repo scripts successfully without `rojo serve`. |
 | `git diff --check` | PASS | No whitespace/conflict-marker errors after team merge and UI hotfix. |
 | Conflict-marker/undefined outcome scan | PASS | `rg 'showOutcome|<<<<<<<|=======' StarterPlayer ServerScriptService ReplicatedStorage` returned no matches. |
-| Studio MCP post-team runtime | BLOCKED | Direct `StudioMCP --stdio` currently returns `Not connected to the WS host`, so post-team `UnitTests.Run()`/`GameTestHarness.Run()` could not be rerun in live Studio from this session. Latest pre-team Studio runtime PASS remains recorded above, but post-team code still needs Studio reconnect validation. |
+| Studio MCP post-team runtime | PASS | Superseded by the live Play rerun above: `WorldValidation.Run()`, `UnitTests.Run()`, and `GameTestHarness.Run()` all passed through Studio MCP after reconnect. |
 | Luau CLI syntax | NOT CONFIGURED | No `luau`/`lune` executable in PATH; system `luac` is Lua 5.1 and rejects valid Luau operators such as `+=`, so it is not a valid parser for this repo. |
 
 
