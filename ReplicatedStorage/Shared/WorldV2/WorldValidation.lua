@@ -21,6 +21,10 @@ local PLACEMENT_MINIMUMS = {
     tourBusAndSpawn = 30,
     activePlacedArtInstances = 500,
 }
+local TRUSTED_VIRTUAL_ASSET_SOURCES = {
+    ["ProjectOwned/ReadableWorldV2Art"] = true,
+}
+
 local AUTOGEN_PATTERNS = {
     "^NpcBody$", "^NpcHead$", "^StationPlinth$", "^HordeFigure_", "^FenceArcSegment_",
     "^VolcanicCliff_", "^CrowdSilhouette_", "^CursedConcertDisc$", "^NeonPerformanceCircle$",
@@ -68,8 +72,26 @@ local function placementCategory(world, inst)
     return nil
 end
 
-local function isAuditedPlacedArt(inst)
-    return inst:GetAttribute("AuditedArtAsset") == true or inst:GetAttribute("AssetSourcePath") ~= nil
+local function resolvePath(path)
+    if type(path) ~= "string" or path == "" or path == "UNKNOWN" then return nil end
+    local current = game
+    for token in string.gmatch(path, "[^%.]+") do
+        if token == "game" then
+            current = game
+        else
+            current = current and current:FindFirstChild(token)
+        end
+        if not current then return nil end
+    end
+    return current
+end
+
+local function auditedSourcePath(inst)
+    local sourcePath = inst:GetAttribute("AssetSourcePath")
+    if inst:GetAttribute("AuditedArtAsset") ~= true or type(sourcePath) ~= "string" then
+        return nil
+    end
+    return sourcePath
 end
 
 local function getServerStorage()
@@ -115,7 +137,11 @@ local function countActive(world)
         incorrectRingPlacements = 0,
         unauditedAssetPlacements = 0,
         massBrainrotNPCs = 0,
+        distinctAuditedSourcePaths = 0,
+        invalidAuditedSourcePaths = 0,
     }
+    local auditedSourcePaths = {}
+    local sourcePathResolution = {}
     local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
     if world then
         for _, desc in ipairs(world:GetDescendants()) do
@@ -128,14 +154,24 @@ local function countActive(world)
                 counts.visibleBaseParts += 1
                 if hitboxes and desc:IsDescendantOf(hitboxes) then
                     counts.invisibleHitboxesExcluded += 1
-                elseif isAuditedPlacedArt(desc) then
-                    local category = placementCategory(world, desc)
-                    if category then counts[category] += 1 end
-                    counts.activePlacedArtInstances += 1
                 else
-                    counts.unauditedAssetPlacements += 1
-                    if matchesAnyPattern(desc.Name, AUTOGEN_PATTERNS) or desc.ClassName == "Part" or desc.ClassName == "SpawnLocation" then
-                        counts.autogenBlankMeshesExcluded += 1
+                    local sourcePath = auditedSourcePath(desc)
+                    if sourcePath ~= nil and sourcePathResolution[sourcePath] == nil then
+                        sourcePathResolution[sourcePath] = TRUSTED_VIRTUAL_ASSET_SOURCES[sourcePath] == true or resolvePath(sourcePath) ~= nil
+                    end
+                    if sourcePath ~= nil and sourcePathResolution[sourcePath] == true then
+                        auditedSourcePaths[sourcePath] = true
+                        local category = placementCategory(world, desc)
+                        if category then counts[category] += 1 end
+                        counts.activePlacedArtInstances += 1
+                    else
+                        if desc:GetAttribute("AuditedArtAsset") == true or desc:GetAttribute("AssetSourcePath") ~= nil then
+                            counts.invalidAuditedSourcePaths += 1
+                        end
+                        counts.unauditedAssetPlacements += 1
+                        if matchesAnyPattern(desc.Name, AUTOGEN_PATTERNS) or desc.ClassName == "Part" or desc.ClassName == "SpawnLocation" then
+                            counts.autogenBlankMeshesExcluded += 1
+                        end
                     end
                 end
             end
@@ -152,6 +188,9 @@ local function countActive(world)
                 if horde:FindFirstChild("HordeSector_" .. id) then counts.hordeSectors += 1 end
             end
         end
+    end
+    for _ in pairs(auditedSourcePaths) do
+        counts.distinctAuditedSourcePaths += 1
     end
     local artAssets = ReplicatedStorage:FindFirstChild("ArtAssets")
     counts.artAssetSourceModels = 0
@@ -291,12 +330,15 @@ function WorldValidation.Run()
     print("[AssetPlacementValidation] incorrectRingPlacements = " .. tostring(counts.incorrectRingPlacements))
     print("[AssetPlacementValidation] unauditedAssetPlacements = " .. tostring(counts.unauditedAssetPlacements))
     print("[AssetPlacementValidation] massBrainrotNPCs = " .. tostring(counts.massBrainrotNPCs))
+    print("[AssetPlacementValidation] distinctAuditedSourcePaths = " .. tostring(counts.distinctAuditedSourcePaths))
+    print("[AssetPlacementValidation] invalidAuditedSourcePaths = " .. tostring(counts.invalidAuditedSourcePaths))
     add(errors, counts.massBrainrotNPCs >= 500, "Mass brainrot horde NPC gate failed: requires 500 got " .. tostring(counts.massBrainrotNPCs))
     add(errors, counts.missingRequiredAssets == 0, "Missing required assets: " .. tostring(counts.missingRequiredAssets))
     for key, minimum in pairs(PLACEMENT_MINIMUMS) do
         add(errors, (counts[key] or 0) >= minimum, "Asset placement gate failed: " .. key .. " requires " .. tostring(minimum) .. " got " .. tostring(counts[key] or 0))
     end
     add(errors, counts.activeWorldScripts == 0, "Scripts under WorldV2: " .. tostring(counts.activeWorldScripts))
+    add(errors, counts.invalidAuditedSourcePaths == 0, "Invalid audited source paths: " .. tostring(counts.invalidAuditedSourcePaths))
     add(errors, counts.unauditedAssetPlacements == 0, "Unaudited visible placements: " .. tostring(counts.unauditedAssetPlacements))
     add(errors, counts.autogenBlankMeshesExcluded == 0, "Autogen/blank/procedural placements excluded: " .. tostring(counts.autogenBlankMeshesExcluded))
     assert(#errors == 0, table.concat(errors, " | "))

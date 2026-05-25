@@ -165,6 +165,22 @@ local function testWorldValidationPlaceholderDetection(): ()
     model:Destroy()
 end
 
+local function testWorldValidationRejectsFakeAuditedSourceIds(): ()
+    local model = Instance.new("Model")
+    model.Name = "GTH_WorldV2"
+    local fake = Instance.new("Part")
+    fake.Name = "FakeAuditedPlacement"
+    fake.Transparency = 0
+    fake:SetAttribute("AuditedArtAsset", true)
+    fake:SetAttribute("AssetSourcePath", "ReplicatedStorage.ArtAssets.FakeDistinctId_001")
+    fake.Parent = model
+    local counts = WorldValidation.CountActive(model)
+    expectEqual(counts.activePlacedArtInstances, 0, "fake audited source path does not count as placed art")
+    expectEqual(counts.invalidAuditedSourcePaths, 1, "fake audited source path counted as invalid")
+    expectEqual(counts.unauditedAssetPlacements, 1, "fake audited source remains unaudited placement")
+    model:Destroy()
+end
+
 local function testWorldValidationScriptDetection(): ()
     local model = Instance.new("Model")
     model.Name = "GTH_WorldV2"
@@ -390,6 +406,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testAssetAuditService,
         testAssetRegistryMissingBehavior,
         testWorldValidationPlaceholderDetection,
+        testWorldValidationRejectsFakeAuditedSourceIds,
         testWorldValidationScriptDetection,
         testFanNpcCreatorLocalManifest,
         testVendorDialoguePrompts,
