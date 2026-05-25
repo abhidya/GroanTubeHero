@@ -400,3 +400,11 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | scripts under WorldV2 | 0 |
 | visible placeholder violations | 0 |
 | visible block/autogen horde/NPC/crowd/tourbus violations sampled | 0 |
+
+## 2026-05-25 Task 4 validation/docs/manifest harness pass
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Creator Store bucket identification | PASS | Documented import/search buckets in `docs/asset_manifest_real.md`: stage/truss/lights, horde NPCs, fan crowd, vendor kiosk, security console, tour bus, and volcano/lava. |
+| Harness regression coverage | PASS | Added `UnitTests.testCreatorStoreBucketManifestSource` to assert the builder source keeps `Workspace.AssetInbox`, `ServerStorage.AssetQuarantine`, required clean ArtAssets source paths, and runtime placement buckets wired. |
+| No Rojo serve policy | PASS | Verification uses `rojo build` only; no `rojo serve` command is required for this task. |

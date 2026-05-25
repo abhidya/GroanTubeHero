@@ -211,6 +211,51 @@ local function testVendorDialoguePrompts(): ()
     end
 end
 
+
+local function testCreatorStoreBucketManifestSource(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping Creator Store bucket manifest source test (not on server)")
+        return
+    end
+    local serverScriptService = game:GetService("ServerScriptService")
+    local builderScript = serverScriptService:FindFirstChild("Services") and serverScriptService.Services:FindFirstChild("WorldV2Builder")
+    if not builderScript then
+        print("[UnitTests] WorldV2Builder not found, skipping Creator Store bucket manifest source test")
+        return
+    end
+    local source = ""
+    local readable = pcall(function()
+        source = builderScript.Source
+    end)
+    if not readable then
+        print("[UnitTests] WorldV2Builder.Source not readable in this runtime, skipping Creator Store bucket manifest source test")
+        return
+    end
+
+    local requiredRoots = {
+        "Workspace.AssetInbox",
+        "ServerStorage.AssetQuarantine",
+        "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights",
+        "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde",
+        "ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack",
+        "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter",
+        "ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff",
+        "ReplicatedStorage.ArtAssets.Vendors.Clean_CreatorVendorStation_425283754",
+        "ReplicatedStorage.ArtAssets.Props.Clean_CreatorSecurityConsole_11864290745",
+        "ReplicatedStorage.ArtAssets.TourBus.Clean_CreatorTourBusProp_75431387",
+    }
+    for _, needle in ipairs(requiredRoots) do
+        expect(source:find(needle, 1, true) ~= nil, "Creator Store bucket/source path present: " .. needle)
+    end
+
+    for _, category in ipairs({ "stageCore", "lightingAndTrusses", "vendorRing", "fenceRing", "hordeRing", "audienceRing", "volcanoOuterRing", "tourBusAndSpawn" }) do
+        expect(source:find(category, 1, true) ~= nil, "Creator Store placement bucket present: " .. category)
+    end
+
+    expect(source:find("QuarantineScripts", 1, true) ~= nil, "Creator Store/local import pipeline quarantines scripts")
+    expect(source:find("AssetInbox is quarantine/inbox only", 1, true) ~= nil, "AssetInbox is explicitly inactive visual staging")
+end
+
 local function testConfigLanes(): ()
     for _, lane in ipairs(Config.Lanes) do
         expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
@@ -348,6 +393,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testWorldValidationScriptDetection,
         testFanNpcCreatorLocalManifest,
         testVendorDialoguePrompts,
+        testCreatorStoreBucketManifestSource,
         testConfigLanes,
         testAntiExploit,
         testHordeRootPivot,

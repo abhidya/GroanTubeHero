@@ -139,3 +139,19 @@ Sanitization: cloned art now removes imported `ProximityPrompt`/`ClickDetector`,
 | Local Fan NPC Creator placeholder import staged at `Workspace.AssetInbox.FanNPC_CreatorLocal.Raw_FanNPC_CreatorLocalPack` | `ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack` | `Workspace.GTH_WorldV2.AudienceRing.Audited_FanNPCCreatorLocalCrowd_1..12` | 0 | Audited local fan audience NPC pack promoted through the inbox/quarantine boundary before active placement. |
 
 Sanitization: `WorldV2Builder.EnsureAssetRoots()` rebuilds the local fan NPC Creator staging model under `Workspace.AssetInbox`, audits it, sends any script descendants through `AssetAuditService.QuarantineScripts`, clones the cleaned visual-only pack to `ReplicatedStorage.ArtAssets.Audience`, then hides the inbox root so quarantine/inbox content never becomes active world art.
+
+## 2026-05-25 validation bucket snapshot
+
+Task 4 identified the Creator Store search/import buckets that must stay aligned between docs, builder source, and harness validation. Imports are staged in `Workspace.AssetInbox`, scripts are moved to `ServerStorage.AssetQuarantine`, and clean visual-only sources are promoted under `ReplicatedStorage.ArtAssets/<Category>` before active placement.
+
+| Search/import bucket | Clean source bucket | Runtime placement bucket(s) | Validation owner |
+| --- | --- | --- | --- |
+| `concert stage truss speaker lights` | `ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights` | `stageCore`, `lightingAndTrusses`, `fenceRing`, `tourBusAndSpawn` | `WorldValidation` placement counts + `UnitTests.testCreatorStoreBucketManifestSource` |
+| `cartoon monster npc horde` | `ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde` | `hordeRing`, fallback role NPCs, `tourBusAndSpawn` manager NPC | `WorldValidation` mass brainrot and horde counts |
+| `fan crowd NPC Creator/local lane` | `ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack` / `Clean_CreatorFanCrowdNPC_4884699204` | `audienceRing`, vendor role NPCs | `UnitTests.testFanNpcCreatorLocalManifest` + bucket source test |
+| `vendor kiosk shop counter` | `ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter` / `Clean_CreatorVendorStation_425283754` | `vendorRing`, `audienceRing`, `tourBusAndSpawn` | source-path bucket test + active placement counts |
+| `security console` | `ReplicatedStorage.ArtAssets.Props.Clean_CreatorSecurityConsole_11864290745` | `vendorRing` security station | source-path bucket test |
+| `tour bus prop` | `ReplicatedStorage.ArtAssets.TourBus.Clean_CreatorTourBusProp_75431387` | `tourBusAndSpawn` | source-path bucket test + placement counts |
+| `volcano rock lava cliff` | `ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff` | `volcanoOuterRing` | source-path bucket test + placement counts |
+
+Regression rule: do not add a visible `Workspace.GTH_WorldV2` placement unless it is cloned from a clean ArtAssets bucket or an explicitly marked project-owned readable source, with scripts stripped/quarantined before promotion.
