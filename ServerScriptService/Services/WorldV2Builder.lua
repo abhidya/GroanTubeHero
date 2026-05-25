@@ -230,7 +230,8 @@ local function buildTourBusSpawnPath(world)
         path.CanCollide = false
     end
     local bus = ensureModel(parent, "ReadableTourBusBackdrop")
-    artPart(bus, "TourBusBodyReadable", Vector3.new(18, 5, 6), CFrame.new(-17, 4, -70), Color3.fromRGB(40, 25, 70), Enum.Material.Metal, "tourBusAndSpawn", "spawn tour bus body")
+    local busBody = artPart(bus, "TourBusBodyReadable", Vector3.new(18, 5, 6), CFrame.new(-17, 4, -70), Color3.fromRGB(40, 25, 70), Enum.Material.Metal, "tourBusAndSpawn", "spawn tour bus body")
+    prompt(busBody, "Tune the Bus", "Tour Bus", "TourBus", "Upgrade the tour bus so every gig starts stronger.", "Open tour bus upgrades").MaxActivationDistance = 24
     artPart(bus, "TourBusNeonStripe", Vector3.new(18.4, 0.4, 0.3), CFrame.new(-17, 5.5, -66.8), Color3.fromRGB(255, 80, 220), Enum.Material.Neon, "tourBusAndSpawn", "tour bus neon stripe")
     for i = 1, 4 do
         local x = i <= 2 and -24 or -10

@@ -117,12 +117,33 @@ function AudienceService:ApplyAudienceAction(player, payload)
     if action == "Cheer" then
         self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "AudienceActionCheer", 1, { player = player })
     end
-    return true, {
+    local result = {
         fans = rewardFans,
         xp = rewardXP,
         hypeBoost = hypeBoost,
         prompt = ACTION_PROMPTS[action],
     }
+    local remote = self.context.Remotes and self.context.Remotes.AudienceAction
+    if remote then
+        remote:FireClient(player, {
+            action = "AudienceFeedback",
+            crowdAction = action,
+            fans = rewardFans,
+            xp = rewardXP,
+            hypeBoost = hypeBoost,
+            prompt = ACTION_PROMPTS[action],
+        })
+        local performerPlayer = performer.player or performer.Player
+        if performerPlayer and performerPlayer ~= player then
+            remote:FireClient(performerPlayer, {
+                action = "AudienceFeedback",
+                crowdAction = action,
+                hypeBoost = hypeBoost,
+                prompt = player.Name .. " led the crowd: " .. ACTION_PROMPTS[action],
+            })
+        end
+    end
+    return true, result
 end
 
 return AudienceService

@@ -10,7 +10,7 @@ local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Controller = {}
 local stack = {}
 local mode = "lobby"
-local majorMenus = { SongSelect = true, Store = true, Upgrades = true, Missions = true, Security = true, Tutorial = true, Hype = true, Settings = true, Results = true, Pause = true }
+local majorMenus = { SongSelect = true, Store = true, Upgrades = true, Missions = true, Security = true, Tutorial = true, Hype = true, TourBus = true, ["Tour Bus"] = true, Settings = true, Results = true, Pause = true }
 
 local function rhythmRoot()
     local gui = playerGui:FindFirstChild("RhythmGui")
@@ -54,18 +54,28 @@ local function focusMessageFor(menuName)
         Security = "Review horde pressure, repair sectors, and learn defensive priorities.",
         Tutorial = "Learn the rhythm loop, horde pressure, and progression path.",
         Hype = "Choose crowd callouts and audience support actions.",
+        TourBus = "Upgrade the tour bus bonuses that shape future gigs.",
+        ["Tour Bus"] = "Upgrade the tour bus bonuses that shape future gigs.",
         Settings = "Tune comfort and control options.",
     }
     return messages[menuName] or "Choose an option for a visible outcome."
 end
 
+local function storeTabFor(menuName)
+    if menuName == "Store" then return "Tube Sounds" end
+    if menuName == "TourBus" then return "Tour Bus" end
+    return menuName
+end
+
 local function openStoreLike(menuName)
     local storeGui = playerGui:FindFirstChild("StoreGui")
     if storeGui then
+        local tabName = storeTabFor(menuName)
         storeGui.Enabled = true
         storeGui:SetAttribute("FocusMessage", focusMessageFor(menuName))
-        storeGui:SetAttribute("Tab", menuName == "Store" and "Tube Sounds" or menuName)
         storeGui:SetAttribute("Open", true)
+        storeGui:SetAttribute("Tab", tabName)
+        storeGui:SetAttribute("FocusMessage", tabName .. " opened")
     end
 end
 
@@ -88,8 +98,9 @@ local function requestGuiClose(gui)
 end
 
 local function closeExternal(menuName)
-    if menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "Settings" then
-        requestGuiClose(playerGui:FindFirstChild("StoreGui"))
+    if menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "TourBus" or menuName == "Tour Bus" or menuName == "Settings" then
+        local storeGui = playerGui:FindFirstChild("StoreGui")
+        if storeGui then storeGui:SetAttribute("Open", false) end
     elseif menuName == "Hype" then
         requestGuiClose(playerGui:FindFirstChild("AudienceGui"))
         requestGuiClose(playerGui:FindFirstChild("StoreGui"))
@@ -105,7 +116,7 @@ function Controller.closeMenu(menuName)
 end
 
 function Controller.closeAllMenus()
-    for _, menuName in ipairs({ "SongSelect", "Store", "Upgrades", "Missions", "Security", "Tutorial", "Hype", "Settings", "Results", "Pause" }) do
+    for _, menuName in ipairs({ "SongSelect", "Store", "Upgrades", "Missions", "Security", "Tutorial", "Hype", "TourBus", "Tour Bus", "Settings", "Results", "Pause" }) do
         Controller.closeMenu(menuName)
     end
     stack = {}
@@ -117,7 +128,7 @@ function Controller.openMenu(menuName)
     if majorMenus[menuName] then Controller.closeAllMenus() end
     if menuName == "SongSelect" then
         setSongSelect(true)
-    elseif menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "Settings" then
+    elseif menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "TourBus" or menuName == "Tour Bus" or menuName == "Settings" then
         openStoreLike(menuName)
     elseif menuName == "Hype" then
         openAudience()
@@ -191,6 +202,11 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
         UpgradeKiosk = "Upgrades",
         MissionBoard = "Missions",
         AudienceZone = "Hype",
+        TourBusAndSpawnDressing = "TourBus",
+        ReadableTourBusBackdrop = "TourBus",
+        TourBusBodyReadable = "TourBus",
+        Audited_TourBusManagerNPC = "TourBus",
+        Audited_CreatorTourBusProp_Main = "TourBus",
     }
     if map[station] then Controller.openMenu(map[station]) end
 end)

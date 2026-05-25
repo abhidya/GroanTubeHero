@@ -33,6 +33,53 @@ local function configurePrompt(prompt, def)
     prompt:SetAttribute("StationId", def.Id)
 end
 
+local function fireMenu(context, player, menuName)
+    if menuName == "SongSelect" and context.Remotes.OpenSongSelect then
+        context.Remotes.OpenSongSelect:FireClient(player)
+    elseif context.Remotes.OpenMenu then
+        context.Remotes.OpenMenu:FireClient(player, menuName)
+    end
+end
+
+local function pulseWorldFeedback(menuName, source)
+    local world = Workspace:FindFirstChild("GTH_WorldV2")
+    if not world then return end
+    local color = Color3.fromRGB(120, 240, 255)
+    local folderName = nil
+    if menuName == "Security" then
+        folderName = "HordeRing"
+        color = Color3.fromRGB(80, 255, 140)
+    elseif menuName == "TourBus" or menuName == "Tour Bus" then
+        folderName = "TourBusAndSpawnDressing"
+        color = Color3.fromRGB(255, 115, 220)
+    elseif menuName == "Hype" then
+        folderName = "AudienceRing"
+        color = Color3.fromRGB(255, 220, 90)
+    end
+    local root = (folderName and world:FindFirstChild(folderName, true)) or source or world
+    for _, desc in ipairs(root:GetDescendants()) do
+        if desc:IsA("BasePart") and (desc.Material == Enum.Material.Neon or tostring(desc.Name):find("Light") or tostring(desc.Name):find("Glow") or tostring(desc.Name):find("Marker")) then
+            local original = desc.Color
+            desc.Color = color
+            desc:SetAttribute("LastMenuPulse", menuName)
+            task.delay(0.75, function()
+                if desc and desc.Parent then desc.Color = original end
+            end)
+        elseif desc:IsA("PointLight") or desc:IsA("SpotLight") or desc:IsA("SurfaceLight") then
+            local originalColor = desc.Color
+            local originalBrightness = desc.Brightness
+            desc.Color = color
+            desc.Brightness = math.max(desc.Brightness, 3)
+            task.delay(0.75, function()
+                if desc and desc.Parent then
+                    desc.Color = originalColor
+                    desc.Brightness = originalBrightness
+                end
+            end)
+        end
+    end
+end
+
 function VendorPromptService.Bind(context)
     local world = Workspace:WaitForChild("GTH_WorldV2")
     local stageMic = world:FindFirstChild("GlowingStageMicPrompt", true)
@@ -62,11 +109,19 @@ function VendorPromptService.Bind(context)
             prompt:SetAttribute("WorldV2Bound", true)
             prompt.Triggered:Connect(function(player)
                 fireDialogue(context, player, def.Menu, def.Prompt)
-                if def.Menu == "SongSelect" and context.Remotes.OpenSongSelect then
-                    context.Remotes.OpenSongSelect:FireClient(player)
-                elseif context.Remotes.OpenMenu then
-                    context.Remotes.OpenMenu:FireClient(player, def.Menu)
-                end
+                pulseWorldFeedback(def.Menu, station)
+                fireMenu(context, player, def.Menu)
+            end)
+        end
+    end
+
+    for _, prompt in ipairs(world:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") and prompt:GetAttribute("MenuName") == "TourBus" and not prompt:GetAttribute("WorldV2Bound") then
+            prompt:SetAttribute("WorldV2Bound", true)
+            prompt.Triggered:Connect(function(player)
+                fireDialogue(context, player, "TourBus", prompt:GetAttribute("Dialogue"), true)
+                pulseWorldFeedback("TourBus", prompt.Parent)
+                fireMenu(context, player, "TourBus")
             end)
         end
     end
@@ -83,9 +138,8 @@ function VendorPromptService.Bind(context)
                         pcall(function() context.Services.AudienceService:RefreshWatcher(player) end)
                         pcall(function() context.Services.AudienceService:ApplyAudienceAction(player, { action = action }) end)
                     end
-                    if context.Remotes.OpenMenu then
-                        context.Remotes.OpenMenu:FireClient(player, "Hype")
-                    end
+                    pulseWorldFeedback("Hype", prompt.Parent)
+                    fireMenu(context, player, "Hype")
                 end)
             end
         end
@@ -102,9 +156,8 @@ function VendorPromptService.Bind(context)
                     if sectorId and context.Services and context.Services.HordeService then
                         context.Services.HordeService:RepairSector(player, sectorId, 25)
                     end
-                    if context.Remotes.OpenMenu then
-                        context.Remotes.OpenMenu:FireClient(player, "Security")
-                    end
+                    pulseWorldFeedback("Security", sector)
+                    fireMenu(context, player, "Security")
                 end)
             end
         end

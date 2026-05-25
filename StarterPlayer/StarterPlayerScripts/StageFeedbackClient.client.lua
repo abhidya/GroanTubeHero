@@ -140,6 +140,33 @@ function updateStageColor(color)
     end
 end
 
+
+local function pulseFeedbackParts(rootName, color, duration)
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local root = world and world:FindFirstChild(rootName, true)
+    if not root then return end
+    for _, desc in ipairs(root:GetDescendants()) do
+        if desc:IsA("BasePart") and (desc.Material == Enum.Material.Neon or tostring(desc.Name):find("Light") or tostring(desc.Name):find("Glow") or tostring(desc.Name):find("Marker") or tostring(desc.Name):find("Crowd")) then
+            local original = desc.Color
+            desc.Color = color
+            task.delay(duration or 0.65, function()
+                if desc and desc.Parent then desc.Color = original end
+            end)
+        elseif desc:IsA("PointLight") or desc:IsA("SpotLight") or desc:IsA("SurfaceLight") then
+            local originalColor = desc.Color
+            local originalBrightness = desc.Brightness
+            desc.Color = color
+            desc.Brightness = math.max(desc.Brightness, 4)
+            task.delay(duration or 0.65, function()
+                if desc and desc.Parent then
+                    desc.Color = originalColor
+                    desc.Brightness = originalBrightness
+                end
+            end)
+        end
+    end
+end
+
 local function playGroan(kind)
     local sound = Instance.new("Sound")
     sound.SoundId = "rbxassetid://0"
@@ -196,6 +223,16 @@ remotes.AudienceAction.OnClientEvent:Connect(function(payload)
         flashLighting(Color3.fromRGB(200, 255, 170), 0.05)
     elseif payload.action == "AttackApplied" then
         flashLighting(Color3.fromRGB(255, 120, 120), 0.25)
+    elseif payload.action == "AudienceFeedback" then
+        local crowdAction = payload.crowdAction or "Cheer"
+        local color = crowdAction == "Support" and Color3.fromRGB(80, 255, 140)
+            or crowdAction == "Encore" and Color3.fromRGB(255, 115, 220)
+            or crowdAction == "Laugh" and Color3.fromRGB(255, 210, 90)
+            or Color3.fromRGB(120, 240, 255)
+        flashLighting(color, 0.12)
+        pulseFeedbackParts("AudienceRing", color, 0.75)
+        if crowdAction == "Support" then pulseFeedbackParts("HordeRing", color, 0.75) end
+        showCinematicText("AUDIENCE " .. string.upper(crowdAction), tostring(payload.prompt or "Crowd support landed"), color)
     end
 end)
 
