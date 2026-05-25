@@ -211,14 +211,21 @@ wireRemotes(context)
 local validation = WorldV2Builder.RunValidation()
 installSpawnSafety(world)
 
-Players.PlayerAdded:Connect(function(player)
-    context.Services.DataService:PlayerAdded(player)
+local function onPlayerAdded(player)
+    if not context.Services.DataService:GetProfile(player) then
+        context.Services.DataService:PlayerAdded(player)
+    end
     local profile = context.Services.DataService:GetProfile(player)
     if profile then
         context.Services.MissionService:ResetIfNeeded(profile)
         context.Remotes.DataSnapshot:FireClient(player, context.Services.DataService:GetSnapshot(player))
     end
-end)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+for _, player in ipairs(Players:GetPlayers()) do
+    task.defer(onPlayerAdded, player)
+end
 
 Players.PlayerRemoving:Connect(function(player)
     context.Services.DataService:PlayerRemoving(player)

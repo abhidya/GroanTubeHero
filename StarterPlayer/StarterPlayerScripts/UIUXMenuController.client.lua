@@ -73,7 +73,7 @@ local function openStoreLike(menuName)
         local tabName = storeTabFor(menuName)
         storeGui.Enabled = true
         storeGui:SetAttribute("FocusMessage", focusMessageFor(menuName))
-        storeGui:SetAttribute("Tab", menuName == "Store" and "Tube Sounds" or menuName)
+        storeGui:SetAttribute("Tab", tabName)
         storeGui:SetAttribute("Open", true)
     end
 end
@@ -97,7 +97,7 @@ local function requestGuiClose(gui)
 end
 
 local function closeExternal(menuName)
-    if menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "Settings" then
+    if menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "TourBus" or menuName == "Tour Bus" or menuName == "Settings" then
         requestGuiClose(playerGui:FindFirstChild("StoreGui"))
     elseif menuName == "Hype" then
         requestGuiClose(playerGui:FindFirstChild("AudienceGui"))

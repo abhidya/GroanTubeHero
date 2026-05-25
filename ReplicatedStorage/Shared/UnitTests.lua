@@ -105,6 +105,9 @@ local function testCatalogTitles(): ()
     -- Test PrettyTitle override is returned correctly
     local pretty = SongCatalog.PrettyTitle("LocalAudioSong001")
     expectEqual(pretty, "Thick of It Thomas the Train Remix", "pretty title resolves override")
+    local defaultSong = SongCatalog.Get("LocalAudioSong001")
+    expect(defaultSong ~= nil, "LocalAudioSong001 exists in catalog")
+    expect(defaultSong and defaultSong.Title ~= "Local Audio Song 001", "SongCatalog keeps readable song title visible")
 end
 
 local function testSongCounts(): ()
@@ -317,14 +320,31 @@ local function testAntiExploit(): ()
     expect(ok, "valid late clientDelta within latency grace passes")
     expectEqual(result, 0.1, "chosen offset is clientDelta")
 
-    -- 3. Invalid spoofed clientDelta far from serverOffset
+    -- 3. Valid client input timestamp survives realistic remote latency.
+    mockSession.notesById.note1.time = songTime - 0.45
+    payload.clientDelta = 0
+    payload.clientInputServerTime = mockSession.startServerTime + mockSession.notesById.note1.time
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expect(ok, "server-synced client input time survives realistic remote latency")
+    expectEqual(result, 0, "client input timestamp chooses the visual hit offset")
+    payload.clientInputServerTime = nil
+
+    -- 4. Stale client input timestamps are rejected.
+    payload.clientDelta = 0
+    payload.clientInputServerTime = currentTime - ((Config.Judgement.ClientInputMaxAge or 1.25) + 0.5)
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expectEqual(ok, false, "stale client input timestamp fails")
+    expectEqual(result, "UntrustedClientInputTime", "returns UntrustedClientInputTime")
+    payload.clientInputServerTime = nil
+
+    -- 5. Invalid spoofed clientDelta far from serverOffset
     mockSession.notesById.note1.time = songTime - 0.35
     payload.clientDelta = 0.05
     ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
     expectEqual(ok, false, "spoofed clientDelta far from serverOffset fails")
     expectEqual(result, "SpoofedClientDelta", "returns SpoofedClientDelta")
 
-    -- 4. Duplicate note rejection
+    -- 6. Duplicate note rejection
     mockSession.notesById.note1.hit = true
     payload.clientDelta = nil
     ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
@@ -334,11 +354,97 @@ local function testAntiExploit(): ()
     -- Restore
     mockSession.notesById.note1.hit = nil
 
-    -- 5. Wrong lane rejection
+    -- 7. Wrong lane rejection
     payload.lane = 2
     ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
     expectEqual(ok, false, "wrong lane hit fails")
     expectEqual(result, "WrongLane", "returns WrongLane")
+end
+
+
+local function getScriptSource(container: Instance?, name: string, className: string): string
+    local scriptObj = container and container:FindFirstChild(name, true)
+    expect(scriptObj ~= nil and scriptObj:IsA(className), name .. " " .. className .. " exists")
+    return scriptObj and scriptObj.Source or ""
+end
+
+local function expectSourceContains(source: string, needle: string, label: string): ()
+    expect(source:find(needle, 1, true) ~= nil, label)
+end
+
+local function testRhythmInputClientSourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping rhythm input client source contract (not on server)")
+        return
+    end
+    local starterPlayerScripts = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
+    expect(starterPlayerScripts ~= nil, "StarterPlayerScripts exists")
+
+    local inputSource = getScriptSource(starterPlayerScripts, "InputController", "LocalScript")
+    expectSourceContains(inputSource, "local function isAcceptInput()", "InputController defines AcceptInput gate")
+    expectSourceContains(inputSource, "rg:GetAttribute(\"SongActive\") == true and rg:GetAttribute(\"AcceptInput\") == true", "InputController gates lane fire on SongActive and AcceptInput")
+    expectSourceContains(inputSource, "ContextActionService:BindActionAtPriority", "InputController binds arrow keys through ContextActionService")
+    expectSourceContains(inputSource, "UserInputService.InputBegan:Connect", "InputController keeps keyboard fallback path")
+    expectSourceContains(inputSource, "button.Activated:Connect(function()", "InputController keeps touch/mobile button activation path")
+    expectSourceContains(inputSource, "fireLane(lane, \"Mobile\"", "InputController mobile buttons fire lane payloads")
+    expectSourceContains(inputSource, "laneInput.Event:Connect(function(payload, legacySource)", "InputController bridges shared LaneInput event")
+    expectSourceContains(inputSource, "binder:Fire(payload)", "InputController forwards LaneInput payloads into RhythmClient InputBus")
+
+    local rhythmSource = getScriptSource(starterPlayerScripts, "RhythmClient", "LocalScript")
+    expectSourceContains(rhythmSource, "inputBus.Event:Connect(function(payload)", "RhythmClient consumes InputBus lane payloads")
+    expectSourceContains(rhythmSource, "screenGui:GetAttribute(\"SongActive\") ~= true or screenGui:GetAttribute(\"AcceptInput\") ~= true", "RhythmClient rejects hits until SongActive and AcceptInput are true")
+    expectSourceContains(rhythmSource, "remotes.NoteHit:FireServer({", "RhythmClient sends note hits through NoteHit remote")
+    expectSourceContains(rhythmSource, "noteId = targetNote.id", "RhythmClient NoteHit payload includes target note id")
+    expectSourceContains(rhythmSource, "lane = payload.lane", "RhythmClient NoteHit payload includes input lane")
+    expectSourceContains(rhythmSource, "local inputServerTime = tonumber(payload.time) or serverNow()", "RhythmClient uses captured input timestamp for hit timing")
+    expectSourceContains(rhythmSource, "clientSongTime = songTime", "RhythmClient NoteHit payload includes client song time")
+    expectSourceContains(rhythmSource, "clientInputServerTime = inputServerTime", "RhythmClient NoteHit payload includes server-synced input time")
+    expectSourceContains(rhythmSource, "clientDelta = clientDelta", "RhythmClient NoteHit payload includes client timing delta")
+end
+
+local function testRhythmSongStartRemoteAndAudioSourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping rhythm song/remote/audio source contract (not on server)")
+        return
+    end
+    local starterPlayerScripts = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
+    expect(starterPlayerScripts ~= nil, "StarterPlayerScripts exists")
+    local rhythmSource = getScriptSource(starterPlayerScripts, "RhythmClient", "LocalScript")
+
+    expectSourceContains(rhythmSource, "remotes.StartSong.OnClientEvent:Connect(function(payload)", "RhythmClient handles SongStart payload")
+    expectSourceContains(rhythmSource, "state.active = true", "SongStart marks client state active")
+    expectSourceContains(rhythmSource, "state.sessionId = payload.sessionId", "SongStart stores session id")
+    expectSourceContains(rhythmSource, "state.song = payload.song", "SongStart stores playable song")
+    expectSourceContains(rhythmSource, "screenGui:SetAttribute(\"SongActive\", true)", "SongStart exposes SongActive for input controller")
+    expectSourceContains(rhythmSource, "screenGui:SetAttribute(\"AcceptInput\", false)", "SongStart starts with input disabled during countdown")
+    expectSourceContains(rhythmSource, "screenGui:SetAttribute(\"AcceptInput\", true)", "SongStart enables input after countdown")
+
+    expectSourceContains(rhythmSource, "songSound.Name = \"SongAudioPipe\"", "RhythmClient owns deterministic song audio pipe")
+    expectSourceContains(rhythmSource, "local function stopSongAudio()", "RhythmClient defines song audio stop helper")
+    expectSourceContains(rhythmSource, "songSound:Stop()", "stopSongAudio stops playback")
+    expectSourceContains(rhythmSource, "songSound.SoundId = \"\"", "stopSongAudio clears loaded audio asset")
+    expectSourceContains(rhythmSource, "stopSongAudio()\n    songSound.Volume = baseSongVolume", "playSongAudio resets previous audio and restores base volume")
+    expectSourceContains(rhythmSource, "baseSongVolume * duck", "miss glitch ducks song audio without muting to zero")
+    expectSourceContains(rhythmSource, "restoreSessionId", "miss glitch restores only the active song session")
+    expectSourceContains(rhythmSource, "songSound.Volume = baseSongVolume", "successful judgement and miss-glitch recovery restore song audio volume")
+    expectSourceContains(rhythmSource, "remotes.SongFinished.OnClientEvent:Connect(function(payload)", "RhythmClient handles song finish")
+    expectSourceContains(rhythmSource, "screenGui:SetAttribute(\"SongActive\", false)", "SongFinished clears SongActive")
+    expectSourceContains(rhythmSource, "stopSongAudio()", "SongFinished stops song audio")
+
+    local serverScriptService = game:GetService("ServerScriptService")
+    local services = serverScriptService:FindFirstChild("Services")
+    expect(services ~= nil, "Services folder exists")
+    local gameBootstrap = serverScriptService:FindFirstChild("GameBootstrap")
+    local bootstrapSource = getScriptSource(serverScriptService, "GameBootstrap", "Script")
+    expect(gameBootstrap ~= nil, "GameBootstrap script exists")
+    expectSourceContains(bootstrapSource, "context.Remotes.NoteHit.OnServerEvent:Connect", "GameBootstrap wires NoteHit remote")
+    expectSourceContains(bootstrapSource, "CheckRate(player, \"noteHit\"", "NoteHit remote applies anti-spam rate check")
+    expectSourceContains(bootstrapSource, "SongSessionService:NoteHit(player, payload or {})", "NoteHit remote reaches SongSessionService")
+
+    local sessionSource = getScriptSource(services, "SongSessionService", "ModuleScript")
+    expectSourceContains(sessionSource, "self.context.Remotes.StartSong:FireClient(player", "SongSessionService sends StartSong to client")
+    expectSourceContains(sessionSource, "self.context.Remotes.NoteJudged:FireClient(player", "SongSessionService sends NoteJudged after NoteHit")
+    expectSourceContains(sessionSource, "self.context.Remotes.SongFinished:FireClient(player", "SongSessionService sends SongFinished for cleanup")
 end
 
 local function testHordeRootPivot(): ()
@@ -430,6 +536,8 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testCreatorStoreBucketManifestSource,
         testConfigLanes,
         testAntiExploit,
+        testRhythmInputClientSourceContract,
+        testRhythmSongStartRemoteAndAudioSourceContract,
         testHordeRootPivot,
         testWorldV2Validation,
         testHordeClientMovementSource,

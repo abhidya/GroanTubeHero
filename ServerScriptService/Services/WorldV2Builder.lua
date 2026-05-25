@@ -566,15 +566,20 @@ local function buildCreatorMenuExpansionPlacements(roots)
     expansion.Parent = world
 
     local tourBusArea = world:FindFirstChild("TourBusAndSpawnDressing") or ensureModel(world, "TourBusAndSpawnDressing")
+    local function resetExpansionContainer(parent, name)
+        local existing = parent and parent:FindFirstChild(name)
+        if existing then existing:Destroy() end
+        return ensureFolder(parent, name)
+    end
     local containers = {
-        stageCore = ensureFolder(roots.StageCircle, "CreatorMenuExpansion_stageCore"),
-        lightingAndTrusses = ensureFolder(roots.LightingAnchors, "CreatorMenuExpansion_lightingAndTrusses"),
-        vendorRing = ensureFolder(roots.VendorRing, "CreatorMenuExpansion_vendorRing"),
-        fenceRing = ensureFolder(roots.FenceRing, "CreatorMenuExpansion_fenceRing"),
-        hordeRing = ensureFolder(roots.HordeRing, "CreatorMenuExpansion_hordeRing"),
-        audienceRing = ensureFolder(roots.AudienceRing, "CreatorMenuExpansion_audienceRing"),
-        volcanoOuterRing = ensureFolder(roots.VolcanoOuterRing, "CreatorMenuExpansion_volcanoOuterRing"),
-        tourBusAndSpawn = ensureFolder(tourBusArea, "CreatorMenuExpansion_tourBusAndSpawn"),
+        stageCore = resetExpansionContainer(roots.StageCircle, "CreatorMenuExpansion_stageCore"),
+        lightingAndTrusses = resetExpansionContainer(roots.LightingAnchors, "CreatorMenuExpansion_lightingAndTrusses"),
+        vendorRing = resetExpansionContainer(roots.VendorRing, "CreatorMenuExpansion_vendorRing"),
+        fenceRing = resetExpansionContainer(roots.FenceRing, "CreatorMenuExpansion_fenceRing"),
+        hordeRing = resetExpansionContainer(roots.HordeRing, "CreatorMenuExpansion_hordeRing"),
+        audienceRing = resetExpansionContainer(roots.AudienceRing, "CreatorMenuExpansion_audienceRing"),
+        volcanoOuterRing = resetExpansionContainer(roots.VolcanoOuterRing, "CreatorMenuExpansion_volcanoOuterRing"),
+        tourBusAndSpawn = resetExpansionContainer(tourBusArea, "CreatorMenuExpansion_tourBusAndSpawn"),
     }
     expansion:SetAttribute("ContainerNote", "Placement folders live under correct WorldV2 rings so validation can prove ring ownership.")
 
@@ -622,22 +627,24 @@ local function buildCreatorMenuExpansionPlacements(roots)
         end
     end
 
-    -- These are unique active placements cloned from audited Creator Store sources,
-    -- not 1,000 distinct source asset IDs. Validation tracks source family count separately.
-    placeMany("stageCore", "StageTruss", 100, 24, 5, 0, 0.22)
-    placeMany("lightingAndTrusses", "ConcertLights", 80, 32, 8, 2, 0.035)
-    placeMany("lightingAndTrusses", "StageTruss", 80, 34, 7, 5, 0.24)
-    placeMany("vendorRing", "CashRegister", 60, 44, 3, 10, 0.05)
-    placeMany("vendorRing", "SecurityConsole", 90, 46, 3, 20, 0.45)
-    placeMany("fenceRing", "SecurityConsole", 120, 56, 3, 0, 0.5)
-    placeMany("fenceRing", "NeonSigns", 80, 57, 4, 2, 0.22)
-    placeMany("hordeRing", "NeonSigns", 120, 70, 4, 0, 0.18)
-    placeMany("hordeRing", "LavaRock", 100, 75, 2.6, 5, 0.08)
-    placeMany("audienceRing", "AudienceFanPack", 80, 94, 3, 8, 0.16)
-    placeMany("audienceRing", "NeonSigns", 80, 99, 4, 13, 0.20)
-    placeMany("volcanoOuterRing", "LavaRock", 120, 132, 4, 0, 0.16)
-    placeMany("tourBusAndSpawn", "StageTruss", 40, 38, 4, 210, 0.22)
-    placeMany("tourBusAndSpawn", "NeonSigns", 30, 42, 4, 220, 0.22)
+    -- Keep the audited Creator expansion at the required distribution instead of
+    -- flooding the client with 1,100+ decorative clones that can starve input/audio.
+    -- These are active placements cloned from audited Creator Store sources, not
+    -- distinct source asset IDs. Validation tracks source family count separately.
+    placeMany("stageCore", "StageTruss", 60, 24, 5, 0, 0.22)
+    placeMany("lightingAndTrusses", "ConcertLights", 40, 32, 8, 2, 0.035)
+    placeMany("lightingAndTrusses", "StageTruss", 40, 34, 7, 5, 0.24)
+    placeMany("vendorRing", "CashRegister", 30, 44, 3, 10, 0.05)
+    placeMany("vendorRing", "SecurityConsole", 30, 46, 3, 20, 0.45)
+    placeMany("fenceRing", "SecurityConsole", 32, 56, 3, 0, 0.5)
+    placeMany("fenceRing", "NeonSigns", 32, 57, 4, 2, 0.22)
+    placeMany("hordeRing", "NeonSigns", 80, 70, 4, 0, 0.18)
+    placeMany("hordeRing", "LavaRock", 80, 75, 2.6, 5, 0.08)
+    placeMany("audienceRing", "AudienceFanPack", 40, 94, 3, 8, 0.16)
+    placeMany("audienceRing", "NeonSigns", 40, 99, 4, 13, 0.20)
+    placeMany("volcanoOuterRing", "LavaRock", 80, 132, 4, 0, 0.16)
+    placeMany("tourBusAndSpawn", "StageTruss", 15, 38, 4, 210, 0.22)
+    placeMany("tourBusAndSpawn", "NeonSigns", 15, 42, 4, 220, 0.22)
 
     local familyCount = 0
     for _ in pairs(sourceFamilies) do familyCount += 1 end

@@ -47,6 +47,7 @@ Config.Judgement = {
     GoodWindow = 0.30,
     AcceptWindow = 0.42,
     LatencyGrace = 0.18,
+    ClientInputMaxAge = 1.25,
     DebugWindow = 0.65,
     MissWindow = 0.42,
     PerfectScore = 100,

@@ -239,6 +239,13 @@ function UIUXValidation.Run(player)
             end
         end
         local highway = root:FindFirstChild("NoteHighway", true)
+        local inputBus = rhythmGui and rhythmGui:FindFirstChild("InputBus")
+        local inputFolder = playerGui and playerGui:FindFirstChild("GroanTubeHeroInput")
+        local laneInput = inputFolder and inputFolder:FindFirstChild("LaneInput")
+        expect(rhythmGui:GetAttribute("SongActive") ~= nil, "RhythmGui exposes SongActive state for input gating")
+        expect(rhythmGui:GetAttribute("AcceptInput") ~= nil, "RhythmGui exposes AcceptInput state for input gating")
+        expect(inputBus ~= nil and inputBus:IsA("BindableEvent"), "RhythmGui InputBus exists for lane input routing")
+        expect(laneInput ~= nil and laneInput:IsA("BindableEvent"), "Shared LaneInput exists for keyboard/touch input routing")
         local major = { songSelect, results }
         for label, viewport in pairs(VIEWPORTS) do
             for _, modal in ipairs(major) do

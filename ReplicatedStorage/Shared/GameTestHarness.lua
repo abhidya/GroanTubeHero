@@ -127,6 +127,14 @@ function GameTestHarness.Run()
     local run = GameTestHarness.BuildSimulatedRun(nil, "Easy", "20s")
     assert(run.song.Duration == 20, "Harness 20s duration mismatch")
     assert(#run.events == #run.song.Notes, "Harness event count mismatch")
+    local firstEvent = run.events[1]
+    assert(firstEvent and firstEvent.payload, "Harness builds a NoteHit payload fixture")
+    assert(firstEvent.payload.sessionId == run.sessionId, "Harness NoteHit payload includes session id")
+    assert(firstEvent.payload.songId == run.song.Id, "Harness NoteHit payload includes song id")
+    assert(type(firstEvent.payload.noteId) == "string" and firstEvent.payload.noteId ~= "", "Harness NoteHit payload includes note id")
+    assert(type(firstEvent.payload.lane) == "number", "Harness NoteHit payload includes lane")
+    assert(type(firstEvent.payload.clientSongTime) == "number", "Harness NoteHit payload includes client song time")
+    assert(type(firstEvent.payload.clientDelta) == "number", "Harness NoteHit payload includes client delta")
     assert(run.summary.perfect > 0, "Harness expected perfect hits")
     assert(run.summary.good > 0, "Harness expected good hits")
     assert(run.summary.grade == "S" or run.summary.grade == "A", "Harness expected strong grade")
@@ -169,7 +177,7 @@ function GameTestHarness.Run()
                 assert(session, "Failed to start song session via SongSessionService")
 
                 -- Simulate note hit
-                local note = session.notes[1]
+                local note = session.noteOrder and session.noteOrder[1]
                 if note then
                     local hitPayload = {
                         sessionId = session.id,

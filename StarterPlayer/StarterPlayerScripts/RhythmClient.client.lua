@@ -179,7 +179,7 @@ for lane = 1, 4 do
         local original = laneFrame.BackgroundColor3
         laneFrame.BackgroundColor3 = laneColors[lane]
         TweenService:Create(laneFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad), { BackgroundColor3 = original }):Play()
-        inputBus:Fire({ lane = lane, source = "TouchLane" })
+        inputBus:Fire({ lane = lane, source = "TouchLane", time = serverNow() })
     end)
     makeLabel(laneFrame, "Key", laneKeys[lane], UDim2.new(1, 0, 0, 42), UDim2.new(0, 0, 1, -46), laneColors[lane], Enum.Font.GothamBlack)
 end
@@ -329,7 +329,7 @@ backSongSelect.Activated:Connect(function()
     songSelect.Visible = false
     touchMenu.Visible = true
 end)
-makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local/test audio modules are for local testing only. No copyright infringement intended.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Demo-safe Groan Tube Hero charts.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local selectedDifficulty = "Easy"
 local selectedSegment = "30s"
 local selectedSection = "Intro"
@@ -645,13 +645,19 @@ glitchOverlay.Parent = root
 
 local function playMissGlitch()
     if not Config.MissGlitch or not Config.MissGlitch.enabled then return end
-    songSound.Volume = 0
+    local duration = Config.MissGlitch.duration or 0.25
+    local duck = math.clamp(tonumber(Config.MissGlitch.volumeDuck) or 0.2, 0, 1)
+    local restoreSessionId = state.sessionId
+    songSound.Volume = math.max(0, baseSongVolume * duck)
     glitchOverlay.BackgroundTransparency = 0.68
     local original = highway.Position
     highway.Position = original + UDim2.new(0, math.random(-10, 10), 0, math.random(-6, 6))
-    TweenService:Create(glitchOverlay, TweenInfo.new(Config.MissGlitch.duration or 0.25), { BackgroundTransparency = 1 }):Play()
-    task.delay(Config.MissGlitch.duration or 0.25, function()
+    TweenService:Create(glitchOverlay, TweenInfo.new(duration), { BackgroundTransparency = 1 }):Play()
+    task.delay(duration, function()
         if highway then highway.Position = original end
+        if state.active and state.sessionId == restoreSessionId and songSound then
+            songSound.Volume = baseSongVolume
+        end
     end)
 end
 
@@ -817,7 +823,8 @@ inputBus.Event:Connect(function(payload)
         return
     end
 
-    local songTime = serverNow() - state.startServerTime
+    local inputServerTime = tonumber(payload.time) or serverNow()
+    local songTime = inputServerTime - state.startServerTime
     local targetNote = nil
     local bestDelta = math.huge
     local candidateWindow = Config.ClientHitCandidateWindow or 0.65
@@ -841,6 +848,7 @@ inputBus.Event:Connect(function(payload)
             noteId = targetNote.id,
             lane = payload.lane,
             clientSongTime = songTime,
+            clientInputServerTime = inputServerTime,
             clientDelta = clientDelta,
         })
     else

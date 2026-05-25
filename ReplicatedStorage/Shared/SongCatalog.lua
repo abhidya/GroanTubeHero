@@ -153,7 +153,9 @@ for _, module in ipairs(generatedModules) do
         if number then
             song.Id = "LocalAudioSong" .. number
             song.SourceTitle = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
-            song.Title = Config.DebugRhythm and song.SourceTitle or ("Local Audio Song " .. number)
+            -- Keep real, readable titles visible in SongSelect/results. Do not
+            -- replace them with generic "Local Audio Song ###" labels.
+            song.Title = song.SourceTitle
         end
         addSong(song, "LocalTest")
     else

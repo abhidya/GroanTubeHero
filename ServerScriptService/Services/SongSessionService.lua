@@ -184,8 +184,19 @@ function SongSessionService:NoteHit(player, payload)
         return false, result
     end
 
+    local profile = self.context.Services.DataService:GetProfile(player)
+    if not profile then
+        if self.context.Services.DataService.PlayerAdded then
+            self.context.Services.DataService:PlayerAdded(player)
+            profile = self.context.Services.DataService:GetProfile(player)
+        end
+        if not profile then
+            return false, "NoProfile"
+        end
+    end
+
     local note = session.notesById[payload.noteId]
-    local timingBonus = self.context.Services.ScoreService:GetTimingBonus(self.context.Services.DataService:GetProfile(player), session)
+    local timingBonus = self.context.Services.ScoreService:GetTimingBonus(profile, session)
     local judgement = Scoring.ResolveJudgement(result, timingBonus)
     if judgement == "Reject" then
         return false, "Reject"
@@ -194,11 +205,6 @@ function SongSessionService:NoteHit(player, payload)
     note.hit = true
     session.judgedNotes = session.judgedNotes + 1
     session.state = "Playing"
-
-    local profile = self.context.Services.DataService:GetProfile(player)
-    if not profile then
-        return false, "NoProfile"
-    end
 
     local summaryState = self.context.Services.ScoreService:ApplyJudgement(session, note, judgement, profile)
     if self.context.Services.HordeService then
@@ -334,9 +340,16 @@ function SongSessionService:Update(dt)
                 local allowedWindow = (Config.Judgement.AcceptWindow or 0.25) + (Config.Judgement.LatencyGrace or 0)
                 for _, note in ipairs(session.noteOrder) do
                     if not note.hit and now() - session.startServerTime > note.time + allowedWindow then
+                        local profile = self.context.Services.DataService:GetProfile(session.player)
+                        if not profile and self.context.Services.DataService.PlayerAdded then
+                            self.context.Services.DataService:PlayerAdded(session.player)
+                            profile = self.context.Services.DataService:GetProfile(session.player)
+                        end
+                        if not profile then
+                            return
+                        end
                         note.hit = true
                         session.judgedNotes = session.judgedNotes + 1
-                        local profile = self.context.Services.DataService:GetProfile(session.player)
                         session.stateData = self.context.Services.ScoreService:ApplyJudgement(session, note, "Miss", profile)
                         if self.context.Services.HordeService then
                             self.context.Services.HordeService:ApplyJudgement(session, "Miss", note)
