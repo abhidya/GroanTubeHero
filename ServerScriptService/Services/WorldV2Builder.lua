@@ -158,7 +158,7 @@ local function buildStageCore(roots)
     local stageCircle = roots.StageCircle
     local innerRing = roots.InnerPlayerRing
 
-    local worldGround = artPart(stageCore, "CursedLavaBackplane", Vector3.new(340, 0.6, 340), CFrame.new(0, -0.8, 0), Color3.fromRGB(24, 12, 12), Enum.Material.CrackedLava, "stageCore", "dark lava ground plane hiding blue void")
+    local worldGround = artPart(stageCore, "CursedLavaBackplane", Vector3.new(340, 0.6, 340), CFrame.new(0, -0.8, 0), Color3.fromRGB(24, 12, 12), Enum.Material.CrackedLava, "stageCore", "dark circular lava ground plane hiding blue void", Enum.PartType.Cylinder)
     worldGround.CanCollide = true
     worldGround.Transparency = 0.22
     local safeFloor = artPart(stageCore, "SafeWalkableConcertFloor", Vector3.new(76, 1, 76), CFrame.new(0, 0.95, -4), Color3.fromRGB(16, 38, 46), Enum.Material.Slate, "stageCore", "walkable stage and vendor floor")
@@ -279,8 +279,14 @@ local function prepAuditedClone(model, sourcePath, category, purpose)
             desc:SetAttribute("ArtPurpose", purpose or category)
         elseif desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then
             desc:Destroy()
-        elseif desc:IsA("BillboardGui") then
+        elseif desc:IsA("ProximityPrompt") or desc:IsA("ClickDetector") then
+            desc:Destroy()
+        elseif desc:IsA("BillboardGui") or desc:IsA("SurfaceGui") then
             desc.Enabled = false
+        elseif desc:IsA("Humanoid") then
+            desc.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+            desc.NameDisplayDistance = 0
+            desc.HealthDisplayDistance = 0
         end
     end
 end
@@ -301,33 +307,82 @@ local function placeAuditedClone(parent, name, source, sourcePath, category, pur
 end
 
 local function buildAuditedAssetPlacements(roots)
+    local world = roots.ArenaCore and roots.ArenaCore.Parent
     local stageRig = findArtAsset("Stage", "Clean_ConcertStageTrussSpeakerLights")
     placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 4.0, 0), 0.25)
     for _, point in ipairs(PolarLayout.distribute(4, 31, 4, 45)) do
         placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.10)
     end
+    for _, point in ipairs(PolarLayout.distribute(8, 55, 4, 22.5)) do
+        placeAuditedClone(roots.FenceRing, "Audited_FenceBarricadeRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "fenceRing", "audited fence barricade/security rig", point.cframeFacingCenter, 0.085)
+    end
 
     local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
+    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
     for _, def in ipairs(Vendors) do
         local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
         if parent then
-            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "vendorRing", def.Menu .. " audited vendor kiosk", PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 3.2), 0.40)
+            local category = def.Root == "AudienceRing" and "audienceRing" or "vendorRing"
+            local baseCf = PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 3.2)
+            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " audited vendor kiosk", baseCf, 0.40)
+            placeAuditedClone(parent, "Audited_RoleNPC_" .. def.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", category, def.Menu .. " visible brainrot NPC/vendor", baseCf * CFrame.new(-3.7, 1.2, 1.6), 0.14)
+            placeAuditedClone(parent, "Audited_RoleProps_Left_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " mission/store/upgrade prop left", baseCf * CFrame.new(-5.5, 0, -1.4), 0.18)
+            placeAuditedClone(parent, "Audited_RoleProps_Right_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " mission/store/upgrade prop right", baseCf * CFrame.new(5.5, 0, -1.4), 0.18)
         end
     end
 
-    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
     for _, sectorDef in ipairs(Sectors) do
         local sector = roots.HordeRing:FindFirstChild("HordeSector_" .. sectorDef.Id)
         local horde = sector and sector:FindFirstChild("HordeCluster")
         if horde then
-            placeAuditedClone(horde, "Audited_HordePack_" .. sectorDef.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited horde character cluster " .. sectorDef.Id, PolarLayout.cframeFacingCenter(72, sectorDef.Angle, 5), 0.20)
+            for packIndex, offset in ipairs({ -10, -3.5, 3.5, 10 }) do
+                local radius = 66 + ((packIndex - 1) % 2) * 7
+                local cf = PolarLayout.cframeFacingCenter(radius, sectorDef.Angle, 5) * CFrame.new(offset, 0, 0)
+                placeAuditedClone(horde, "Audited_BrainrotHordeNPCPack_" .. sectorDef.Id .. "_" .. packIndex, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited visible brainrot horde NPC cluster " .. sectorDef.Id, cf, 0.20)
+            end
         end
+    end
+    for _, point in ipairs(PolarLayout.distribute(12, 96, 4, 15)) do
+        placeAuditedClone(roots.AudienceRing, "Audited_AudienceBrainrotCrowd_" .. point.index, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "audienceRing", "audited audience/crowd brainrot NPC pack", point.cframeFacingCenter, 0.16)
+    end
+    local tourBusArea = world and (world:FindFirstChild("TourBusAndSpawnDressing") or ensureModel(world, "TourBusAndSpawnDressing"))
+    if tourBusArea then
+        placeAuditedClone(tourBusArea, "Audited_BackstageDepotRig", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "tourBusAndSpawn", "audited backstage/tour-bus depot rig", CFrame.new(-18, 5, -68) * CFrame.Angles(0, math.rad(90), 0), 0.12)
+        placeAuditedClone(tourBusArea, "Audited_TourBusManagerNPC", hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "tourBusAndSpawn", "audited tour bus manager NPC", CFrame.new(-4, 4, -51) * CFrame.Angles(0, math.rad(180), 0), 0.16)
+        placeAuditedClone(tourBusArea, "Audited_BackstageMerchProps", vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "tourBusAndSpawn", "audited tour bus/store backstage props", CFrame.new(7, 3.2, -44) * CFrame.Angles(0, math.rad(180), 0), 0.24)
     end
 
     local volcano = findArtAsset("Volcano", "Clean_VolcanoRockLavaCliff")
     for _, point in ipairs(PolarLayout.distribute(8, 134, 8, 22.5)) do
         placeAuditedClone(roots.VolcanoOuterRing, "Audited_VolcanoCliff_" .. point.index, volcano, "ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff", "volcanoOuterRing", "audited volcano cliff/lava shell", point.cframeFacingCenter, 1.45)
     end
+end
+
+local function hideAutogenLookingScaffold(world)
+    local hidden = 0
+    local patterns = {
+        "^NpcCoat_", "^NpcHeadGlow_", "^NpcHat_",
+        "^VendorDeck_", "^VendorCounter_", "^ConsoleScreen_", "^PropCrateLeft_", "^PropCrateRight_",
+        "^HordeFigure_", "^HordeEyeGlow_", "^CrowdSilhouette_",
+        "^VolcanicCliff_", "^FenceArcSegment_", "^FencePost_",
+        "^TourBusBodyReadable$", "^TourBusWheel_",
+    }
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") and desc.Transparency < 0.95 then
+            for _, pattern in ipairs(patterns) do
+                if desc.Name:match(pattern) then
+                    desc.Transparency = 1
+                    desc.CanCollide = false
+                    desc:SetAttribute("RejectedPlacement", true)
+                    desc:SetAttribute("AutogenScaffoldHidden", true)
+                    hidden += 1
+                    break
+                end
+            end
+        end
+    end
+    world:SetAttribute("HiddenAutogenLookingScaffoldParts", hidden)
+    return hidden
 end
 
 local function lockWorldPhysics(world)
@@ -597,6 +652,7 @@ function WorldV2Builder.Build()
     rootRef.Value = roots.HordeRing.HordeSector_N.HordeCluster
     rootRef.Parent = brainrot
 
+    hideAutogenLookingScaffold(world)
     hideProceduralScaffoldWhenAuditedArtReady(world)
     lockWorldPhysics(world)
     return world

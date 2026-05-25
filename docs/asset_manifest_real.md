@@ -120,3 +120,14 @@ Latest runtime proof uses clean visual models already promoted into `ReplicatedS
 | Project-authored `CursedLavaBackplane` | `ServerScriptService.Services.WorldV2Builder.lua` | `Workspace.GTH_WorldV2.ArenaCore.CursedLavaBackplane` | 0 | 1 | dark ground/fall-safety plane hiding blue void from player view |
 
 Rejected/hidden source remains: `ReplicatedStorage.ArtAssets.Audience.Clean_StadiumCrowdSeats` is retained as clean ArtAssets source but not actively placed because visual audit showed bad scale/placement risk.
+
+## 2026-05-25 Phase X NPC / horde visual repair manifest
+
+| Source asset ID/path | Cleaned ArtAssets path | Used WorldV2 path | Scripts under active clone | Purpose |
+| --- | --- | --- | ---: | --- |
+| `ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde` | same clean ArtAssets path | `VendorRing.*.Audited_RoleNPC_*`; `AudienceRing.AudienceHypeManager.Audited_RoleNPC_AudienceHypeManager`; `TourBusAndSpawnDressing.Audited_TourBusManagerNPC` | 0 | Visible brainrot NPCs for all major stations. |
+| `ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde` | same clean ArtAssets path | `HordeRing.HordeSector_*.HordeCluster.Audited_BrainrotHordeNPCPack_*_1..4` | 0 | Replaces procedural block horde monsters with audited brainrot NPC packs. |
+| `ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter` | same clean ArtAssets path | `VendorRing.*.Audited_RoleProps_Left_*`; `VendorRing.*.Audited_RoleProps_Right_*`; `TourBusAndSpawnDressing.Audited_BackstageMerchProps` | 0 | Store/Upgrade/Mission/Security/Tutorial/Hype prop dressing. |
+| `ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights` | same clean ArtAssets path | `FenceRing.Audited_FenceBarricadeRig_1..8`; `TourBusAndSpawnDressing.Audited_BackstageDepotRig` | 0 | Fence/security dressing and backstage/tour area dressing. |
+
+Sanitization: cloned art now removes imported `ProximityPrompt`/`ClickDetector`, destroys scripts/modules, disables imported Billboard/Surface GUIs, and hides imported Humanoid name/health displays.

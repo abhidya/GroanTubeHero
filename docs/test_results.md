@@ -252,3 +252,41 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | ArtAssets audit lights | 21 |
 | Visible placeholder violations | 0 |
 | Unaudited visible placements | 0 |
+
+---
+
+## 2026-05-25 Phase X NPC / horde visual repair — latest
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| OMX team runtime | BLOCKED | `$team` / `omx team` retried and still failed: `Team mode requires running inside tmux current leader pane`; direct Studio MCP execution continued. |
+| Real NPC/vendor additions | PASS | Added audited `Audited_RoleNPC_*` model clones for DJ, Store, Upgrades, Missions, Security, Tutorial, Hype/Audience and TourBus manager. |
+| Store/upgrade/mission/station assets | PASS | Added audited kiosk/prop clones per station: `Audited_Kiosk_*`, `Audited_RoleProps_Left_*`, `Audited_RoleProps_Right_*`. |
+| Brainrot horde fixed | PASS | Replaced visible block `HordeFigure_*` parts with 4 audited brainrot NPC packs per sector: `Audited_BrainrotHordeNPCPack_<sector>_1..4`. |
+| Block/autogen horde hidden | PASS | `HordeFigure_*`, `HordeEyeGlow_*`, block NPC parts, block vendor counters/decks, block crowd silhouettes, primitive tour bus body/wheels hidden; latest `HiddenAutogenLookingScaffoldParts=797`. |
+| Imported prompt/nameplate soup removed | PASS | Cloned art strips `Script`, `LocalScript`, `ModuleScript`, `ProximityPrompt`, `ClickDetector`; disables imported `BillboardGui`/`SurfaceGui`; sets all imported Humanoid name/health display distance to none. Runtime humanoids=780, bad nameplates=0. |
+| Studio WorldValidation | PASS | `activePlacedArtInstances=12963`, scripts under WorldV2=0, placeholder violations=0, unaudited placements=0. |
+| Play no-fall check | PASS | Runtime player `blazimann`: `Y=5.72`, `HumanoidState=Running`. |
+| GameTestHarness | PASS | Fresh clone run returned `Harness-LocalAudioSong001-545048`, 38 notes. |
+| UnitTests | PASS | `failed=0`, `passed=11`. |
+| UIUXValidation | PASS | Runtime player UI validation returned `ok=true`. |
+| Screenshot | PASS | Captured `WorldV2_Play_NPCs_NoNameplates_12963_PASS`. |
+
+### Latest Phase X counts
+
+| Metric | Value |
+| --- | ---: |
+| activePlacedArtInstances | 12963 |
+| visible BaseParts | 12963 |
+| WorldV2 Models | 2611 |
+| MeshParts | 80 |
+| hordeRing placed art | 3680 |
+| vendorRing placed art | 2508 |
+| audienceRing placed art | 1762 |
+| fenceRing placed art | 2544 |
+| tourBusAndSpawn placed art | 569 |
+| horde sectors | 8 |
+| prompts | 16 |
+| scripts under WorldV2 | 0 |
+| visible placeholder violations | 0 |
+| visible block/autogen horde/NPC/crowd/tourbus violations sampled | 0 |
