@@ -10,6 +10,23 @@ local REQUIRED_SECTORS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local REQUIRED_SECTOR_CHILDREN = { "FenceSegment", "FenceDamageVFX", "SecurityLight", "SirenLight", "HordeCluster", "HordePressureMeter", "WeakPointMarker" }
 local PLACEHOLDER_NAMES = { Part = true, Block = true, Circle = true, Cylinder = true, Temp = true, Debug = true }
 local REQUIRED_ART_ASSETS = { "WorldV2_SafeProceduralKit" }
+local PLACEMENT_MINIMUMS = {
+    stageCore = 60,
+    lightingAndTrusses = 80,
+    vendorRing = 60,
+    fenceRing = 64,
+    hordeRing = 160,
+    audienceRing = 80,
+    volcanoOuterRing = 80,
+    tourBusAndSpawn = 30,
+    activePlacedArtInstances = 500,
+}
+local AUTOGEN_PATTERNS = {
+    "^NpcBody$", "^NpcHead$", "^StationPlinth$", "^HordeFigure_", "^FenceArcSegment_",
+    "^VolcanicCliff_", "^CrowdSilhouette_", "^CursedConcertDisc$", "^NeonPerformanceCircle$",
+    "^PlayerWalkwayRing$", "^MenuSurfaceSign$", "^FenceSegment$", "^FenceDamageVFX$",
+    "^SecurityLight$", "^SirenLight$", "^HordePressureMeter$", "^WeakPointMarker$",
+}
 
 local function add(errors, condition, message)
     if not condition then table.insert(errors, message) end
@@ -17,6 +34,42 @@ end
 
 local function isVisibleBasePart(inst)
     return inst:IsA("BasePart") and inst.Transparency < 0.95
+end
+
+
+local function matchesAnyPattern(name, patterns)
+    for _, pattern in ipairs(patterns) do
+        if tostring(name):match(pattern) then return true end
+    end
+    return false
+end
+
+local function placementCategory(world, inst)
+    if not world or not inst then return nil end
+    local rootMap = {
+        ArenaCore = "stageCore",
+        StageCircle = "stageCore",
+        InnerPlayerRing = "stageCore",
+        LightingAnchors = "lightingAndTrusses",
+        VendorRing = "vendorRing",
+        FenceRing = "fenceRing",
+        HordeRing = "hordeRing",
+        AudienceRing = "audienceRing",
+        VolcanoOuterRing = "volcanoOuterRing",
+        OuterVolcanoRing = "volcanoOuterRing",
+    }
+    for rootName, category in pairs(rootMap) do
+        local root = world:FindFirstChild(rootName)
+        if root and inst:IsDescendantOf(root) then return category end
+    end
+    if inst.Name == "SpawnLocation" or tostring(inst:GetAttribute("PlacementCategory")) == "tourBusAndSpawn" then
+        return "tourBusAndSpawn"
+    end
+    return nil
+end
+
+local function isAuditedPlacedArt(inst)
+    return inst:GetAttribute("AuditedArtAsset") == true or inst:GetAttribute("AssetSourcePath") ~= nil
 end
 
 local function getServerStorage()
@@ -45,13 +98,42 @@ local function countActive(world)
         auditLights = 0,
         auditDecals = 0,
         auditSurfaceAppearances = 0,
+        activePlacedArtInstances = 0,
+        stageCore = 0,
+        lightingAndTrusses = 0,
+        vendorRing = 0,
+        fenceRing = 0,
+        hordeRing = 0,
+        audienceRing = 0,
+        volcanoOuterRing = 0,
+        tourBusAndSpawn = 0,
+        invisibleHitboxesExcluded = 0,
+        archivedObjectsExcluded = 0,
+        quarantinedObjectsExcluded = 0,
+        autogenBlankMeshesExcluded = 0,
+        incorrectRingPlacements = 0,
+        unauditedAssetPlacements = 0,
     }
     local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
     if world then
         for _, desc in ipairs(world:GetDescendants()) do
             if desc:IsA("Model") then counts.models += 1 end
             if desc:IsA("MeshPart") then counts.meshParts += 1 end
-            if isVisibleBasePart(desc) then counts.visibleBaseParts += 1 end
+            if isVisibleBasePart(desc) then
+                counts.visibleBaseParts += 1
+                if hitboxes and desc:IsDescendantOf(hitboxes) then
+                    counts.invisibleHitboxesExcluded += 1
+                elseif isAuditedPlacedArt(desc) then
+                    local category = placementCategory(world, desc)
+                    if category then counts[category] += 1 end
+                    counts.activePlacedArtInstances += 1
+                else
+                    counts.unauditedAssetPlacements += 1
+                    if matchesAnyPattern(desc.Name, AUTOGEN_PATTERNS) or desc.ClassName == "Part" or desc.ClassName == "SpawnLocation" then
+                        counts.autogenBlankMeshesExcluded += 1
+                    end
+                end
+            end
             if hitboxes and desc:IsDescendantOf(hitboxes) and desc:IsA("BasePart") then counts.invisibleHitboxes += 1 end
             if desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then counts.quarantinedScripts += 1 end
             if desc:IsA("ProximityPrompt") then counts.vendorPrompts += 1 end
@@ -185,7 +267,29 @@ function WorldValidation.Run()
     print("[WorldValidation] Audit lights", counts.auditLights)
     print("[WorldValidation] Audit decals", counts.auditDecals)
     print("[WorldValidation] Audit SurfaceAppearances", counts.auditSurfaceAppearances)
+    print("[AssetPlacementValidation] activePlacedArtInstances = " .. tostring(counts.activePlacedArtInstances))
+    print("[AssetPlacementValidation] stageCore = " .. tostring(counts.stageCore))
+    print("[AssetPlacementValidation] lightingAndTrusses = " .. tostring(counts.lightingAndTrusses))
+    print("[AssetPlacementValidation] vendorRing = " .. tostring(counts.vendorRing))
+    print("[AssetPlacementValidation] fenceRing = " .. tostring(counts.fenceRing))
+    print("[AssetPlacementValidation] hordeRing = " .. tostring(counts.hordeRing))
+    print("[AssetPlacementValidation] audienceRing = " .. tostring(counts.audienceRing))
+    print("[AssetPlacementValidation] volcanoOuterRing = " .. tostring(counts.volcanoOuterRing))
+    print("[AssetPlacementValidation] tourBusAndSpawn = " .. tostring(counts.tourBusAndSpawn))
+    print("[AssetPlacementValidation] invisibleHitboxesExcluded = " .. tostring(counts.invisibleHitboxesExcluded))
+    print("[AssetPlacementValidation] archivedObjectsExcluded = " .. tostring(counts.archivedObjectsExcluded))
+    print("[AssetPlacementValidation] quarantinedObjectsExcluded = " .. tostring(counts.quarantinedObjectsExcluded))
+    print("[AssetPlacementValidation] autogenBlankMeshesExcluded = " .. tostring(counts.autogenBlankMeshesExcluded))
+    print("[AssetPlacementValidation] placeholderViolations = " .. tostring(counts.visiblePlaceholderViolations))
+    print("[AssetPlacementValidation] scriptsUnderWorldV2 = " .. tostring(counts.quarantinedScripts))
+    print("[AssetPlacementValidation] incorrectRingPlacements = " .. tostring(counts.incorrectRingPlacements))
+    print("[AssetPlacementValidation] unauditedAssetPlacements = " .. tostring(counts.unauditedAssetPlacements))
     add(errors, counts.missingRequiredAssets == 0, "Missing required assets: " .. tostring(counts.missingRequiredAssets))
+    for key, minimum in pairs(PLACEMENT_MINIMUMS) do
+        add(errors, (counts[key] or 0) >= minimum, "Asset placement gate failed: " .. key .. " requires " .. tostring(minimum) .. " got " .. tostring(counts[key] or 0))
+    end
+    add(errors, counts.unauditedAssetPlacements == 0, "Unaudited visible placements: " .. tostring(counts.unauditedAssetPlacements))
+    add(errors, counts.autogenBlankMeshesExcluded == 0, "Autogen/blank/procedural placements excluded: " .. tostring(counts.autogenBlankMeshesExcluded))
     assert(#errors == 0, table.concat(errors, " | "))
     return { ok = true, counts = counts, errors = errors }
 end
