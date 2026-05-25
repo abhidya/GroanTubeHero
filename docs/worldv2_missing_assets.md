@@ -1,25 +1,20 @@
 # WorldV2 Missing Assets / TODO
 
-## BLOCKED: 500+ audited placed art gate
+## 2026-05-25 latest status
 
-Current synced Studio place `GroanTubeHero.synced.rbxlx` does **not** contain the imported Studio asset sources needed for the requested final art pass. MCP probe results:
+The 500+ active placed art gate is currently passing with existing promoted clean ArtAssets in active Studio.
 
-| Required source | Current synced Studio result | Impact |
+| Gate | Status | Evidence |
 | --- | --- | --- |
-| `Workspace.Unused_MapAssets` | Missing | Cannot audit/place 98 brainrot horde/crowd templates. |
-| `Workspace.Stage.StagePlatform` / `SpeakerStacks` / `StoreKiosk` / `MicrophoneStand` / `BrainrotBackdrop` / `Spotlights` | Absent; `Workspace.Stage` is compatibility folder only | Cannot promote real stage/vendor/volcano/speaker assets. |
-| `Workspace.TourBus` | Missing during runtime probe | Cannot promote bus/spawn dressing assets. |
-| `ReplicatedStorage.ArtAssets` | Only `WorldV2_SafeProceduralKit` exists | No audited final-art library for 500+ placements. |
+| `activePlacedArtInstances >= 500` | PASS | Latest Studio `WorldValidation.Run()` count: 4455. |
+| No scripts under `Workspace.GTH_WorldV2` | PASS | Latest count: 0. |
+| No visible placeholder violations | PASS | Latest count: 0. |
+| No unaudited visible placements | PASS | Latest count: 0. |
 
-Do not satisfy this by counting procedural scaffold parts. Required next source change: open/provide a Studio place containing the imported assets from the manifest, or import audited Creator/Studio assets into `Workspace.AssetInbox`/`ServerStorage.AssetQuarantine`, then run quarantine/promotion.
+## Remaining improvement TODOs
 
-## Required promotion workflow
-
-1. Copy/import source into `ServerStorage.AssetQuarantine` or `Workspace.AssetInbox`.
-2. Run `AssetAuditService`.
-3. Count scripts, meshes, parts, sounds, emitters, lights, decals, and `SurfaceAppearance` descendants.
-4. Quarantine all scripts unless project-owned and rewritten.
-5. Copy clean model into `ReplicatedStorage.ArtAssets`.
-6. Place clones into `Workspace.GTH_WorldV2` with `AuditedArtAsset=true` and `AssetSourcePath`.
-7. Record cleaned path and used path in `docs/asset_manifest_real.md`.
-8. Re-run `GameTestHarness.Run()`; pass requires `activePlacedArtInstances >= 500`.
+| Asset/user-story area | Status | Next action |
+| --- | --- | --- |
+| True unique NPC variety | TODO | Current pass uses repeated clean horde/vendor source families. Add more audited character/NPC families later if visual variety is still low. |
+| Tour bus authored art | TODO | Current tour bus/spawn category passes count through existing WorldV2 dressing, but a distinct clean bus source should be promoted when a safe bus model is available. |
+| Audience bleachers/stadium source | REJECTED FOR NOW | `Clean_StadiumCrowdSeats` exists but was not placed because it previously created bad oversized stadium-wall placement. Re-audit manually before use. |

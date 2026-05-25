@@ -60,3 +60,18 @@ Active Studio: `GroanTubeHero.synced.rbxlx`. Rojo-synced repo scripts are presen
 | `Workspace.AssetInbox` | Present in builder/runtime when roots ensured | No imported Creator/Studio assets recorded for this pass. |
 
 Conclusion: final 500+ audited placed-art pass is blocked until a Studio place with the manifest-listed assets is active, or assets are imported into quarantine/inbox.
+
+## 2026-05-25 Phase X latest Studio MCP audit
+
+Active Studio: `GroanTubeHero.synced.rbxlx`.
+
+| Path | Exists | Models | MeshParts | BaseParts | Scripts | Notes |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `Workspace.GTH_WorldV2` | yes | 750 | 80 | 4490 | 0 | Fresh rebuilt WorldV2; 4455 visible active placed art instances. |
+| `Workspace.AssetInbox` | yes | 467 | 19 | 3754 | 0 | Quarantine/inbox only; not counted as active world art. |
+| `ReplicatedStorage.ArtAssets` | yes | 468 | 19 | 3754 | 0 | Clean visual promoted asset library. |
+| `ReplicatedStorage.ArtAssets.Stage` | yes | 94 | 0 | 318 | 0 | Clean concert stage/truss/lights source. |
+| `ReplicatedStorage.ArtAssets.Horde` | yes | 20 | 0 | 112 | 0 | Clean horde source. |
+| `ReplicatedStorage.ArtAssets.Volcano` | yes | 4 | 10 | 10 | 0 | Clean lava/volcano source. |
+| `ReplicatedStorage.ArtAssets.Vendors` | yes | 9 | 0 | 103 | 0 | Clean vendor kiosk source. |
+| `ReplicatedStorage.ArtAssets.Audience` | yes | 340 | 9 | 3211 | 0 | Clean but rejected from active placement due oversized stadium visual. |

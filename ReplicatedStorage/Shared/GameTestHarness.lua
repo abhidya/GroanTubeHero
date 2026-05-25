@@ -155,12 +155,13 @@ function GameTestHarness.Run()
     -- 4. If on Client, test UI modals
     if RunService:IsClient() then
         local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-        if not player or not player:FindFirstChild("PlayerGui") then
+        local player = Players.LocalPlayer or Players:GetPlayers()[1]
+        local playerGui = player and (player:FindFirstChild("PlayerGui") or player:WaitForChild("PlayerGui", 2))
+        if not playerGui then
             print("[GameTestHarness] Client UI validation skipped: no LocalPlayer/PlayerGui in this execution context")
             return run
         end
-        local rhythmGui = player.PlayerGui:FindFirstChild("RhythmGui")
+        local rhythmGui = playerGui:FindFirstChild("RhythmGui")
         if rhythmGui then
             local modal = rhythmGui.Root:FindFirstChild("SongSelectModal")
             if modal then

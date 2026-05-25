@@ -159,6 +159,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
         SecurityManager = "Security",
         TutorialGuide = "Tutorial",
         AudienceHypeManager = "Hype",
+        GlowingStageMicPrompt = "SongSelect",
         StartPrompt = "SongSelect",
         StoreKiosk = "Store",
         UpgradeKiosk = "Upgrades",
@@ -174,4 +175,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         Controller.closeTopMenu()
     end
 end)
-

@@ -754,7 +754,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
     if not prompt or not prompt.Parent then return end
     local name = prompt.Parent.Name
     local stationName = prompt.Parent.Parent and prompt.Parent.Parent.Name or name
-    if name == "StartPrompt" or name == "Sign_Start" or stationName == "DJ_GroanMaster" then
+    if name == "StartPrompt" or name == "Sign_Start" or name == "GlowingStageMicPrompt" or stationName == "DJ_GroanMaster" then
         openSongSelect()
     elseif name == "StoreKiosk" or name == "Sign_Store" or stationName == "Vendor_Store" then
         openStore("Tube Sounds")

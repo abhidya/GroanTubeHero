@@ -253,11 +253,32 @@ function HordeService:RepairSector(player, sectorId, amount)
         sector:SetAttribute("LastRepairAt", os.clock())
         local fence = sector:FindFirstChild("FenceSegment")
         if fence and fence:IsA("BasePart") then fence.Color = Color3.fromRGB(95, 255, 120) end
+        local vfx = sector:FindFirstChild("FenceDamageVFX")
+        if vfx and vfx:IsA("BasePart") then
+            vfx.Color = Color3.fromRGB(80, 255, 140)
+            vfx.Transparency = 0.05
+        end
+        local weak = sector:FindFirstChild("WeakPointMarker")
+        if weak and weak:IsA("BasePart") then weak.Color = Color3.fromRGB(80, 255, 140) end
         local siren = sector:FindFirstChild("SirenLight")
         local light = siren and siren:FindFirstChildOfClass("PointLight")
-        if light then light.Brightness = 0 end
+        if light then
+            light.Color = Color3.fromRGB(80, 255, 140)
+            light.Brightness = 4
+        end
         local meter = sector:FindFirstChild("HordePressureMeter")
         if meter and meter:IsA("BasePart") then meter:SetAttribute("Pressure", sector:GetAttribute("Pressure") or 0) end
+        task.delay(1.15, function()
+            if not sector.Parent then return end
+            if vfx and vfx.Parent then
+                vfx.Color = Color3.fromRGB(255, 80, 40)
+                vfx.Transparency = health < 60 and 0.15 or 0.75
+            end
+            if light and light.Parent then
+                light.Color = Color3.fromRGB(255, 35, 35)
+                light.Brightness = health < 35 and 5 or 0
+            end
+        end)
     end
     return true
 end

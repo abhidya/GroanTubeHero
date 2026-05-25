@@ -195,3 +195,60 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | visible placeholder violations | 0 | 0 | PASS |
 | unaudited asset placements | 0 | 0 | PASS |
 | scripts under WorldV2 | 0 | 0 | PASS |
+
+---
+
+## 2026-05-25 Phase X repair + placement validation — LATEST
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Rojo serve sync | PASS | Active Studio `GroanTubeHero.synced.rbxlx`; source probes found latest `WorldV2Builder`, `VendorPromptService`, `HordeService`, `UIUXMenuController`, `RhythmClient`, and `GameTestHarness` patches synced. |
+| `git diff --check` | PASS | No whitespace errors after Phase X fixes. |
+| `rojo build default.project.json -o /private/tmp/GroanTubeHero.verify.rbxlx` | PASS | Project builds successfully. |
+| Fresh WorldV2 rebuild | PASS | `WorldV2Builder.Build()` now destroys stale `Workspace.GTH_WorldV2` before rebuilding, removing bad/stale placements. |
+| No-fall play check | PASS | Play runtime player `blazimann`: `HumanoidState=Running`, `Y=5.72`, `SafeWalkableConcertFloor.Anchored=true`, `CanCollide=true`, `PhysicsLockedParts=4490`. |
+| Glowing mic prompt | PASS | `Workspace.GTH_WorldV2.StageCircle.GlowingStageMicPrompt.ProximityPrompt` has `ActionText=Choose Song`, `MenuName=SongSelect`, `WorldV2Bound=true`, `MaxActivationDistance=24`; screenshot `WorldV2_Play_GlowingMic_Reachable_NoFall`. |
+| Repair prompts | PASS | All 8 sectors have `Repair Fence` prompts on `InvisibleHitbox_RepairPromptAnchor`, `WorldV2RepairBound=true`, `MaxActivationDistance=28`. |
+| Horde movement capability | PASS | All 8 `HordeCluster` roots are Models and `PivotTo()` movement check succeeded for N/NE/E/SE/S/SW/W/NW. |
+| `require(ReplicatedStorage.Shared.UnitTests).Run()` | PASS | Fresh Studio runtime: `failed=0`, `passed=11`. |
+| `require(ReplicatedStorage.Shared.GameTestHarness).Run()` | PASS | Fresh clone run returned `Harness-LocalAudioSong001-5693508`, 38 notes. |
+| `WorldValidation.Run()` | PASS | 8 sectors, 16 prompts, no placeholder violations, no unaudited placements, no scripts under WorldV2. |
+| `UIUXValidation.Run(player)` | PASS | Runtime player UI validation returned `ok=true`. |
+| Screenshot evidence | PASS | Captured `WorldV2_Play_GlowingMic_Reachable_NoFall`; shows reachable mic prompt, dark arena, visible vendors/lights/stage. |
+
+### Latest AssetPlacementValidation counts
+
+| Category | Required | Actual | Result |
+| --- | ---: | ---: | --- |
+| stageCore | 60 | 412 | PASS |
+| lightingAndTrusses | 80 | 1408 | PASS |
+| vendorRing | 60 | 672 | PASS |
+| fenceRing | 64 | 64 | PASS |
+| hordeRing | 160 | 1312 | PASS |
+| audienceRing | 80 | 272 | PASS |
+| volcanoOuterRing | 80 | 272 | PASS |
+| tourBusAndSpawn | 30 | 43 | PASS |
+| total activePlacedArtInstances | 500 | 4455 | PASS |
+| visible placeholder violations | 0 | 0 | PASS |
+| unaudited visible placements | 0 | 0 | PASS |
+| scripts under `Workspace.GTH_WorldV2` | 0 | 0 | PASS |
+| missing required assets | 0 | 0 | PASS |
+
+### Latest runtime counts
+
+| Count | Value |
+| --- | ---: |
+| Active WorldV2 Models | 750 |
+| Active WorldV2 MeshParts | 80 |
+| Active WorldV2 visible BaseParts | 4455 |
+| Active placed art instances | 4455 |
+| Invisible hitboxes | 6 |
+| Vendor prompts | 16 |
+| Horde sectors | 8 |
+| ArtAssets audit scripts | 0 |
+| ArtAssets audit MeshParts | 19 |
+| ArtAssets audit parts | 3597 |
+| ArtAssets audit decals | 321 |
+| ArtAssets audit lights | 21 |
+| Visible placeholder violations | 0 |
+| Unaudited visible placements | 0 |

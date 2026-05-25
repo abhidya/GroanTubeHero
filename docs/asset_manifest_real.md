@@ -106,3 +106,17 @@ No Creator Store asset IDs were imported or trusted in this pass. No scripts wer
 | Creator Store `14660776730` from query `vendor kiosk shop counter` | `ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter` | `VendorRing.Audited_VendorRing_KioskSet`; `Workspace.GTH_WorldV2.Audited_TourBusSpawn_PathDressing` | 2 | 206 | vendor ring and spawn/path dressing |
 
 Total scripts quarantined from imported assets: 63. Active `Workspace.GTH_WorldV2` script descendants after validation: 0.
+
+## 2026-05-25 Phase X latest placement manifest update
+
+Latest runtime proof uses clean visual models already promoted into `ReplicatedStorage.ArtAssets`; no script descendants exist under active `Workspace.GTH_WorldV2`.
+
+| Source asset ID/path | Cleaned ArtAssets path | Used WorldV2 path | Scripts under clean copy | Latest counted active art parts | Purpose |
+| --- | --- | --- | ---: | ---: | --- |
+| Creator Store `84533917908730` from prior audited import `concert stage truss speaker lights` | `ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights` | `Workspace.GTH_WorldV2.StageCircle.Audited_Stage_ConcertRig_Fitted`; `LightingAnchors.Audited_Lighting_ConcertRig_1..4` | 0 | 1580 | stage core and concert light/truss dressing |
+| Creator Store `148933335` from prior audited import `cartoon monster npc horde` | `ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde` | 8 sector `HordeCluster.Audited_HordePack_*` | 0 | 896 | horde monster clusters, visible sector pressure |
+| Creator Store `7979344076` from prior audited import `volcano rock lava cliff` | `ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff` | `VolcanoOuterRing.Audited_VolcanoCliff_1..8` | 0 | 80 | volcanic/lava horizon ring |
+| Creator Store `14660776730` from prior audited import `vendor kiosk shop counter` | `ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter` | `VendorRing.*.Audited_Kiosk_*`; `AudienceRing.AudienceHypeManager.Audited_Kiosk_AudienceHypeManager` | 0 | 721 | vendor/store/upgrade/mission/security/tutorial/hype stations |
+| Project-authored `CursedLavaBackplane` | `ServerScriptService.Services.WorldV2Builder.lua` | `Workspace.GTH_WorldV2.ArenaCore.CursedLavaBackplane` | 0 | 1 | dark ground/fall-safety plane hiding blue void from player view |
+
+Rejected/hidden source remains: `ReplicatedStorage.ArtAssets.Audience.Clean_StadiumCrowdSeats` is retained as clean ArtAssets source but not actively placed because visual audit showed bad scale/placement risk.

@@ -3673,12 +3673,13 @@ function GameTestHarness.Run()
     -- 4. If on Client, test UI modals
     if RunService:IsClient() then
         local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-        if not player or not player:FindFirstChild("PlayerGui") then
+        local player = Players.LocalPlayer or Players:GetPlayers()[1]
+        local playerGui = player and (player:FindFirstChild("PlayerGui") or player:WaitForChild("PlayerGui", 2))
+        if not playerGui then
             print("[GameTestHarness] Client UI validation skipped: no LocalPlayer/PlayerGui in this execution context")
             return run
         end
-        local rhythmGui = player.PlayerGui:FindFirstChild("RhythmGui")
+        local rhythmGui = playerGui:FindFirstChild("RhythmGui")
         if rhythmGui then
             local modal = rhythmGui.Root:FindFirstChild("SongSelectModal")
             if modal then
@@ -8879,6 +8880,45 @@ local function installWorldV2Diagnostics()
     return runner
 end
 
+
+local function installSpawnSafety(world)
+    local spawn = world and world:FindFirstChild("SpawnLocation")
+    if spawn and spawn:IsA("BasePart") then
+        spawn.Anchored = true
+        spawn.CanCollide = true
+    end
+    local function protectCharacter(character)
+        task.defer(function()
+            local root = character:WaitForChild("HumanoidRootPart", 8)
+            if root and spawn and spawn:IsA("BasePart") then
+                root.CFrame = spawn.CFrame + Vector3.new(0, 5, 0)
+            end
+        end)
+        task.spawn(function()
+            local root = character:WaitForChild("HumanoidRootPart", 8)
+            if not root then return end
+            local untilTime = os.clock() + 20
+            while root.Parent and os.clock() < untilTime do
+                if root.Position.Y < -20 and spawn and spawn:IsA("BasePart") then
+                    root.AssemblyLinearVelocity = Vector3.zero
+                    root.AssemblyAngularVelocity = Vector3.zero
+                    root.CFrame = spawn.CFrame + Vector3.new(0, 6, 0)
+                    warn("[WorldV2SpawnSafety] rescued falling character to SpawnLocation")
+                end
+                task.wait(0.25)
+            end
+        end)
+    end
+    Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(protectCharacter)
+        if player.Character then protectCharacter(player.Character) end
+    end)
+    for _, player in ipairs(Players:GetPlayers()) do
+        player.CharacterAdded:Connect(protectCharacter)
+        if player.Character then protectCharacter(player.Character) end
+    end
+end
+
 local function startWorldV2Atmosphere()
     task.spawn(function()
         while true do
@@ -8910,6 +8950,7 @@ loadServices(context)
 VendorPromptService.Bind(context)
 wireRemotes(context)
 local validation = WorldV2Builder.RunValidation()
+installSpawnSafety(world)
 
 Players.PlayerAdded:Connect(function(player)
     context.Services.DataService:PlayerAdded(player)
@@ -9207,11 +9248,32 @@ function HordeService:RepairSector(player, sectorId, amount)
         sector:SetAttribute("LastRepairAt", os.clock())
         local fence = sector:FindFirstChild("FenceSegment")
         if fence and fence:IsA("BasePart") then fence.Color = Color3.fromRGB(95, 255, 120) end
+        local vfx = sector:FindFirstChild("FenceDamageVFX")
+        if vfx and vfx:IsA("BasePart") then
+            vfx.Color = Color3.fromRGB(80, 255, 140)
+            vfx.Transparency = 0.05
+        end
+        local weak = sector:FindFirstChild("WeakPointMarker")
+        if weak and weak:IsA("BasePart") then weak.Color = Color3.fromRGB(80, 255, 140) end
         local siren = sector:FindFirstChild("SirenLight")
         local light = siren and siren:FindFirstChildOfClass("PointLight")
-        if light then light.Brightness = 0 end
+        if light then
+            light.Color = Color3.fromRGB(80, 255, 140)
+            light.Brightness = 4
+        end
         local meter = sector:FindFirstChild("HordePressureMeter")
         if meter and meter:IsA("BasePart") then meter:SetAttribute("Pressure", sector:GetAttribute("Pressure") or 0) end
+        task.delay(1.15, function()
+            if not sector.Parent then return end
+            if vfx and vfx.Parent then
+                vfx.Color = Color3.fromRGB(255, 80, 40)
+                vfx.Transparency = health < 60 and 0.15 or 0.75
+            end
+            if light and light.Parent then
+                light.Color = Color3.fromRGB(255, 35, 35)
+                light.Brightness = health < 35 and 5 or 0
+            end
+        end)
     end
     return true
 end
@@ -10433,6 +10495,20 @@ local VendorPromptService = {}
 
 function VendorPromptService.Bind(context)
     local world = Workspace:WaitForChild("GTH_WorldV2")
+    local stageMic = world:FindFirstChild("GlowingStageMicPrompt", true)
+    local stageMicPrompt = stageMic and stageMic:FindFirstChildWhichIsA("ProximityPrompt", true)
+    if stageMicPrompt and not stageMicPrompt:GetAttribute("WorldV2Bound") then
+        stageMicPrompt:SetAttribute("WorldV2Bound", true)
+        stageMicPrompt:SetAttribute("MenuName", "SongSelect")
+        stageMicPrompt.Triggered:Connect(function(player)
+            if context.Remotes.OpenSongSelect then
+                context.Remotes.OpenSongSelect:FireClient(player)
+            elseif context.Remotes.OpenMenu then
+                context.Remotes.OpenMenu:FireClient(player, "SongSelect")
+            end
+        end)
+    end
+
     for _, def in ipairs(VendorDefinitions) do
         local station = world:FindFirstChild(def.Id, true)
         local prompt = station and station:FindFirstChildWhichIsA("ProximityPrompt", true)
@@ -10583,6 +10659,13 @@ local function artPart(parent, name, size, cframe, color, material, category, pu
 end
 
 local function hideInstanceVisuals(inst)
+    if inst:IsA("BasePart") then
+        inst.Transparency = 1
+        inst.CanCollide = false
+        inst.Anchored = true
+    elseif inst:IsA("BillboardGui") then
+        inst.Enabled = false
+    end
     for _, d in ipairs(inst:GetDescendants()) do
         if d:IsA("BasePart") then
             d.Transparency = 1
@@ -10673,6 +10756,9 @@ local function buildStageCore(roots)
     local stageCircle = roots.StageCircle
     local innerRing = roots.InnerPlayerRing
 
+    local worldGround = artPart(stageCore, "CursedLavaBackplane", Vector3.new(340, 0.6, 340), CFrame.new(0, -0.8, 0), Color3.fromRGB(24, 12, 12), Enum.Material.CrackedLava, "stageCore", "dark lava ground plane hiding blue void")
+    worldGround.CanCollide = true
+    worldGround.Transparency = 0.22
     local safeFloor = artPart(stageCore, "SafeWalkableConcertFloor", Vector3.new(76, 1, 76), CFrame.new(0, 0.95, -4), Color3.fromRGB(16, 38, 46), Enum.Material.Slate, "stageCore", "walkable stage and vendor floor")
     safeFloor.Transparency = 0.08
     artPart(stageCore, "CursedConcertDisc", Vector3.new(36, 1.2, 36), CFrame.new(0, 1.55, 0), Color3.fromRGB(38, 36, 52), Enum.Material.Slate, "stageCore", "central cursed concert disc", Enum.PartType.Cylinder)
@@ -10750,6 +10836,126 @@ local function buildTourBusSpawnPath(world)
     end
 end
 
+
+
+local function findArtAsset(...)
+    local node = ReplicatedStorage:FindFirstChild("ArtAssets")
+    for _, name in ipairs({ ... }) do
+        node = node and node:FindFirstChild(name)
+    end
+    return node
+end
+
+local function asModelClone(source)
+    local clone = source:Clone()
+    if clone:IsA("Model") then
+        return clone
+    end
+    local wrapper = Instance.new("Model")
+    wrapper.Name = clone.Name
+    for _, child in ipairs(clone:GetChildren()) do
+        child.Parent = wrapper
+    end
+    clone:Destroy()
+    return wrapper
+end
+
+local function prepAuditedClone(model, sourcePath, category, purpose)
+    local partIndex = 0
+    for _, desc in ipairs(model:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            partIndex += 1
+            if desc.Name == "Part" or desc.Name == "Block" or desc.Name == "Circle" or desc.Name == "Cylinder" or desc.Name == "Temp" or desc.Name == "Debug" then
+                desc.Name = "AuditedAssetPart_" .. partIndex
+            end
+            desc.Anchored = true
+            desc.CanCollide = false
+            desc.Massless = true
+            desc:SetAttribute("AuditedArtAsset", true)
+            desc:SetAttribute("AssetSourcePath", sourcePath)
+            desc:SetAttribute("PlacementCategory", category)
+            desc:SetAttribute("ArtPurpose", purpose or category)
+        elseif desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then
+            desc:Destroy()
+        elseif desc:IsA("BillboardGui") then
+            desc.Enabled = false
+        end
+    end
+end
+
+local function placeAuditedClone(parent, name, source, sourcePath, category, purpose, cframe, scale)
+    if not source then return nil end
+    local old = parent:FindFirstChild(name)
+    if old then old:Destroy() end
+    local clone = asModelClone(source)
+    clone.Name = name
+    clone.Parent = parent
+    prepAuditedClone(clone, sourcePath, category, purpose)
+    if scale then
+        pcall(function() clone:ScaleTo(scale) end)
+    end
+    pcall(function() clone:PivotTo(cframe) end)
+    return clone
+end
+
+local function buildAuditedAssetPlacements(roots)
+    local stageRig = findArtAsset("Stage", "Clean_ConcertStageTrussSpeakerLights")
+    placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 4.0, 0), 0.25)
+    for _, point in ipairs(PolarLayout.distribute(4, 31, 4, 45)) do
+        placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.10)
+    end
+
+    local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
+    for _, def in ipairs(Vendors) do
+        local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
+        if parent then
+            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "vendorRing", def.Menu .. " audited vendor kiosk", PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 3.2), 0.40)
+        end
+    end
+
+    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
+    for _, sectorDef in ipairs(Sectors) do
+        local sector = roots.HordeRing:FindFirstChild("HordeSector_" .. sectorDef.Id)
+        local horde = sector and sector:FindFirstChild("HordeCluster")
+        if horde then
+            placeAuditedClone(horde, "Audited_HordePack_" .. sectorDef.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited horde character cluster " .. sectorDef.Id, PolarLayout.cframeFacingCenter(72, sectorDef.Angle, 5), 0.20)
+        end
+    end
+
+    local volcano = findArtAsset("Volcano", "Clean_VolcanoRockLavaCliff")
+    for _, point in ipairs(PolarLayout.distribute(8, 134, 8, 22.5)) do
+        placeAuditedClone(roots.VolcanoOuterRing, "Audited_VolcanoCliff_" .. point.index, volcano, "ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff", "volcanoOuterRing", "audited volcano cliff/lava shell", point.cframeFacingCenter, 1.45)
+    end
+end
+
+local function lockWorldPhysics(world)
+    local locked = 0
+    local collisionFloors = {
+        SafeWalkableConcertFloor = true,
+        CursedConcertDisc = true,
+        NeonPerformanceCircle = true,
+        PlayerWalkwayRing = true,
+        SpawnLocation = true,
+    }
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            desc.Anchored = true
+            if collisionFloors[desc.Name] then
+                desc.CanCollide = true
+            end
+            locked += 1
+        end
+    end
+    local spawn = world:FindFirstChild("SpawnLocation")
+    if spawn and spawn:IsA("BasePart") then
+        spawn.Anchored = true
+        spawn.CanCollide = true
+        spawn.AssemblyLinearVelocity = Vector3.zero
+        spawn.AssemblyAngularVelocity = Vector3.zero
+    end
+    world:SetAttribute("PhysicsLockedParts", locked)
+    return locked
+end
 
 local function hideProceduralScaffoldWhenAuditedArtReady(world)
     local auditedCount = 0
@@ -10845,12 +11051,10 @@ end
 function WorldV2Builder.Build()
     WorldV2Builder.EnsureAssetRoots()
     local world = Workspace:FindFirstChild(Config.RootName)
-    if not (world and world:IsA("Model")) then
-        if world then world:Destroy() end
-        world = Instance.new("Model")
-        world.Name = Config.RootName
-        world.Parent = Workspace
-    end
+    if world then world:Destroy() end
+    world = Instance.new("Model")
+    world.Name = Config.RootName
+    world.Parent = Workspace
     world:SetAttribute("CoordinateConvention", Config.CoordinateConvention)
     world:SetAttribute("AssetPolicy", "Audited ArtAssets or local Studio candidates only; no hardcoded Creator Store IDs")
 
@@ -10932,8 +11136,10 @@ function WorldV2Builder.Build()
             local spark = artPart(sector, "SectorWarningSpike_" .. sectorDef.Id .. "_" .. i, Vector3.new(0.45, 4 + (i % 2), 0.45), cf * CFrame.new((i - 3.5) * 2, 1.5, -2.4), Color3.fromRGB(255, 120, 40), Enum.Material.Neon, "hordeRing", "sector warning spike")
             spark.CanCollide = false
         end
-        prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 2, -4), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security")
+        prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(8, 8, 8), cf * CFrame.new(0, 2, -6), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security").MaxActivationDistance = 28
     end
+
+    buildAuditedAssetPlacements(roots)
 
     for _, point in ipairs(PolarLayout.distribute(160, 92, 4, 7.5)) do
         local crowd = artPart(roots.AudienceRing, "CrowdSilhouette_" .. point.index, Vector3.new(1.15, 3.2 + (point.index % 3) * 0.55, 1.15), point.cframeFacingCenter, Color3.fromRGB(75, 180 + (point.index % 3) * 25, 120), Enum.Material.Neon, "audienceRing", "audience crowd silhouette")
@@ -10954,6 +11160,13 @@ function WorldV2Builder.Build()
     atmosphere.Color = Color3.fromRGB(160, 225, 120)
     atmosphere.Decay = Color3.fromRGB(90, 45, 25)
     atmosphere.Parent = Lighting
+    Lighting.ClockTime = 20.5
+    Lighting.Brightness = 1.4
+    Lighting.Ambient = Color3.fromRGB(55, 42, 65)
+    Lighting.OutdoorAmbient = Color3.fromRGB(25, 18, 34)
+    Lighting.FogColor = Color3.fromRGB(24, 12, 22)
+    Lighting.FogStart = 70
+    Lighting.FogEnd = 260
 
     local compat = ensureFolder(world, "CompatibilityAdapters")
     local stage = ensureFolder(Workspace, "Stage")
@@ -10983,6 +11196,7 @@ function WorldV2Builder.Build()
     rootRef.Parent = brainrot
 
     hideProceduralScaffoldWhenAuditedArtReady(world)
+    lockWorldPhysics(world)
     return world
 end
 
@@ -12824,7 +13038,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
     if not prompt or not prompt.Parent then return end
     local name = prompt.Parent.Name
     local stationName = prompt.Parent.Parent and prompt.Parent.Parent.Name or name
-    if name == "StartPrompt" or name == "Sign_Start" or stationName == "DJ_GroanMaster" then
+    if name == "StartPrompt" or name == "Sign_Start" or name == "GlowingStageMicPrompt" or stationName == "DJ_GroanMaster" then
         openSongSelect()
     elseif name == "StoreKiosk" or name == "Sign_Store" or stationName == "Vendor_Store" then
         openStore("Tube Sounds")
@@ -13535,6 +13749,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
         SecurityManager = "Security",
         TutorialGuide = "Tutorial",
         AudienceHypeManager = "Hype",
+        GlowingStageMicPrompt = "SongSelect",
         StartPrompt = "SongSelect",
         StoreKiosk = "Store",
         UpgradeKiosk = "Upgrades",
@@ -13550,7 +13765,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         Controller.closeTopMenu()
     end
 end)
-
 ]]></string>
         </Properties>
       </Item>

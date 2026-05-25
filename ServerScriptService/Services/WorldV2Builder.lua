@@ -158,6 +158,9 @@ local function buildStageCore(roots)
     local stageCircle = roots.StageCircle
     local innerRing = roots.InnerPlayerRing
 
+    local worldGround = artPart(stageCore, "CursedLavaBackplane", Vector3.new(340, 0.6, 340), CFrame.new(0, -0.8, 0), Color3.fromRGB(24, 12, 12), Enum.Material.CrackedLava, "stageCore", "dark lava ground plane hiding blue void")
+    worldGround.CanCollide = true
+    worldGround.Transparency = 0.22
     local safeFloor = artPart(stageCore, "SafeWalkableConcertFloor", Vector3.new(76, 1, 76), CFrame.new(0, 0.95, -4), Color3.fromRGB(16, 38, 46), Enum.Material.Slate, "stageCore", "walkable stage and vendor floor")
     safeFloor.Transparency = 0.08
     artPart(stageCore, "CursedConcertDisc", Vector3.new(36, 1.2, 36), CFrame.new(0, 1.55, 0), Color3.fromRGB(38, 36, 52), Enum.Material.Slate, "stageCore", "central cursed concert disc", Enum.PartType.Cylinder)
@@ -299,16 +302,16 @@ end
 
 local function buildAuditedAssetPlacements(roots)
     local stageRig = findArtAsset("Stage", "Clean_ConcertStageTrussSpeakerLights")
-    placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 2.8, 0), 0.035)
+    placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 4.0, 0), 0.25)
     for _, point in ipairs(PolarLayout.distribute(4, 31, 4, 45)) do
-        placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.015)
+        placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.10)
     end
 
     local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
     for _, def in ipairs(Vendors) do
         local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
         if parent then
-            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "vendorRing", def.Menu .. " audited vendor kiosk", PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 2.4), 0.075)
+            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "vendorRing", def.Menu .. " audited vendor kiosk", PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 3.2), 0.40)
         end
     end
 
@@ -317,7 +320,7 @@ local function buildAuditedAssetPlacements(roots)
         local sector = roots.HordeRing:FindFirstChild("HordeSector_" .. sectorDef.Id)
         local horde = sector and sector:FindFirstChild("HordeCluster")
         if horde then
-            placeAuditedClone(horde, "Audited_HordePack_" .. sectorDef.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited horde character cluster " .. sectorDef.Id, PolarLayout.cframeFacingCenter(70, sectorDef.Angle, 3), 0.035)
+            placeAuditedClone(horde, "Audited_HordePack_" .. sectorDef.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited horde character cluster " .. sectorDef.Id, PolarLayout.cframeFacingCenter(72, sectorDef.Angle, 5), 0.20)
         end
     end
 
@@ -450,12 +453,10 @@ end
 function WorldV2Builder.Build()
     WorldV2Builder.EnsureAssetRoots()
     local world = Workspace:FindFirstChild(Config.RootName)
-    if not (world and world:IsA("Model")) then
-        if world then world:Destroy() end
-        world = Instance.new("Model")
-        world.Name = Config.RootName
-        world.Parent = Workspace
-    end
+    if world then world:Destroy() end
+    world = Instance.new("Model")
+    world.Name = Config.RootName
+    world.Parent = Workspace
     world:SetAttribute("CoordinateConvention", Config.CoordinateConvention)
     world:SetAttribute("AssetPolicy", "Audited ArtAssets or local Studio candidates only; no hardcoded Creator Store IDs")
 
@@ -537,7 +538,7 @@ function WorldV2Builder.Build()
             local spark = artPart(sector, "SectorWarningSpike_" .. sectorDef.Id .. "_" .. i, Vector3.new(0.45, 4 + (i % 2), 0.45), cf * CFrame.new((i - 3.5) * 2, 1.5, -2.4), Color3.fromRGB(255, 120, 40), Enum.Material.Neon, "hordeRing", "sector warning spike")
             spark.CanCollide = false
         end
-        prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 2, -4), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security")
+        prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(8, 8, 8), cf * CFrame.new(0, 2, -6), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security").MaxActivationDistance = 28
     end
 
     buildAuditedAssetPlacements(roots)
@@ -561,6 +562,13 @@ function WorldV2Builder.Build()
     atmosphere.Color = Color3.fromRGB(160, 225, 120)
     atmosphere.Decay = Color3.fromRGB(90, 45, 25)
     atmosphere.Parent = Lighting
+    Lighting.ClockTime = 20.5
+    Lighting.Brightness = 1.4
+    Lighting.Ambient = Color3.fromRGB(55, 42, 65)
+    Lighting.OutdoorAmbient = Color3.fromRGB(25, 18, 34)
+    Lighting.FogColor = Color3.fromRGB(24, 12, 22)
+    Lighting.FogStart = 70
+    Lighting.FogEnd = 260
 
     local compat = ensureFolder(world, "CompatibilityAdapters")
     local stage = ensureFolder(Workspace, "Stage")
