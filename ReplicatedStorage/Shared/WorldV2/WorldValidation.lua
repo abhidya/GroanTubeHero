@@ -85,6 +85,7 @@ local function countActive(world)
         meshParts = 0,
         visibleBaseParts = 0,
         invisibleHitboxes = 0,
+        activeWorldScripts = 0,
         quarantinedScripts = 0,
         vendorPrompts = 0,
         hordeSectors = 0,
@@ -139,7 +140,7 @@ local function countActive(world)
                 end
             end
             if hitboxes and desc:IsDescendantOf(hitboxes) and desc:IsA("BasePart") then counts.invisibleHitboxes += 1 end
-            if desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then counts.quarantinedScripts += 1 end
+            if desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then counts.activeWorldScripts += 1 end
             if desc:IsA("ProximityPrompt") then counts.vendorPrompts += 1 end
             if isVisibleBasePart(desc) and PLACEHOLDER_NAMES[desc.Name] and not (hitboxes and desc:IsDescendantOf(hitboxes)) then
                 counts.visiblePlaceholderViolations += 1
@@ -260,6 +261,7 @@ function WorldValidation.Run()
     print("[WorldValidation] Active WorldV2 MeshParts", counts.meshParts)
     print("[WorldValidation] Active WorldV2 visible BaseParts", counts.visibleBaseParts)
     print("[WorldValidation] ArtAssets source models", counts.artAssetSourceModels)
+    print("[WorldValidation] Active WorldV2 scripts", counts.activeWorldScripts)
     print("[WorldValidation] Quarantined scripts", counts.quarantinedScripts)
     print("[WorldValidation] Missing required assets", counts.missingRequiredAssets)
     print("[WorldValidation] Visible placeholder violations", counts.visiblePlaceholderViolations)
@@ -285,7 +287,7 @@ function WorldValidation.Run()
     print("[AssetPlacementValidation] quarantinedObjectsExcluded = " .. tostring(counts.quarantinedObjectsExcluded))
     print("[AssetPlacementValidation] autogenBlankMeshesExcluded = " .. tostring(counts.autogenBlankMeshesExcluded))
     print("[AssetPlacementValidation] placeholderViolations = " .. tostring(counts.visiblePlaceholderViolations))
-    print("[AssetPlacementValidation] scriptsUnderWorldV2 = " .. tostring(counts.quarantinedScripts))
+    print("[AssetPlacementValidation] scriptsUnderWorldV2 = " .. tostring(counts.activeWorldScripts))
     print("[AssetPlacementValidation] incorrectRingPlacements = " .. tostring(counts.incorrectRingPlacements))
     print("[AssetPlacementValidation] unauditedAssetPlacements = " .. tostring(counts.unauditedAssetPlacements))
     print("[AssetPlacementValidation] massBrainrotNPCs = " .. tostring(counts.massBrainrotNPCs))
@@ -294,6 +296,7 @@ function WorldValidation.Run()
     for key, minimum in pairs(PLACEMENT_MINIMUMS) do
         add(errors, (counts[key] or 0) >= minimum, "Asset placement gate failed: " .. key .. " requires " .. tostring(minimum) .. " got " .. tostring(counts[key] or 0))
     end
+    add(errors, counts.activeWorldScripts == 0, "Scripts under WorldV2: " .. tostring(counts.activeWorldScripts))
     add(errors, counts.unauditedAssetPlacements == 0, "Unaudited visible placements: " .. tostring(counts.unauditedAssetPlacements))
     add(errors, counts.autogenBlankMeshesExcluded == 0, "Autogen/blank/procedural placements excluded: " .. tostring(counts.autogenBlankMeshesExcluded))
     assert(#errors == 0, table.concat(errors, " | "))

@@ -165,6 +165,18 @@ local function testWorldValidationPlaceholderDetection(): ()
     model:Destroy()
 end
 
+local function testWorldValidationScriptDetection(): ()
+    local model = Instance.new("Model")
+    model.Name = "GTH_WorldV2"
+    local untrustedScript = Instance.new("Script")
+    untrustedScript.Name = "UntrustedImportedScript"
+    untrustedScript.Parent = model
+    local counts = WorldValidation.CountActive(model)
+    expectEqual(counts.activeWorldScripts, 1, "script under WorldV2 counted separately from quarantine")
+    expectEqual(counts.quarantinedScripts, 0, "active WorldV2 script is not mislabeled as quarantined")
+    model:Destroy()
+end
+
 local function testFanNpcCreatorLocalManifest(): ()
     if not RunService:IsServer() then
         print("[UnitTests] Skipping fan NPC Creator manifest test (not on server)")
@@ -290,6 +302,7 @@ local function testWorldV2Validation(): ()
         expect(result.ok == true, "WorldValidation passes")
         expect(result.counts.missingRequiredAssets == 0, "WorldValidation missing required assets is zero")
         expect(type(result.counts.auditParts) == "number", "WorldValidation includes audit counts")
+        expectEqual(result.counts.activeWorldScripts, 0, "WorldValidation active WorldV2 scripts is zero")
     end
 end
 
@@ -302,6 +315,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testAssetAuditService,
         testAssetRegistryMissingBehavior,
         testWorldValidationPlaceholderDetection,
+        testWorldValidationScriptDetection,
         testFanNpcCreatorLocalManifest,
         testVendorDialoguePrompts,
         testConfigLanes,
