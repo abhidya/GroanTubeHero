@@ -53,11 +53,23 @@ end
 
 local function cleanRawTitle(raw)
     local title = tostring(raw or "")
-    title = title:gsub("^%d+%s*[%-%–]%s*", ""):gsub("%b[]", ""):gsub("_", " ")
-    title = title:gsub("%f[%a]Official%f[%A]", ""):gsub("%f[%a]Lyric%f[%A]", "")
-    title = title:gsub("%f[%a]Video%f[%A]", ""):gsub("%f[%a]Visualizer%f[%A]", "")
-    title = title:gsub("%f[%a]Audio%f[%A]", ""):gsub("%f[%a]Music%f[%A]", "")
-    title = title:gsub("%f[%a]Extended%f[%A]", ""):gsub("%s+", " ")
+    title = title:gsub("%b[]", "")
+    title = title:gsub("_", " ")
+    while true do
+        local before = title
+        title = title:gsub("^%s*%d+%s*[%-%–—]+%s*", "")
+        title = title:gsub("^%s*[%-%–—]+%s*", "")
+        if title == before then
+            break
+        end
+    end
+    local noiseWords = { "Official", "Lyric", "Video", "Visualizer", "Audio", "Music", "Extended" }
+    for _, word in ipairs(noiseWords) do
+        title = title:gsub("%f[%a]" .. word .. "%f[%A]", "")
+        title = title:gsub("%f[%a]" .. word:lower() .. "%f[%A]", "")
+        title = title:gsub("%f[%a]" .. word:upper() .. "%f[%A]", "")
+    end
+    title = title:gsub("%s+", " ")
     return trim(titleCase(title))
 end
 
@@ -174,14 +186,19 @@ end
 function SongCatalog.PrettyTitle(songOrId)
     local id = type(songOrId) == "table" and songOrId.Id or tostring(songOrId or "")
     local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
+    if type(songOrId) == "table" then
+        if type(songOrId.SourceTitle) == "string" and trim(songOrId.SourceTitle) ~= "" then
+            return trim(songOrId.SourceTitle)
+        end
+        if type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
+            return cleanRawTitle(songOrId.Title)
+        end
+    end
     if number and not Config.DebugRhythm then
         return "Local Audio Song " .. number
     end
     if TITLE_OVERRIDES[id] then
         return TITLE_OVERRIDES[id]
-    end
-    if type(songOrId) == "table" and type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
-        return cleanRawTitle(songOrId.Title)
     end
     if number then
         return "Local Audio Song " .. number

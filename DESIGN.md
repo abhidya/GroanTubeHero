@@ -27,17 +27,17 @@
 - Content hierarchy: gameplay first; progression second; audience/watch side-zone; debug/dev content hidden.
 
 ## Design principles
-- Principle 1: Stage story readable at glance — center performer, ramping horde, volcano ring.
+- Principle 1: Stage story readable at glance — raised center performer, ramping horde, enclosed volcano arena, no open cloud void.
 - Principle 2: Every hit creates feedback — lane flash, judgement, combo pop, lights, horde movement.
 - Tradeoffs: favor readable arcade clarity over realistic map clutter.
 
 ## Visual language
 - Color: lava orange/red danger, cyan stage safety, green brainrot, purple audience/watch.
 - Typography: bold GothamBlack signs/HUD, short labels.
-- Spacing/layout rhythm: large touch targets, high contrast, no overlapping 3D text.
+- Spacing/layout rhythm: stage-relative placement from actual StagePlatform bounds, large touch targets, high contrast, no overlapping 3D text.
 - Shape/radius/elevation: rounded HUD cards, neon stage panels, raised center platform.
 - Motion: notes descend to hit line; horde tweens ramp-to-stage; lights flash on streaks/misses.
-- Imagery/iconography: arrow symbols only for controls; brainrot asset clones as horde, stripped of scripts.
+- Imagery/iconography: arrow symbols only for controls; brainrot asset clones as horde, stripped of scripts; volcanic walls, toxic fog banks, trusses, and lava moat close the arena silhouette.
 
 
 ## Creator asset research notes
@@ -48,7 +48,7 @@
 
 ## Components
 - Existing components to reuse: `RhythmGui`, `InputController`, `StageFeedbackClient`, `AudienceGui`, `StoreGui`, `MissionGui`.
-- New/changed components: clickable/tappable lane columns, combo streak banner, smaller map signs, brighter horde, side audience zone.
+- New/changed components: clickable/tappable lane columns, combo streak banner, smaller map signs, brighter horde, side audience zone, ArenaEnclosure generated from stage bounds.
 - Variants and states: Perfect/Good/Miss, combo milestones, Disaster, horde Far/Approaching/Close/Critical.
 - Token/component ownership: Roblox instances created in client scripts and `GameBootstrap.server.lua`; no external UI libs.
 
@@ -79,7 +79,7 @@
 
 ## Implementation constraints
 - Framework/styling system: Roblox Luau instances, no external modules, no `require(assetId)`, no HTTP.
-- Design-token constraints: use existing `Config`, lane colors, `GothamBlack`.
+- Design-token constraints: use existing `Config`, lane colors, `GothamBlack`; generated map props derive from StagePlatform bounding box, not hardcoded cloud coordinates.
 - Performance constraints: tween anchored horde visuals; no NPC pathfinding.
 - Compatibility constraints: Studio/live place must preserve current systems.
 - Test/screenshot expectations: Studio Play smoke; verify touch lane buttons, X buttons, title cleanup, horde visibility, no errors.

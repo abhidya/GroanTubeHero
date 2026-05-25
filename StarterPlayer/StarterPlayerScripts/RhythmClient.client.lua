@@ -39,6 +39,7 @@ laneInput.Name = "LaneInput"
 laneInput.Parent = inputFolder
 
 local screenGui = ensureScreenGui("RhythmGui")
+screenGui.Enabled = true
 screenGui:SetAttribute("SongActive", false)
 screenGui:SetAttribute("AcceptInput", false)
 screenGui:ClearAllChildren()
@@ -239,7 +240,7 @@ for lane = 1, 4 do
 end
 
 local touchMenu = Instance.new("Frame")
-touchMenu.Name = "TouchNavigationMenu"
+touchMenu.Name = "NavigationMenu"
 touchMenu.AnchorPoint = Vector2.new(1, 0.5)
 touchMenu.Position = UDim2.new(1, -16, 0.52, 0)
 touchMenu.Size = UDim2.new(0, 160, 0, 310)
@@ -249,9 +250,9 @@ touchMenu.Parent = root
 corner(touchMenu, 18)
 stroke(touchMenu, Color3.fromRGB(170, 95, 255), 2)
 
-local touchMenuScale = Instance.new("UIScale")
-touchMenuScale.Name = "Scale"
-touchMenuScale.Parent = touchMenu
+local navigationMenuScale = Instance.new("UIScale")
+navigationMenuScale.Name = "Scale"
+navigationMenuScale.Parent = touchMenu
 
 local touchLayout = Instance.new("UIListLayout")
 touchLayout.FillDirection = Enum.FillDirection.Vertical
@@ -866,8 +867,8 @@ RunService.PreRender:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
     local factor = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
     scale.Scale = factor
-    if touchMenuScale then
-        touchMenuScale.Scale = factor
+    if navigationMenuScale then
+        navigationMenuScale.Scale = factor
     end
 
     if not state.active or not state.song then
