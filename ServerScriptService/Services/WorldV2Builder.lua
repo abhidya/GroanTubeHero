@@ -339,6 +339,16 @@ local function asModelClone(source)
     return wrapper
 end
 
+local function quarantineActiveCloneScript(scriptInst, sourcePath)
+    AssetAuditService.EnsureRoots()
+    pcall(function()
+        scriptInst.Disabled = true
+    end)
+    scriptInst:SetAttribute("QuarantineReason", "Third-party script stripped from active WorldV2 visual clone")
+    scriptInst:SetAttribute("AssetSourcePath", sourcePath or "UNKNOWN")
+    scriptInst.Parent = ServerStorage.AssetQuarantine
+end
+
 function prepAuditedClone(model, sourcePath, category, purpose)
     local partIndex = 0
     for _, desc in ipairs(model:GetDescendants()) do
@@ -358,7 +368,11 @@ function prepAuditedClone(model, sourcePath, category, purpose)
             quarantineActiveCloneScript(desc, sourcePath)
         elseif desc:IsA("ProximityPrompt") or desc:IsA("ClickDetector") then
             desc:Destroy()
-        elseif desc:IsA("BillboardGui") or desc:IsA("SurfaceGui") then
+        elseif desc:IsA("BillboardGui") then
+            desc.Enabled = false
+            desc.AlwaysOnTop = false
+            desc.MaxDistance = math.min(tonumber(desc.MaxDistance) or 40, 40)
+        elseif desc:IsA("SurfaceGui") then
             desc.Enabled = false
         elseif desc:IsA("Humanoid") then
             desc.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
@@ -386,11 +400,27 @@ end
 local function collectHordeCharacterTemplates(source)
     local templates = {}
     if not source then return templates end
-    for _, desc in ipairs(source:GetDescendants()) do
-        if desc:IsA("Model") and desc:FindFirstChildOfClass("Humanoid") and desc:FindFirstChildWhichIsA("BasePart", true) then
-            local lowerName = string.lower(desc.Name)
-            if lowerName ~= "parts" and not lowerName:find("supply") then
-                table.insert(templates, desc)
+    local function isUsableTemplate(model)
+        if not (model and model:IsA("Model") and model:FindFirstChildWhichIsA("BasePart", true)) then
+            return false
+        end
+        local lowerName = string.lower(model.Name)
+        if lowerName == "parts" or lowerName:find("supply") or lowerName:find("open me") or lowerName:find("read me") then
+            return false
+        end
+        return true
+    end
+    for _, child in ipairs(source:GetChildren()) do
+        if isUsableTemplate(child) then
+            table.insert(templates, child)
+        end
+    end
+    if #templates == 0 then
+        for _, desc in ipairs(source:GetDescendants()) do
+            if desc ~= source and isUsableTemplate(desc) then
+                if desc:FindFirstChildOfClass("Humanoid") or desc.Parent == source then
+                    table.insert(templates, desc)
+                end
             end
         end
     end
@@ -399,7 +429,7 @@ local function collectHordeCharacterTemplates(source)
 end
 
 local function pickTemplate(templates, index, fallback)
-    if #templates > 0 then
+    if type(templates) == "table" and #templates > 0 then
         return templates[((index - 1) % #templates) + 1]
     end
     return fallback
@@ -425,6 +455,13 @@ end
 local function buildAuditedAssetPlacements(roots)
     local world = roots.ArenaCore and roots.ArenaCore.Parent
     local stageRig = findArtAsset("Stage", "Clean_ConcertStageTrussSpeakerLights")
+    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
+    local hordeSource = hordePack or Workspace:FindFirstChild("Unused_MapAssets")
+    local hordeTemplates = collectHordeCharacterTemplates(hordeSource)
+    local creatorFanCrowd = findArtAsset("Audience", "Clean_CreatorFanCrowdNPC_4884699204")
+    local creatorVendorStation = findArtAsset("Vendors", "Clean_CreatorVendorStation_425283754")
+    local creatorSecurityConsole = findArtAsset("Props", "Clean_CreatorSecurityConsole_11864290745")
+    local creatorTourBus = findArtAsset("TourBus", "Clean_CreatorTourBusProp_75431387")
     placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 4.0, 0), 0.25)
     for _, point in ipairs(PolarLayout.distribute(4, 31, 4, 45)) do
         placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.10)
@@ -434,9 +471,13 @@ local function buildAuditedAssetPlacements(roots)
     end
 
     local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
-    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
-    local fanNpcPack = findArtAsset("Audience", "Clean_FanNPCCreatorLocalPack") or hordePack
-    local fanNpcPath = fanNpcPack == hordePack and "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde" or "ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack"
+    local fanNpcPack = creatorFanCrowd or findArtAsset("Audience", "Clean_FanNPCCreatorLocalPack") or hordePack
+    local fanNpcPath = "ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack"
+    if fanNpcPack == creatorFanCrowd then
+        fanNpcPath = "ReplicatedStorage.ArtAssets.Audience.Clean_CreatorFanCrowdNPC_4884699204"
+    elseif fanNpcPack == hordePack then
+        fanNpcPath = "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
+    end
     for _, def in ipairs(Vendors) do
         local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
         if parent then
@@ -469,7 +510,9 @@ local function buildAuditedAssetPlacements(roots)
                 local col = ((npcIndex - 1) % 16) - 7.5
                 local radius = 62 + row * 5.2 + ((npcIndex % 3) * 0.55)
                 local template = pickTemplate(hordeTemplates, npcIndex + sectorDef.Angle, hordePack)
-                local templatePath = template and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. template.Name) or "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
+                local templatePath = hordePack and template and template:IsDescendantOf(hordePack)
+                    and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. template.Name)
+                    or (template and ("Workspace.Unused_MapAssets." .. template.Name) or "UNKNOWN")
                 local cf = PolarLayout.cframeFacingCenter(radius, sectorDef.Angle, 3.4) * CFrame.new(col * 1.75, 0, 0)
                 local clone = placeAuditedClone(horde, "Audited_BrainrotNPC_" .. sectorDef.Id .. "_" .. string.format("%03d", npcIndex), template, templatePath, "hordeRing", "audited live brainrot horde NPC " .. sectorDef.Id, cf, 0.46 + ((npcIndex % 4) * 0.025))
                 tagBrainrotNPC(clone, sectorDef.Id, npcIndex)
@@ -483,7 +526,9 @@ local function buildAuditedAssetPlacements(roots)
     if tourBusArea then
         placeAuditedClone(tourBusArea, "Audited_BackstageDepotRig", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "tourBusAndSpawn", "audited backstage/tour-bus depot rig", CFrame.new(-18, 5, -68) * CFrame.Angles(0, math.rad(90), 0), 0.12)
         local busTemplate = pickTemplate(hordeTemplates, 9, hordePack)
-        local busPath = busTemplate and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. busTemplate.Name) or "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
+        local busPath = hordePack and busTemplate and busTemplate:IsDescendantOf(hordePack)
+            and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. busTemplate.Name)
+            or (busTemplate and ("Workspace.Unused_MapAssets." .. busTemplate.Name) or "UNKNOWN")
         placeAuditedClone(tourBusArea, "Audited_TourBusManagerNPC", busTemplate, busPath, "tourBusAndSpawn", "audited tour bus manager NPC", CFrame.new(-4, 4, -51) * CFrame.Angles(0, math.rad(180), 0), 0.42)
         placeAuditedClone(tourBusArea, "Audited_BackstageMerchProps", vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "tourBusAndSpawn", "audited tour bus/store backstage props", CFrame.new(7, 3.2, -44) * CFrame.Angles(0, math.rad(180), 0), 0.24)
         placeAuditedClone(tourBusArea, "Audited_CreatorTourBusProp_Main", creatorTourBus, "ReplicatedStorage.ArtAssets.TourBus.Clean_CreatorTourBusProp_75431387", "tourBusAndSpawn", "Creator Store tour bus prop", CFrame.new(-26, 4.2, -72) * CFrame.Angles(0, math.rad(90), 0), 0.12)
@@ -508,11 +553,16 @@ local function hideAutogenLookingScaffold(world)
         if desc:IsA("BasePart") and desc.Transparency < 0.95 then
             for _, pattern in ipairs(patterns) do
                 if desc.Name:match(pattern) then
-                    desc.Transparency = 1
-                    desc.CanCollide = false
-                    desc:SetAttribute("RejectedPlacement", true)
-                    desc:SetAttribute("AutogenScaffoldHidden", true)
-                    hidden += 1
+                    local keepReadableFence = desc:GetAttribute("AssetSourcePath") == READABLE_ASSET_SOURCE
+                        and desc:GetAttribute("PlacementCategory") == "fenceRing"
+                        and (desc.Name:match("^FenceArcSegment_") or desc.Name:match("^FencePost_"))
+                    if not keepReadableFence then
+                        desc.Transparency = 1
+                        desc.CanCollide = false
+                        desc:SetAttribute("RejectedPlacement", true)
+                        desc:SetAttribute("AutogenScaffoldHidden", true)
+                        hidden += 1
+                    end
                     break
                 end
             end
@@ -602,6 +652,9 @@ end
 
 function WorldV2Builder.EnsureAssetRoots()
     local roots = AssetAuditService.EnsureRoots()
+    for _, name in ipairs({ "Vendors", "TourBus" }) do
+        ensureFolder(roots.ArtAssets, name)
+    end
     promoteFanNpcCreatorLocalAssets(roots)
     if roots.Inbox then
         hideInstanceVisuals(roots.Inbox)

@@ -21,7 +21,7 @@ function AssetAuditService.EnsureRoots()
     local quarantine = ensureFolder(ServerStorage, "AssetQuarantine")
     local inbox = ensureFolder(Workspace, "AssetInbox")
     local art = ensureFolder(ReplicatedStorage, "ArtAssets")
-    for _, name in ipairs({ "Stage", "Lobby", "Horde", "Audience", "Volcano", "Lighting", "Props" }) do
+    for _, name in ipairs({ "Stage", "Lobby", "Horde", "Audience", "Volcano", "Lighting", "Props", "Vendors", "TourBus" }) do
         ensureFolder(art, name)
     end
     return { Quarantine = quarantine, Inbox = inbox, ArtAssets = art }

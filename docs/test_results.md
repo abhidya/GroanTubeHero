@@ -2,6 +2,50 @@
 
 Date: 2026-05-25
 
+## Latest validation summary — direct Studio MCP live Play PASS
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Direct Roblox Studio MCP | PASS | Connected through `StudioMCP --stdio`; active Studio set to `GroanTubeHero.synced.rbxlx` (`659903e1-c39b-46a7-820b-0b7623a1305f`). |
+| Rojo build | PASS | `rojo build default.project.json -o /private/tmp/GroanTubeHero-billboardfix.rbxlx` completed. |
+| `git diff --check` | PASS | No whitespace errors after current horde/fence/billboard fix. |
+| Bad audio asset scan | PASS | `rbxassetid://3144620759` removed from live Studio validation path and repo/zip scans; runtime `badSoundCount=0`. |
+| Studio source sync | PASS | Live `WorldV2Builder.Source` contains `local hordeTemplates = collectHordeCharacterTemplates(...)` and BillboardGui clamp (`MaxDistance <= 40`). |
+| Play start/stop | PASS | MCP `start_stop_play` started and stopped Studio Play cleanly. |
+| `WorldValidation.Run()` in Play | PASS | `ok=true`; no placeholder, unaudited placement, script-under-world, or billboard violations. |
+| `UnitTests.Run()` in Play | PASS | `failed=0`, `passed=13`. |
+| `GameTestHarness.Run()` in Play | PASS | Session `Harness-LocalAudioSong001-1936522`; 38 note simulation; summary score `4725`, max combo `38`, grade `A`, misses `0`. |
+| Horde visual runtime | PASS | `massBrainrotNPCModels=512`, `visibleHordeParts=3680`, `visibleHordeFigureBlocks=0`; orange procedural horde blocks not visible. |
+| Fence visual runtime | PASS | `visibleFenceParts=2608`; fence ring is visible in Play. |
+| Unsafe BillboardGui runtime | PASS | `billboardUnsafe=0` after clamping imported tour bus BillboardGuis to `AlwaysOnTop=false`, `MaxDistance<=40`. |
+
+### Latest direct Studio MCP counts
+
+| Count | Value |
+| --- | ---: |
+| Active WorldV2 Models | 2548 |
+| Active WorldV2 MeshParts | 80 |
+| Active WorldV2 visible BaseParts | 14778 |
+| Active placed art instances | 14778 |
+| Stage/core art | 412 |
+| Lighting/trusses art | 1408 |
+| Vendor ring art | 2591 |
+| Fence ring art | 2608 |
+| Horde ring art | 3680 |
+| Audience ring art | 3338 |
+| Volcano outer ring art | 80 |
+| Tour bus/spawn art | 661 |
+| Mass brainrot NPC models | 512 |
+| Visible procedural `HordeFigure_*` blocks | 0 |
+| Invisible hitboxes | 6 |
+| Vendor prompts | 16 |
+| Horde sectors | 8 |
+| Scripts under `Workspace.GTH_WorldV2` | 0 |
+| Missing required assets | 0 |
+| Visible placeholder violations | 0 |
+| Unaudited visible placements | 0 |
+| Unsafe BillboardGui count | 0 |
+
 ## Latest validation summary — Rojo synced, playable placement repaired
 
 | Test | Result | Notes |

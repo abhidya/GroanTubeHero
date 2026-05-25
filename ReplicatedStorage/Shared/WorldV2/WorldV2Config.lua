@@ -25,7 +25,7 @@ WorldV2Config.RootFolders = {
     "InvisibleGameplayHitboxes",
     "CompatibilityAdapters",
 }
-WorldV2Config.ArtAssetFolders = { "Stage", "Lobby", "Horde", "Audience", "Volcano", "Lighting", "Props" }
+WorldV2Config.ArtAssetFolders = { "Stage", "Lobby", "Horde", "Audience", "Volcano", "Lighting", "Props", "Vendors", "TourBus" }
 WorldV2Config.PlaceholderNames = { Part = true, Block = true, Circle = true, Cylinder = true, Temp = true, Debug = true }
 WorldV2Config.RequiredArtAssets = { "WorldV2_SafeProceduralKit" }
 WorldV2Config.Viewports = {
