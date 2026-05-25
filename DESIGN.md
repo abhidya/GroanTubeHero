@@ -2,9 +2,9 @@
 
 ## Source of truth
 - Status: Draft
-- Last refreshed: 2026-05-24
+- Last refreshed: 2026-05-25
 - Primary product surfaces: Roblox lobby arena, rhythm HUD, song select, results, store/upgrades, missions, tour bus, audience/watch.
-- Evidence reviewed: `README.md`, `StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua`, `InputController.client.lua`, `StageFeedbackClient.client.lua`, `DataClient.client.lua`, `AudienceClient.client.lua`, `ServerScriptService/Services/GameBootstrap.server.lua`, live Studio stage/horde layout via MCP.
+- Evidence reviewed: `README.md`, `StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua`, `InputController.client.lua`, `StageFeedbackClient.client.lua`, `DataClient.client.lua`, `AudienceClient.client.lua`, `EngagementClient.client.lua`, `ServerScriptService/Services/GameBootstrap.server.lua`, live Studio stage/horde layout via MCP, Roblox Creator Hub UI/asset guidance, Creator Store searches for volcano, stage lights, and monster horde assets.
 
 ## Brand
 - Personality: chaotic concert-defense, brainrot horror comedy, loud arcade feedback.
@@ -38,6 +38,13 @@
 - Shape/radius/elevation: rounded HUD cards, neon stage panels, raised center platform.
 - Motion: notes descend to hit line; horde tweens ramp-to-stage; lights flash on streaks/misses.
 - Imagery/iconography: arrow symbols only for controls; brainrot asset clones as horde, stripped of scripts.
+
+
+## Creator asset research notes
+- Creator Store searches reviewed: low-poly volcano/backdrop props, concert stage lights, and low-poly monster/horde characters.
+- Asset rule: prefer mesh/model visuals only; any inserted Creator Store model must be inspected, anchored, stripped of scripts/remotes/prompts, and placed under `Workspace.Stage.BrainrotBackdrop` or `Workspace.Stage.BrainrotHorde.HordeRoot`.
+- Safety rule: avoid Marketplace scripts because the game ban list and Roblox Creator Store guidance reject remote package loaders, dynamic string execution, service-based insertion, linked sources, and obfuscated code.
+- Current implementation choice: use safe procedural volcano/horde/stage feedback first; curate visual-only assets later when they can be reviewed in Studio without adding mystery scripts.
 
 ## Components
 - Existing components to reuse: `RhythmGui`, `InputController`, `StageFeedbackClient`, `AudienceGui`, `StoreGui`, `MissionGui`.

@@ -1,5 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
+
 local SongCatalog = {}
 
 local shared = ReplicatedStorage:WaitForChild("Shared")
@@ -129,7 +131,8 @@ for _, module in ipairs(generatedModules) do
         local number = module.Name:match("Chart_LocalAudioSong(%d+)$")
         if number then
             song.Id = "LocalAudioSong" .. number
-            song.Title = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
+            song.SourceTitle = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
+            song.Title = Config.DebugRhythm and song.SourceTitle or ("Local Audio Song " .. number)
         end
         addSong(song, "LocalTest")
     else
@@ -170,13 +173,16 @@ end
 
 function SongCatalog.PrettyTitle(songOrId)
     local id = type(songOrId) == "table" and songOrId.Id or tostring(songOrId or "")
+    local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
+    if number and not Config.DebugRhythm then
+        return "Local Audio Song " .. number
+    end
     if TITLE_OVERRIDES[id] then
         return TITLE_OVERRIDES[id]
     end
     if type(songOrId) == "table" and type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
         return cleanRawTitle(songOrId.Title)
     end
-    local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
     if number then
         return "Local Audio Song " .. number
     end

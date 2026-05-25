@@ -15,10 +15,49 @@ local function ensure(parent, className, name)
     return instance
 end
 
+local function setModelPrimaryPart(model)
+    if not model or not model:IsA("Model") then return end
+    if model.PrimaryPart then return end
+    local firstPart = model:FindFirstChildWhichIsA("BasePart", true)
+    if firstPart then
+        model.PrimaryPart = firstPart
+    end
+end
+
+local function convertFolderRoot(hordeFolder)
+    local root = hordeFolder:FindFirstChild("HordeRoot")
+    if root and root:IsA("Folder") then
+        local oldFolder = root
+        local model = Instance.new("Model")
+        model.Name = "HordeRoot"
+        model.Parent = hordeFolder
+        for _, child in ipairs(oldFolder:GetChildren()) do
+            child.Parent = model
+            if child:IsA("BasePart") then
+                child.Anchored = true
+                child.CanCollide = false
+            elseif child:IsA("Model") then
+                for _, part in ipairs(child:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.Anchored = true
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+        oldFolder:Destroy()
+        root = model
+    end
+    if root and root:IsA("Model") then
+        setModelPrimaryPart(root)
+    end
+    return root
+end
+
 local function ensureStageHorde()
     local stage = workspace:FindFirstChild("Stage") or ensure(workspace, "Folder", "Stage")
     local hordeFolder = ensure(stage, "Folder", "BrainrotHorde")
-    local root = hordeFolder:FindFirstChild("HordeRoot")
+    local root = convertFolderRoot(hordeFolder)
     if not root then
         root = Instance.new("Model")
         root.Name = "HordeRoot"
@@ -34,7 +73,7 @@ local function ensureStageHorde()
             part.CFrame = CFrame.new(((i - 1) % 4 - 1.5) * 4, 4, math.floor((i - 1) / 4) * 4)
             part.Parent = root
         end
-        root.PrimaryPart = root:FindFirstChild("Brainrot1")
+        setModelPrimaryPart(root)
     end
     local far = hordeFolder:FindFirstChild("HordeFarPoint") or Instance.new("Part")
     far.Name = "HordeFarPoint"

@@ -184,6 +184,20 @@ hitLine.Parent = highway
 corner(hitLine, 4)
 stroke(hitLine, Color3.fromRGB(255, 255, 255), 1)
 
+local songProgressBack = Instance.new("Frame")
+songProgressBack.Name = "SongProgressBack"
+songProgressBack.Size = UDim2.new(1, -20, 0, 8)
+songProgressBack.Position = UDim2.new(0, 10, 0, -16)
+songProgressBack.BackgroundColor3 = Color3.fromRGB(40, 45, 70)
+songProgressBack.Parent = highway
+corner(songProgressBack, 4)
+local songProgressFill = Instance.new("Frame")
+songProgressFill.Name = "SongProgressFill"
+songProgressFill.Size = UDim2.fromScale(0, 1)
+songProgressFill.BackgroundColor3 = Color3.fromRGB(120, 255, 180)
+songProgressFill.Parent = songProgressBack
+corner(songProgressFill, 4)
+
 local judgement = makeLabel(root, "Judgement", "", UDim2.new(0, 520, 0, 82), UDim2.new(0.5, -260, 0.16, 0), Color3.new(1, 1, 1), Enum.Font.GothamBlack)
 judgement.TextStrokeTransparency = 0.35
 judgement.TextTransparency = 1
@@ -292,7 +306,7 @@ local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new
 closeSongSelect.Activated:Connect(function()
     songSelect.Visible = false
 end)
-makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local test charts are separated and not public-release content.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
+makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local/test audio modules are for local testing only. No copyright infringement intended.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local selectedDifficulty = "Easy"
 local selectedSegment = "30s"
 local selectedSection = "Intro"
@@ -482,7 +496,7 @@ local function updateHud(payload)
     local status = state.hp <= 0 and "Disaster" or state.hp < 40 and "Shaky" or "Stable"
     hypeInfo.Text = string.format("Stability %d%%  Hype %d\n%s • %s", state.hp, state.hype, status, payload.hypeTier or "Build the crowd")
     if state.combo > 0 and state.combo % 5 == 0 then
-        comboFx.Text = string.format("🔥 %d COMBO STREAK 🔥", state.combo)
+        comboFx.Text = string.format(state.combo >= 20 and "⚡ %d ENCORE BLAST ⚡" or state.combo >= 10 and "🔥 %d HORDE PUSHBACK 🔥" or "✨ %d COMBO STREAK ✨", state.combo)
         comboFx.TextTransparency = 0
         comboFx.Size = UDim2.new(0, 700, 0, 90)
         TweenService:Create(comboFx, TweenInfo.new(0.18, Enum.EasingStyle.Back), { Size = UDim2.new(0, 780, 0, 104) }):Play()
@@ -591,7 +605,7 @@ local function buildSongCards()
         card.Parent = songList
         corner(card, 18)
         stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. song.Title, UDim2.new(1, -20, 0, 62), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. SongCatalog.PrettyTitle(song), UDim2.new(1, -20, 0, 62), UDim2.new(0, 10, 0, 10), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 28), UDim2.new(0, 10, 0, 76), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 96), UDim2.new(0, 10, 0, 108), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
         local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 38), UDim2.new(0, 17, 1, -48), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))
@@ -630,17 +644,17 @@ end
 ProximityPromptService.PromptTriggered:Connect(function(prompt)
     if not prompt or not prompt.Parent then return end
     local name = prompt.Parent.Name
-    if name == "StartPrompt" then
+    if name == "StartPrompt" or name == "Sign_Start" then
         openSongSelect()
-    elseif name == "StoreKiosk" then
+    elseif name == "StoreKiosk" or name == "Sign_Store" then
         openStore("Tube Sounds")
-    elseif name == "UpgradeKiosk" then
+    elseif name == "UpgradeKiosk" or name == "Sign_Upgrades" then
         openStore("Upgrades")
-    elseif name == "MissionBoard" then
+    elseif name == "MissionBoard" or name == "Sign_Missions" then
         openStore("Missions")
-    elseif name == "BusBody" or name == "TourBus" then
+    elseif name == "BusBody" or name == "TourBus" or name == "Sign_TourBus" then
         openStore("Tour Bus")
-    elseif name == "AudienceZone" or name == "AudienceSign" then
+    elseif name == "AudienceZone" or name == "AudienceSign" or name == "Sign_Audience" then
         local audienceGui = playerGui:FindFirstChild("AudienceGui")
         if audienceGui then
             audienceGui:SetAttribute("Open", true)
@@ -817,7 +831,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
     local rewards = payload.rewards or {}
     local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
     resultsText.Text = string.format(
-        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
+        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nHorde %s %d%%   %s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
         payload.song and payload.song.Title or "Song Complete",
         summary.difficulty or state.lastDifficulty or "Easy",
         summary.segmentLabel or state.lastSegment or "30s",
@@ -860,6 +874,8 @@ RunService.PreRender:Connect(function()
         return
     end
     local songTime = serverNow() - state.startServerTime
+    local duration = math.max(1, (state.endServerTime or state.startServerTime + 1) - (state.startServerTime or serverNow()))
+    songProgressFill.Size = UDim2.fromScale(math.clamp(songTime / duration, 0, 1), 1)
     if songTime < 0 then
         judgement.TextTransparency = 0
         judgement.Text = tostring(math.ceil(-songTime))
