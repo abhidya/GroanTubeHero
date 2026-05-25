@@ -230,6 +230,38 @@ function HordeService:FinishSession(session)
     end
 end
 
+function HordeService:RepairSector(player, sectorId, amount)
+    amount = amount or 20
+    sectorId = tostring(sectorId or ""):gsub("^HordeSector_", "")
+    local session = player and self.context and self.context.Services and self.context.Services.SongSessionService:GetSession(player)
+    local horde = session and self.sessions[session.id]
+    if horde and horde.sectorHealths and horde.sectorHealths[sectorId] ~= nil then
+        horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + amount)
+        horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - amount)
+        horde.activeSectorId = sectorId
+        session.sectorHealths = horde.sectorHealths
+        session.activeSectorId = sectorId
+        self:_broadcast(session, "Repair")
+    end
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local sector = world and world:FindFirstChild("HordeSector_" .. sectorId, true)
+    if sector then
+        local health = clampHealth((sector:GetAttribute("Health") or 100) + amount)
+        sector:SetAttribute("Health", health)
+        sector:SetAttribute("Pressure", math.max(0, (sector:GetAttribute("Pressure") or 0) - amount))
+        sector:SetAttribute("LastRepairBy", player and player.UserId or 0)
+        sector:SetAttribute("LastRepairAt", os.clock())
+        local fence = sector:FindFirstChild("FenceSegment")
+        if fence and fence:IsA("BasePart") then fence.Color = Color3.fromRGB(95, 255, 120) end
+        local siren = sector:FindFirstChild("SirenLight")
+        local light = siren and siren:FindFirstChildOfClass("PointLight")
+        if light then light.Brightness = 0 end
+        local meter = sector:FindFirstChild("HordePressureMeter")
+        if meter and meter:IsA("BasePart") then meter:SetAttribute("Pressure", sector:GetAttribute("Pressure") or 0) end
+    end
+    return true
+end
+
 function HordeService:RemoveSession(sessionOrId)
     local id = type(sessionOrId) == "table" and sessionOrId.id or sessionOrId
     if id then

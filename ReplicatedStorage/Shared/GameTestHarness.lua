@@ -92,7 +92,22 @@ function GameTestHarness.Run()
     assert(run.summary.good > 0, "Harness expected good hits")
     assert(run.summary.grade == "S" or run.summary.grade == "A", "Harness expected strong grade")
 
-    -- 3. If on Server, test game service integrations
+    -- 3. WorldV2/asset placement validation runs in every harness context.
+    local worldResult = WorldValidation.Run()
+    assert(worldResult.ok == true, "WorldValidation must pass")
+    local counts = worldResult.counts or {}
+    print("[GameTestHarness] Active WorldV2 Models: " .. tostring(counts.models or 0))
+    print("[GameTestHarness] Active WorldV2 MeshParts: " .. tostring(counts.meshParts or 0))
+    print("[GameTestHarness] Active WorldV2 visible BaseParts: " .. tostring(counts.visibleBaseParts or 0))
+    print("[GameTestHarness] Active placed art instances: " .. tostring(counts.activePlacedArtInstances or 0))
+    print("[GameTestHarness] ArtAssets source models: " .. tostring(counts.artAssetSourceModels or 0))
+    print("[GameTestHarness] Quarantined scripts: " .. tostring(counts.quarantinedScripts or 0))
+    print("[GameTestHarness] Missing required assets: " .. tostring(counts.missingRequiredAssets or 0))
+    print("[GameTestHarness] Visible placeholder violations: " .. tostring(counts.visiblePlaceholderViolations or 0))
+    print("[GameTestHarness] Unaudited asset placements: " .. tostring(counts.unauditedAssetPlacements or 0))
+    print("[GameTestHarness] Autogen blank meshes excluded: " .. tostring(counts.autogenBlankMeshesExcluded or 0))
+
+    -- 4. If on Server, test game service integrations
     if RunService:IsServer() then
         local ServerScriptService = game:GetService("ServerScriptService")
         local services = ServerScriptService:FindFirstChild("Services")
@@ -134,31 +149,17 @@ function GameTestHarness.Run()
             end
         end
 
-        -- WorldV2 validation and prompt paths check
-        local worldResult = WorldValidation.Run()
-        assert(worldResult.ok == true, "WorldValidation must pass")
-        local counts = worldResult.counts or {}
-        print("[GameTestHarness] Active WorldV2 Models: " .. tostring(counts.models or 0))
-        print("[GameTestHarness] Active WorldV2 MeshParts: " .. tostring(counts.meshParts or 0))
-        print("[GameTestHarness] Active WorldV2 visible BaseParts: " .. tostring(counts.visibleBaseParts or 0))
-        print("[GameTestHarness] ArtAssets source models: " .. tostring(counts.artAssetSourceModels or 0))
-        print("[GameTestHarness] Quarantined scripts: " .. tostring(counts.quarantinedScripts or 0))
-        print("[GameTestHarness] Missing required assets: " .. tostring(counts.missingRequiredAssets or 0))
-        print("[GameTestHarness] Visible placeholder violations: " .. tostring(counts.visiblePlaceholderViolations or 0))
-        print("[GameTestHarness] Audit scripts: " .. tostring(counts.auditScripts or 0))
-        print("[GameTestHarness] Audit MeshParts: " .. tostring(counts.auditMeshParts or 0))
-        print("[GameTestHarness] Audit parts: " .. tostring(counts.auditParts or 0))
-        print("[GameTestHarness] Audit sounds: " .. tostring(counts.auditSounds or 0))
-        print("[GameTestHarness] Audit emitters: " .. tostring(counts.auditEmitters or 0))
-        print("[GameTestHarness] Audit lights: " .. tostring(counts.auditLights or 0))
-        print("[GameTestHarness] Audit decals: " .. tostring(counts.auditDecals or 0))
-        print("[GameTestHarness] Audit SurfaceAppearances: " .. tostring(counts.auditSurfaceAppearances or 0))
+        -- WorldV2 validation already ran above in all contexts.
     end
 
     -- 4. If on Client, test UI modals
     if RunService:IsClient() then
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
+        if not player or not player:FindFirstChild("PlayerGui") then
+            print("[GameTestHarness] Client UI validation skipped: no LocalPlayer/PlayerGui in this execution context")
+            return run
+        end
         local rhythmGui = player.PlayerGui:FindFirstChild("RhythmGui")
         if rhythmGui then
             local modal = rhythmGui.Root:FindFirstChild("SongSelectModal")

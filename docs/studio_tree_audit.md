@@ -45,3 +45,18 @@ The active MCP Studio tree is a minimal WorldV2/compat state. Latest direct Worl
 - Current live MCP proof uses only objects actually visible in active Studio.
 - No active WorldV2 proof depends on unavailable Studio paths.
 - Any future use of supplied local assets still requires quarantine/audit before placement in `ReplicatedStorage.ArtAssets`.
+
+## 2026-05-25 synced Studio MCP probe
+
+Active Studio: `GroanTubeHero.synced.rbxlx`. Rojo-synced repo scripts are present, but imported art sources needed for the new 500+ audited-art finish bar are absent.
+
+| Path | Status | Counts / Notes |
+| --- | --- | --- |
+| `Workspace.GTH_WorldV2` | Present | 15 Models, 229 BaseParts, 0 MeshParts, 0 scripts in play probe. |
+| `Workspace.Stage` | Compatibility only | 6 children, 0 Models, 0 BaseParts, 0 MeshParts; no imported `StagePlatform`/`SpeakerStacks`/kiosk art. |
+| `Workspace.Unused_MapAssets` | Missing | Cannot audit/promote 98 horde/crowd templates from the pasted manifest. |
+| `Workspace.TourBus` | Missing in runtime probe | Cannot audit/promote bus body/wheels. |
+| `ReplicatedStorage.ArtAssets` | Present but insufficient | 1 scaffold model `WorldV2_SafeProceduralKit`; no real audited final-art models. |
+| `Workspace.AssetInbox` | Present in builder/runtime when roots ensured | No imported Creator/Studio assets recorded for this pass. |
+
+Conclusion: final 500+ audited placed-art pass is blocked until a Studio place with the manifest-listed assets is active, or assets are imported into quarantine/inbox.

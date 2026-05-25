@@ -80,13 +80,37 @@ fillCorner.CornerRadius = UDim.new(0, 6)
 fillCorner.Parent = fill
 
 local currentTweens = {}
+local function addMovementCue(sector, judgement)
+    if not sector then return end
+    local marker = sector:FindFirstChild("HordeMotionCue")
+    if not marker then
+        marker = Instance.new("Part")
+        marker.Name = "HordeMotionCue"
+        marker.Anchored = true
+        marker.CanCollide = false
+        marker.Shape = Enum.PartType.Ball
+        marker.Material = Enum.Material.Neon
+        marker.Size = Vector3.new(5, 5, 5)
+        marker:SetAttribute("AuditedArtAsset", true)
+        marker:SetAttribute("AssetSourcePath", "ProjectOwned/HordeMotionCue")
+        marker:SetAttribute("PlacementCategory", "hordeRing")
+        marker.Parent = sector
+    end
+    local angle = tonumber(sector:GetAttribute("AngleDeg")) or 90
+    local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
+    marker.CFrame = PolarLayout.cframeFacingCenter(58, angle, 7)
+    marker.Transparency = 0.1
+    marker.Color = judgement == "Repair" and Color3.fromRGB(80, 255, 140) or judgement == "Miss" and Color3.fromRGB(255, 45, 45) or Color3.fromRGB(90, 210, 255)
+    TweenService:Create(marker, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), { Size = Vector3.new(12, 12, 12), Transparency = 0.55 }):Play()
+end
 
 local function tweenCluster(cluster, distance, sectorId)
     if not cluster or not cluster:IsA("Model") then return end
     local sector = getSector(sectorId)
     local angle = tonumber(sector and sector:GetAttribute("AngleDeg")) or 90
     local alpha = math.clamp((distance or 100) / 100, 0, 1)
-    local radius = 53 + alpha * 22
+    local pressure = sector and tonumber(sector:GetAttribute("Pressure")) or 0
+    local radius = 48 + alpha * 34 - math.clamp(pressure / 100, 0, 1) * 10
     local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
     local target = PolarLayout.cframeFacingCenter(radius, angle, 3)
     if currentTweens[cluster] then currentTweens[cluster]:Cancel() end
@@ -145,6 +169,8 @@ if remotes:FindFirstChild("HordeUpdate") then
         label.Text = string.format("Brainrot Horde: %s  %d%%  Sector %s", state, math.floor(distance + 0.5), sectorId)
         fill.Size = UDim2.fromScale(1 - math.clamp(distance / 100, 0, 1), 1)
         updateSectorVisuals(payload)
+        local sector = getSector(sectorId)
+        addMovementCue(sector, payload.lastJudgement)
         local cluster = getCluster(sectorId)
         if cluster then
             tweenCluster(cluster, distance, sectorId)

@@ -81,3 +81,28 @@ Key candidate templates: `Sammyni_Spyderini`, `Unclito_Samito`, `Orangutini Anan
 | Total descendants across map assets | 8,710 | Live Studio inventory figure supplied by manifest |
 
 Creator Store candidate IDs from previous prompt remain unaudited and unused. Future imports must enter `ServerStorage.AssetQuarantine` or `Workspace.AssetInbox`, pass audit, quarantine all scripts unless project-owned and rewritten, then copy clean models into `ReplicatedStorage.ArtAssets` before use.
+
+## 2026-05-25 synced Studio asset-source status
+
+MCP validation against active `GroanTubeHero.synced.rbxlx` found the manifest-listed local source assets are not present in the synced DataModel:
+
+| Source path | MCP status | Promotion status |
+| --- | --- | --- |
+| `Workspace.Unused_MapAssets` | Missing | Blocked; cannot audit/promote horde/crowd templates. |
+| `Workspace.Stage.StagePlatform` and other imported Stage art | Absent from active Stage; Stage is compatibility folder only | Blocked; cannot audit/promote stage/vendor/speaker/volcano assets. |
+| `Workspace.TourBus` | Missing in runtime probe | Blocked; cannot audit/promote tour bus dressing. |
+| `ReplicatedStorage.ArtAssets.WorldV2_SafeProceduralKit` | Present | Project-owned scaffold only; not countable toward final 500 audited placed art requirement. |
+
+No Creator Store asset IDs were imported or trusted in this pass. No scripts were promoted into active `Workspace.GTH_WorldV2`.
+
+## 2026-05-25 Creator Store MCP promoted assets
+
+| Source asset ID/path | Cleaned ArtAssets path | Used WorldV2 path | Scripts quarantined | Counted art parts | Purpose |
+| --- | --- | --- | ---: | ---: | --- |
+| Creator Store `84533917908730` from query `concert stage truss speaker lights` | `ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights` | `Workspace.GTH_WorldV2.StageCircle.Audited_StageCore_ConcertRig`; `LightingAnchors.Audited_Lighting_TrussRig_N`; `FenceRing.Audited_FenceRing_BarricadeRig` | 0 | 954 | stage core, truss/lights, fence dressing |
+| Creator Store `148933335` from query `cartoon monster npc horde` | `ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde` | 8 horde sector `Audited_HordeMonsterPack_*`; `AudienceRing.Audited_Audience_CrowdMonsterPack` | 45 | 1008 | horde and crowd characters |
+| Creator Store `7979344076` from query `volcano rock lava cliff` | `ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff` | `VolcanoOuterRing.Audited_VolcanoCliff_1..8` | 0 | 80 | volcanic outer ring |
+| Creator Store `101846227525981` from query `stadium crowd seats` | `ReplicatedStorage.ArtAssets.Audience.Clean_StadiumCrowdSeats` | Imported then hidden/excluded from active count because it looked like a giant football stadium slab near spawn | 16 | 0 active | rejected/hidden after visual audit |
+| Creator Store `14660776730` from query `vendor kiosk shop counter` | `ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter` | `VendorRing.Audited_VendorRing_KioskSet`; `Workspace.GTH_WorldV2.Audited_TourBusSpawn_PathDressing` | 2 | 206 | vendor ring and spawn/path dressing |
+
+Total scripts quarantined from imported assets: 63. Active `Workspace.GTH_WorldV2` script descendants after validation: 0.

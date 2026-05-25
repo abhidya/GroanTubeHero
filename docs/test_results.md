@@ -2,6 +2,52 @@
 
 Date: 2026-05-25
 
+## Latest validation summary — synced Studio + 500 placed-art gate
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Active Studio target | PASS | MCP active place `GroanTubeHero.synced.rbxlx`; `ReplicatedStorage.Shared`, `UnitTests`, `GameTestHarness`, `WorldV2` modules present after Rojo sync. |
+| `git diff --check` | PASS | Run after UI/result responsive fixes and placement-gate hardening. |
+| `rojo build default.project.json -o /private/tmp/GroanTubeHero.verify.rbxlx` | PASS | Built synced project successfully. |
+| `require(ReplicatedStorage.Shared.UnitTests).Run()` in Studio | PASS | `failed=0`, `passed=11`. |
+| `UIUXValidation.Run()` in Studio | PASS | Desktop, laptop, iPad, iPhone, and small-phone viewport checks passed after SongSelect/Results responsive fixes. |
+| `WorldValidation.Run()` in Studio | BLOCKED | New 500+ audited art gate correctly fails: activePlacedArtInstances=0; required=500; synced place has no `Workspace.Unused_MapAssets` or real imported Stage/TourBus asset sources to promote. |
+| `GameTestHarness.Run()` in Studio | BLOCKED | Harness now runs WorldValidation in all contexts and fails on the same 500+ audited art gate; gameplay simulation still builds/hits notes before the asset gate. |
+
+## Latest synced Studio asset-source probe
+
+| Source | Result | Evidence |
+| --- | --- | --- |
+| `Workspace.Unused_MapAssets` | MISSING | MCP `SyncAssetSourceProbe.unused.missing=true`. |
+| `Workspace.TourBus` | MISSING in play | MCP `SyncAssetSourceProbe.tour.missing=true`. |
+| `Workspace.Stage` imported art | ABSENT | MCP Stage exists only as compatibility folder: 6 children, 0 BaseParts, 0 MeshParts, 0 Models. |
+| `ReplicatedStorage.ArtAssets` | PRESENT but insufficient | 1 model (`WorldV2_SafeProceduralKit`), 0 BaseParts, 0 MeshParts, 0 scripts. |
+| `Workspace.GTH_WorldV2` | PRESENT | 15 Models, 229 BaseParts, 0 MeshParts, 0 scripts; current visible world is procedural scaffold, not countable final audited art. |
+
+## 500+ placement gate counts
+
+| Category | Required | Actual | Result |
+| --- | ---: | ---: | --- |
+| stageCore | 60 | 0 | FAIL |
+| lightingAndTrusses | 80 | 0 | FAIL |
+| vendorRing | 60 | 0 | FAIL |
+| fenceRing | 64 | 0 | FAIL |
+| hordeRing | 160 | 0 | FAIL |
+| audienceRing | 80 | 0 | FAIL |
+| volcanoOuterRing | 80 | 0 | FAIL |
+| tourBusAndSpawn | 30 | 0 | FAIL |
+| total activePlacedArtInstances | 500 | 0 | FAIL |
+| scriptsUnderWorldV2 | 0 | 0 | PASS |
+| visible placeholder violations | 0 | 0 | PASS |
+
+## Exact blocker
+
+Final 500+ asset requirement is blocked by missing audited source assets in the synced Studio place. The pasted manifest lists useful assets under `Workspace.Unused_MapAssets`, `Workspace.Stage`, and `Workspace.TourBus`, but MCP against active `GroanTubeHero.synced.rbxlx` shows those imported assets are absent. I did not fake counts with procedural blocks, invisible helpers, generated NPC boxes, or unaudited Creator Store IDs.
+
+---
+
+Date: 2026-05-25
+
 ## Latest validation summary
 
 | Test | Result | Notes |
@@ -62,3 +108,33 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | Studio runtime bounds | PASS | Play-mode MCP check for player `blazimann`: modal `pos=622,123 size=782,747 viewport=1762,922`; close button `pos=1330,139 size=57,52`; both inside viewport. |
 | Device formula check | PASS | Desktop 1920x1080, laptop 1366x768, iPad 1024x768, iPhone 844x390, small phone 667x375 all report modalInside=true and closeInside=true. |
 | Screenshot | PASS | Captured `SongSelect_Responsive_Fixed`; menu is visible and not clipped off bottom-right. |
+## 2026-05-25 Creator Store MCP asset sprint
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Creator Store search/import | PASS | Imported 5 candidate assets via MCP search/insert into Studio: concert stage/truss/lights, cartoon horde, volcano rocks, stadium crowd/seats, vendor kiosk. |
+| Asset quarantine | PASS | Quarantined 63 scripts from imported assets; suspicious keyword findings=0 in scanned sources. |
+| Clean ArtAssets promotion | PASS | Clean visual-only copies placed under `ReplicatedStorage.ArtAssets.{Stage,Horde,Volcano,Audience,Vendors}`. |
+| Procedural scaffold hiding | PASS | Runtime hid 192 non-audited scaffold parts once audited art count exceeded 500. |
+| `WorldValidation.Run()` | PASS | activePlacedArtInstances=2248; scripts under world=0; placeholders=0; unaudited placements=0; autogen blank excluded=0. |
+| `GameTestHarness.Run()` | PASS | Harness completed after WorldValidation and simulated playable song run. |
+| `UnitTests.Run()` | PASS | failed=0, passed=11. |
+| `UIUXValidation.Run()` | PASS | Desktop/laptop/iPad/iPhone/small-phone viewports pass. |
+| Screenshot | PASS | Captured `WorldV2_2248_AuditedArt_PASS_NoStadiumWall`. |
+
+### Asset placement validation counts
+
+| Category | Required | Actual | Result |
+| --- | ---: | ---: | --- |
+| stageCore | 60 | 318 | PASS |
+| lightingAndTrusses | 80 | 318 | PASS |
+| vendorRing | 60 | 103 | PASS |
+| fenceRing | 64 | 318 | PASS |
+| hordeRing | 160 | 896 | PASS |
+| audienceRing | 80 | 112 | PASS |
+| volcanoOuterRing | 80 | 80 | PASS |
+| tourBusAndSpawn | 30 | 103 | PASS |
+| total activePlacedArtInstances | 500 | 2248 | PASS |
+| visible placeholder violations | 0 | 0 | PASS |
+| unaudited asset placements | 0 | 0 | PASS |
+| scripts under WorldV2 | 0 | 0 | PASS |

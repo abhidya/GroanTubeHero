@@ -89,3 +89,13 @@ Uked/quarantined chart modules under `ReplicatedStorage.Shared.UkedCharts`: `002
 ## Exact files modified for this pass
 
 See final proof table. Core implementation files: `GameBootstrap.server.lua`, `WorldV2Builder.lua`, `AssetAuditService.lua`, `VendorPromptService.lua`, `CircularHordeVisualService.lua`, `WorldV2Config.lua`, `AssetRegistry.lua`, `VendorDefinitions.lua`, `HordeSectorDefinitions.lua`, `WorldValidation.lua`, `UnitTests.lua`, `UIUXMenuController.client.lua`, and docs.
+
+## 2026-05-25 hard finish-bar delta
+
+New user requirement raises final bar to `activePlacedArtInstances >= 500`, excluding procedural scaffold parts, invisible helpers, prompts, folders, UI, archived/quarantine/inbox contents, and unaudited placements. Current synced Studio evidence:
+
+- `Workspace.GTH_WorldV2` builds and UI/gameplay tests reach runtime.
+- Current world has 0 countable audited placed art instances under the new rule.
+- Current world still contains procedural scaffold art (`NpcBody`, `NpcHead`, `StationPlinth`, `HordeFigure_*`, `FenceArcSegment_*`, `VolcanicCliff_*`, etc.) which must not count toward final 500.
+- Required source assets from the pasted manifest are absent in active `GroanTubeHero.synced.rbxlx`: `Workspace.Unused_MapAssets`, imported `Workspace.Stage` art, and `Workspace.TourBus`.
+- Files touched for this delta: `ReplicatedStorage/Shared/WorldV2/WorldValidation.lua`, `ReplicatedStorage/Shared/GameTestHarness.lua`, `StarterPlayer/StarterPlayerScripts/RhythmClient.client.lua`, test/asset docs.

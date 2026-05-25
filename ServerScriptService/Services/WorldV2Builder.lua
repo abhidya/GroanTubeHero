@@ -75,6 +75,27 @@ local function surfaceLabel(target, text, face)
     label.Parent = gui
 end
 
+
+local function hideProceduralScaffoldWhenAuditedArtReady(world)
+    local auditedCount = 0
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") and desc.Transparency < 0.95 and desc:GetAttribute("AuditedArtAsset") == true then
+            auditedCount += 1
+        end
+    end
+    if auditedCount < 500 then return 0 end
+    local hidden = 0
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") and desc.Transparency < 0.95 and desc:GetAttribute("AuditedArtAsset") ~= true then
+            desc.Transparency = 1
+            desc.CanCollide = false
+            hidden += 1
+        end
+    end
+    world:SetAttribute("HiddenProceduralScaffoldParts", hidden)
+    return hidden
+end
+
 local function prompt(anchor, action, objectText, menuName)
     local pr = anchor:FindFirstChildOfClass("ProximityPrompt") or Instance.new("ProximityPrompt")
     pr.Name = "ProximityPrompt"
@@ -271,6 +292,7 @@ function WorldV2Builder.Build()
     rootRef.Value = roots.HordeRing.HordeSector_N.HordeCluster
     rootRef.Parent = brainrot
 
+    hideProceduralScaffoldWhenAuditedArtReady(world)
     return world
 end
 

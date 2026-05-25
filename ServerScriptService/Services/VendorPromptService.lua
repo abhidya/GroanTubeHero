@@ -21,6 +21,28 @@ function VendorPromptService.Bind(context)
             end)
         end
     end
+
+    local hordeRing = world:FindFirstChild("HordeRing")
+    if hordeRing then
+        for _, prompt in ipairs(hordeRing:GetDescendants()) do
+            if prompt:IsA("ProximityPrompt") and prompt.ActionText == "Repair Fence" and not prompt:GetAttribute("WorldV2RepairBound") then
+                prompt:SetAttribute("WorldV2RepairBound", true)
+                prompt.Triggered:Connect(function(player)
+                    local sector = prompt:FindFirstAncestorWhichIsA("Folder")
+                    while sector and not tostring(sector.Name):match("^HordeSector_") do
+                        sector = sector.Parent
+                    end
+                    local sectorId = sector and tostring(sector.Name):gsub("^HordeSector_", "")
+                    if sectorId and context.Services and context.Services.HordeService then
+                        context.Services.HordeService:RepairSector(player, sectorId, 25)
+                    end
+                    if context.Remotes.OpenMenu then
+                        context.Remotes.OpenMenu:FireClient(player, "Security")
+                    end
+                end)
+            end
+        end
+    end
 end
 
 return VendorPromptService
