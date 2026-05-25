@@ -541,6 +541,112 @@ local function buildAuditedAssetPlacements(roots)
     end
 end
 
+local function cloneCreatorMenuAsset(parent, source, category, sourcePath, index, cframe, scale)
+    if not (parent and source) then return nil end
+    local clone = source:Clone()
+    clone.Name = string.format("CreatorMenuAsset_%s_%04d", category, index)
+    clone.Parent = parent
+    clone:SetAttribute("CreatorMenuExpansion", true)
+    clone:SetAttribute("CreatorPlacementIndex", index)
+    prepAuditedClone(clone, sourcePath, category, "Creator Store menu/world expansion")
+    if scale then
+        pcall(function() clone:ScaleTo(scale) end)
+    end
+    pcall(function() clone:PivotTo(cframe) end)
+    return clone
+end
+
+local function buildCreatorMenuExpansionPlacements(roots)
+    local world = roots.ArenaCore and roots.ArenaCore.Parent
+    if not world then return {} end
+    local old = world:FindFirstChild("CreatorMenuExpansion")
+    if old then old:Destroy() end
+    local expansion = Instance.new("Folder")
+    expansion.Name = "CreatorMenuExpansion"
+    expansion.Parent = world
+
+    local tourBusArea = world:FindFirstChild("TourBusAndSpawnDressing") or ensureModel(world, "TourBusAndSpawnDressing")
+    local containers = {
+        stageCore = ensureFolder(roots.StageCircle, "CreatorMenuExpansion_stageCore"),
+        lightingAndTrusses = ensureFolder(roots.LightingAnchors, "CreatorMenuExpansion_lightingAndTrusses"),
+        vendorRing = ensureFolder(roots.VendorRing, "CreatorMenuExpansion_vendorRing"),
+        fenceRing = ensureFolder(roots.FenceRing, "CreatorMenuExpansion_fenceRing"),
+        hordeRing = ensureFolder(roots.HordeRing, "CreatorMenuExpansion_hordeRing"),
+        audienceRing = ensureFolder(roots.AudienceRing, "CreatorMenuExpansion_audienceRing"),
+        volcanoOuterRing = ensureFolder(roots.VolcanoOuterRing, "CreatorMenuExpansion_volcanoOuterRing"),
+        tourBusAndSpawn = ensureFolder(tourBusArea, "CreatorMenuExpansion_tourBusAndSpawn"),
+    }
+    expansion:SetAttribute("ContainerNote", "Placement folders live under correct WorldV2 rings so validation can prove ring ownership.")
+
+    local sources = {
+        StageTruss = findArtAsset("Stage", "Clean_Creator_CS_StageTruss"),
+        SecurityConsole = findArtAsset("Props", "Clean_Creator_CS_SecurityConsole"),
+        NeonSigns = findArtAsset("Props", "Clean_Creator_CS_NeonSigns"),
+        LavaRock = findArtAsset("Volcano", "Clean_Creator_CS_LavaRock"),
+        CashRegister = findArtAsset("Props", "Clean_Creator_CS_CashRegister"),
+        ConcertLights = findArtAsset("Lighting", "Clean_Creator_CS_ConcertLights"),
+        CartoonNPC = findArtAsset("Vendors", "Clean_Creator_CS_CartoonNPC"),
+    }
+
+    local counts = {
+        total = 0,
+        stageCore = 0,
+        lightingAndTrusses = 0,
+        vendorRing = 0,
+        fenceRing = 0,
+        hordeRing = 0,
+        audienceRing = 0,
+        volcanoOuterRing = 0,
+        tourBusAndSpawn = 0,
+        missingSources = 0,
+    }
+    local sourceFamilies = {}
+    local placementIndex = 0
+
+    local function placeMany(category, sourceKey, count, radius, y, angleOffset, scale)
+        local source = sources[sourceKey]
+        if not source then
+            counts.missingSources += 1
+            return
+        end
+        sourceFamilies[sourceKey] = true
+        local parent = containers[category]
+        local sourcePath = source:GetFullName()
+        for i = 1, count do
+            placementIndex += 1
+            local angle = (angleOffset or 0) + (i - 1) * (360 / count)
+            local radiusOffset = ((i % 5) - 2) * 0.9
+            cloneCreatorMenuAsset(parent, source, category, sourcePath, placementIndex, PolarLayout.cframeFacingCenter(radius + radiusOffset, angle, y or 3), scale)
+            counts[category] += 1
+            counts.total += 1
+        end
+    end
+
+    -- These are unique active placements cloned from audited Creator Store sources,
+    -- not 1,000 distinct source asset IDs. Validation tracks source family count separately.
+    placeMany("stageCore", "StageTruss", 100, 24, 5, 0, 0.22)
+    placeMany("lightingAndTrusses", "ConcertLights", 80, 32, 8, 2, 0.035)
+    placeMany("lightingAndTrusses", "StageTruss", 80, 34, 7, 5, 0.24)
+    placeMany("vendorRing", "CashRegister", 60, 44, 3, 10, 0.05)
+    placeMany("vendorRing", "SecurityConsole", 90, 46, 3, 20, 0.45)
+    placeMany("fenceRing", "SecurityConsole", 120, 56, 3, 0, 0.5)
+    placeMany("fenceRing", "NeonSigns", 80, 57, 4, 2, 0.22)
+    placeMany("hordeRing", "NeonSigns", 120, 70, 4, 0, 0.18)
+    placeMany("hordeRing", "LavaRock", 100, 75, 2.6, 5, 0.08)
+    placeMany("audienceRing", "CartoonNPC", 80, 94, 3, 8, 0.16)
+    placeMany("audienceRing", "NeonSigns", 80, 99, 4, 13, 0.20)
+    placeMany("volcanoOuterRing", "LavaRock", 120, 132, 4, 0, 0.16)
+    placeMany("tourBusAndSpawn", "StageTruss", 40, 38, 4, 210, 0.22)
+    placeMany("tourBusAndSpawn", "NeonSigns", 30, 42, 4, 220, 0.22)
+
+    local familyCount = 0
+    for _ in pairs(sourceFamilies) do familyCount += 1 end
+    world:SetAttribute("CreatorMenuExpansionPlacements", counts.total)
+    world:SetAttribute("CreatorMenuExpansionSourceFamilies", familyCount)
+    world:SetAttribute("CreatorMenuExpansionMissingSources", counts.missingSources)
+    return counts
+end
+
 local function hideAutogenLookingScaffold(world)
     local hidden = 0
     local patterns = {
@@ -791,6 +897,7 @@ function WorldV2Builder.Build()
     end
 
     buildAuditedAssetPlacements(roots)
+    buildCreatorMenuExpansionPlacements(roots)
 
     for _, point in ipairs(PolarLayout.distribute(160, 92, 4, 7.5)) do
         local crowd = artPart(roots.AudienceRing, "CrowdSilhouette_" .. point.index, Vector3.new(1.15, 3.2 + (point.index % 3) * 0.55, 1.15), point.cframeFacingCenter, Color3.fromRGB(75, 180 + (point.index % 3) * 25, 120), Enum.Material.Neon, "audienceRing", "audience crowd silhouette")

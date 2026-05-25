@@ -397,6 +397,23 @@ local function testHordeServiceMovementPayloadSource(): ()
     expect(source:find("horde.movementCue = lastJudgement", 1, true) == nil, "HordeService broadcast does not overwrite movementCue table")
 end
 
+local function testCreatorMenuExpansionBuilderSource(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping Creator menu expansion builder source test (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    local builderScript = services and services:FindFirstChild("WorldV2Builder")
+    expect(builderScript ~= nil and builderScript:IsA("ModuleScript"), "WorldV2Builder ModuleScript exists")
+    local source = builderScript and builderScript.Source or ""
+    expect(source:find("buildCreatorMenuExpansionPlacements", 1, true) ~= nil, "builder creates Creator menu expansion placements")
+    expect(source:find("Clean_Creator_CS_StageTruss", 1, true) ~= nil, "builder uses audited Creator StageTruss source")
+    expect(source:find("Clean_Creator_CS_CartoonNPC", 1, true) ~= nil, "builder uses audited Creator NPC source")
+    expect(source:find("CreatorMenuExpansionPlacements", 1, true) ~= nil, "builder records Creator expansion placement count")
+    expect(source:find("not 1,000 distinct source asset IDs", 1, true) ~= nil, "builder documents placement-vs-source-ID boundary")
+end
+
 function UnitTests.Run(): { passed: number, failed: number, failures: { string } }
     local tests = {
         testScoring,
@@ -417,6 +434,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testWorldV2Validation,
         testHordeClientMovementSource,
         testHordeServiceMovementPayloadSource,
+        testCreatorMenuExpansionBuilderSource,
     }
     local failures = {}
     for _, test in ipairs(tests) do

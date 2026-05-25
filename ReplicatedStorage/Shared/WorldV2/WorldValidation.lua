@@ -139,15 +139,21 @@ local function countActive(world)
         massBrainrotNPCs = 0,
         distinctAuditedSourcePaths = 0,
         invalidAuditedSourcePaths = 0,
+        creatorMenuExpansionModelPlacements = 0,
+        creatorMenuExpansionSourceFamilies = 0,
+        creatorMenuExpansionMissingSources = 0,
     }
     local auditedSourcePaths = {}
     local sourcePathResolution = {}
     local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
     if world then
+        counts.creatorMenuExpansionSourceFamilies = tonumber(world:GetAttribute("CreatorMenuExpansionSourceFamilies")) or 0
+        counts.creatorMenuExpansionMissingSources = tonumber(world:GetAttribute("CreatorMenuExpansionMissingSources")) or 0
         for _, desc in ipairs(world:GetDescendants()) do
             if desc:IsA("Model") then
                 counts.models += 1
                 if desc:GetAttribute("MassBrainrotNPC") == true then counts.massBrainrotNPCs += 1 end
+                if desc:GetAttribute("CreatorMenuExpansion") == true then counts.creatorMenuExpansionModelPlacements += 1 end
             end
             if desc:IsA("MeshPart") then counts.meshParts += 1 end
             if isVisibleBasePart(desc) then
@@ -162,8 +168,12 @@ local function countActive(world)
                     if sourcePath ~= nil and sourcePathResolution[sourcePath] == true then
                         auditedSourcePaths[sourcePath] = true
                         local category = placementCategory(world, desc)
-                        if category then counts[category] += 1 end
-                        counts.activePlacedArtInstances += 1
+                        if category then
+                            counts[category] += 1
+                            counts.activePlacedArtInstances += 1
+                        else
+                            counts.incorrectRingPlacements += 1
+                        end
                     else
                         if desc:GetAttribute("AuditedArtAsset") == true or desc:GetAttribute("AssetSourcePath") ~= nil then
                             counts.invalidAuditedSourcePaths += 1
@@ -222,7 +232,8 @@ local function countActive(world)
     else
         counts.missingRequiredAssets += #REQUIRED_ART_ASSETS
     end
-    local shouldCountGlobalQuarantine = world ~= nil and world.Name == "GTH_WorldV2" and world.Parent == Workspace
+    local liveWorld = Workspace:FindFirstChild("GTH_WorldV2")
+    local shouldCountGlobalQuarantine = world ~= nil and world == liveWorld
     local serverStorage = shouldCountGlobalQuarantine and getServerStorage() or nil
     local quarantine = serverStorage and serverStorage:FindFirstChild("AssetQuarantine")
     if quarantine then
@@ -333,6 +344,9 @@ function WorldValidation.Run()
     print("[AssetPlacementValidation] massBrainrotNPCs = " .. tostring(counts.massBrainrotNPCs))
     print("[AssetPlacementValidation] distinctAuditedSourcePaths = " .. tostring(counts.distinctAuditedSourcePaths))
     print("[AssetPlacementValidation] invalidAuditedSourcePaths = " .. tostring(counts.invalidAuditedSourcePaths))
+    print("[AssetPlacementValidation] creatorMenuExpansionModelPlacements = " .. tostring(counts.creatorMenuExpansionModelPlacements))
+    print("[AssetPlacementValidation] creatorMenuExpansionSourceFamilies = " .. tostring(counts.creatorMenuExpansionSourceFamilies))
+    print("[AssetPlacementValidation] creatorMenuExpansionMissingSources = " .. tostring(counts.creatorMenuExpansionMissingSources))
     add(errors, counts.massBrainrotNPCs >= 500, "Mass brainrot horde NPC gate failed: requires 500 got " .. tostring(counts.massBrainrotNPCs))
     add(errors, counts.missingRequiredAssets == 0, "Missing required assets: " .. tostring(counts.missingRequiredAssets))
     for key, minimum in pairs(PLACEMENT_MINIMUMS) do

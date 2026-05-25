@@ -408,3 +408,31 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | Creator Store bucket identification | PASS | Documented import/search buckets in `docs/asset_manifest_real.md`: stage/truss/lights, horde NPCs, fan crowd, vendor kiosk, security console, tour bus, and volcano/lava. |
 | Harness regression coverage | PASS | Added `UnitTests.testCreatorStoreBucketManifestSource` to assert the builder source keeps `Workspace.AssetInbox`, `ServerStorage.AssetQuarantine`, required clean ArtAssets source paths, and runtime placement buckets wired. |
 | Build-only Rojo policy | PASS | Verification uses `rojo build` only; no live sync server command is required for this task. |
+
+## 2026-05-25 Team menu/Creator expansion sprint
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| OMX team `groantubehero-menu-cr-3df4a4b5` | PASS | 8/8 tasks completed; worker lanes covered menu gap inventory, UI close/reopen outcomes, world/effect hooks, validation/doc buckets, fake-ID guard, gameplay-preserving validation, no-`rojo serve` policy, and commit/blocker reporting. |
+| Team shutdown | PASS | Shutdown completed; worker-2 final diff conflicted with leader edits in `WorldValidation.lua`, so its live-world quarantine and valid-ring-only count fixes were folded manually into the leader integration. |
+| Creator Store MCP search/import | PASS | 12 source asset IDs imported to Studio AssetInbox and clean-promoted to `ReplicatedStorage.ArtAssets.*`; exact IDs recorded in `docs/asset_manifest_real.md`. |
+| Asset quarantine | PASS | Import batch quarantined 396 script descendants into `ServerStorage.AssetQuarantine`; active world placements are cloned visual-only ArtAssets sources. |
+| Live Creator placement script | PASS | Studio MCP placement output: `total=1180`, `stageCore=100`, `lightingAndTrusses=160`, `vendorRing=150`, `fenceRing=200`, `hordeRing=220`, `audienceRing=160`, `volcanoOuterRing=120`, `tourBusAndSpawn=70`, `missingSources=[]`. |
+| Distinct source ID honesty | PASS | Current proof is 12 Creator Store source asset IDs and 1,180 unique named active placements. It is not proof of 1,000 distinct Creator Store source IDs. |
+| Repo build after leader integration | PASS | `rojo build default.project.json -o /private/tmp/GroanTubeHero-final-menu-assets-build.rbxlx` completed. |
+| `git diff --check` after leader integration | PASS | No whitespace errors before this docs update. |
+| Full Studio runtime after final leader integration | NOT RUN | The long Studio source-sync/runtime validation command was aborted before completion, so no new final `UnitTests.Run()`/`GameTestHarness.Run()` PASS is claimed beyond earlier live Studio proof sections above. |
+
+### Creator menu expansion placement proof
+
+| Category | Required | Latest placed by MCP script | Result |
+| --- | ---: | ---: | --- |
+| stageCore | 60 | 100 | PASS |
+| lightingAndTrusses | 80 | 160 | PASS |
+| vendorRing | 60 | 150 | PASS |
+| fenceRing | 64 | 200 | PASS |
+| hordeRing | 160 | 220 | PASS |
+| audienceRing | 80 | 160 | PASS |
+| volcanoOuterRing | 80 | 120 | PASS |
+| tourBusAndSpawn | 30 | 70 | PASS |
+| total unique named active Creator placements | 1000 requested placements | 1180 | PASS for placements; not distinct source IDs |
