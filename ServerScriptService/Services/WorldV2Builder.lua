@@ -61,6 +61,13 @@ local function artPart(parent, name, size, cframe, color, material, category, pu
 end
 
 local function hideInstanceVisuals(inst)
+    if inst:IsA("BasePart") then
+        inst.Transparency = 1
+        inst.CanCollide = false
+        inst.Anchored = true
+    elseif inst:IsA("BillboardGui") then
+        inst.Enabled = false
+    end
     for _, d in ipairs(inst:GetDescendants()) do
         if d:IsA("BasePart") then
             d.Transparency = 1
@@ -228,6 +235,126 @@ local function buildTourBusSpawnPath(world)
     end
 end
 
+
+
+local function findArtAsset(...)
+    local node = ReplicatedStorage:FindFirstChild("ArtAssets")
+    for _, name in ipairs({ ... }) do
+        node = node and node:FindFirstChild(name)
+    end
+    return node
+end
+
+local function asModelClone(source)
+    local clone = source:Clone()
+    if clone:IsA("Model") then
+        return clone
+    end
+    local wrapper = Instance.new("Model")
+    wrapper.Name = clone.Name
+    for _, child in ipairs(clone:GetChildren()) do
+        child.Parent = wrapper
+    end
+    clone:Destroy()
+    return wrapper
+end
+
+local function prepAuditedClone(model, sourcePath, category, purpose)
+    local partIndex = 0
+    for _, desc in ipairs(model:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            partIndex += 1
+            if desc.Name == "Part" or desc.Name == "Block" or desc.Name == "Circle" or desc.Name == "Cylinder" or desc.Name == "Temp" or desc.Name == "Debug" then
+                desc.Name = "AuditedAssetPart_" .. partIndex
+            end
+            desc.Anchored = true
+            desc.CanCollide = false
+            desc.Massless = true
+            desc:SetAttribute("AuditedArtAsset", true)
+            desc:SetAttribute("AssetSourcePath", sourcePath)
+            desc:SetAttribute("PlacementCategory", category)
+            desc:SetAttribute("ArtPurpose", purpose or category)
+        elseif desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("ModuleScript") then
+            desc:Destroy()
+        elseif desc:IsA("BillboardGui") then
+            desc.Enabled = false
+        end
+    end
+end
+
+local function placeAuditedClone(parent, name, source, sourcePath, category, purpose, cframe, scale)
+    if not source then return nil end
+    local old = parent:FindFirstChild(name)
+    if old then old:Destroy() end
+    local clone = asModelClone(source)
+    clone.Name = name
+    clone.Parent = parent
+    prepAuditedClone(clone, sourcePath, category, purpose)
+    if scale then
+        pcall(function() clone:ScaleTo(scale) end)
+    end
+    pcall(function() clone:PivotTo(cframe) end)
+    return clone
+end
+
+local function buildAuditedAssetPlacements(roots)
+    local stageRig = findArtAsset("Stage", "Clean_ConcertStageTrussSpeakerLights")
+    placeAuditedClone(roots.StageCircle, "Audited_Stage_ConcertRig_Fitted", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "stageCore", "audited concert stage/truss/speaker rig", CFrame.new(0, 2.8, 0), 0.035)
+    for _, point in ipairs(PolarLayout.distribute(4, 31, 4, 45)) do
+        placeAuditedClone(roots.LightingAnchors, "Audited_Lighting_ConcertRig_" .. point.index, stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "lightingAndTrusses", "audited concert lighting rig", point.cframeFacingCenter, 0.015)
+    end
+
+    local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
+    for _, def in ipairs(Vendors) do
+        local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
+        if parent then
+            placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "vendorRing", def.Menu .. " audited vendor kiosk", PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 2.4), 0.075)
+        end
+    end
+
+    local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
+    for _, sectorDef in ipairs(Sectors) do
+        local sector = roots.HordeRing:FindFirstChild("HordeSector_" .. sectorDef.Id)
+        local horde = sector and sector:FindFirstChild("HordeCluster")
+        if horde then
+            placeAuditedClone(horde, "Audited_HordePack_" .. sectorDef.Id, hordePack, "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde", "hordeRing", "audited horde character cluster " .. sectorDef.Id, PolarLayout.cframeFacingCenter(70, sectorDef.Angle, 3), 0.035)
+        end
+    end
+
+    local volcano = findArtAsset("Volcano", "Clean_VolcanoRockLavaCliff")
+    for _, point in ipairs(PolarLayout.distribute(8, 134, 8, 22.5)) do
+        placeAuditedClone(roots.VolcanoOuterRing, "Audited_VolcanoCliff_" .. point.index, volcano, "ReplicatedStorage.ArtAssets.Volcano.Clean_VolcanoRockLavaCliff", "volcanoOuterRing", "audited volcano cliff/lava shell", point.cframeFacingCenter, 1.45)
+    end
+end
+
+local function lockWorldPhysics(world)
+    local locked = 0
+    local collisionFloors = {
+        SafeWalkableConcertFloor = true,
+        CursedConcertDisc = true,
+        NeonPerformanceCircle = true,
+        PlayerWalkwayRing = true,
+        SpawnLocation = true,
+    }
+    for _, desc in ipairs(world:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            desc.Anchored = true
+            if collisionFloors[desc.Name] then
+                desc.CanCollide = true
+            end
+            locked += 1
+        end
+    end
+    local spawn = world:FindFirstChild("SpawnLocation")
+    if spawn and spawn:IsA("BasePart") then
+        spawn.Anchored = true
+        spawn.CanCollide = true
+        spawn.AssemblyLinearVelocity = Vector3.zero
+        spawn.AssemblyAngularVelocity = Vector3.zero
+    end
+    world:SetAttribute("PhysicsLockedParts", locked)
+    return locked
+end
 
 local function hideProceduralScaffoldWhenAuditedArtReady(world)
     local auditedCount = 0
@@ -413,6 +540,8 @@ function WorldV2Builder.Build()
         prompt(invisible(sector, "RepairPromptAnchor", Vector3.new(5, 6, 5), cf * CFrame.new(0, 2, -4), false), "Repair Fence", "Sector " .. sectorDef.Id, "Security")
     end
 
+    buildAuditedAssetPlacements(roots)
+
     for _, point in ipairs(PolarLayout.distribute(160, 92, 4, 7.5)) do
         local crowd = artPart(roots.AudienceRing, "CrowdSilhouette_" .. point.index, Vector3.new(1.15, 3.2 + (point.index % 3) * 0.55, 1.15), point.cframeFacingCenter, Color3.fromRGB(75, 180 + (point.index % 3) * 25, 120), Enum.Material.Neon, "audienceRing", "audience crowd silhouette")
         crowd.CanCollide = false
@@ -461,6 +590,7 @@ function WorldV2Builder.Build()
     rootRef.Parent = brainrot
 
     hideProceduralScaffoldWhenAuditedArtReady(world)
+    lockWorldPhysics(world)
     return world
 end
 

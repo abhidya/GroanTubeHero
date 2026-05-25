@@ -139,6 +139,45 @@ local function installWorldV2Diagnostics()
     return runner
 end
 
+
+local function installSpawnSafety(world)
+    local spawn = world and world:FindFirstChild("SpawnLocation")
+    if spawn and spawn:IsA("BasePart") then
+        spawn.Anchored = true
+        spawn.CanCollide = true
+    end
+    local function protectCharacter(character)
+        task.defer(function()
+            local root = character:WaitForChild("HumanoidRootPart", 8)
+            if root and spawn and spawn:IsA("BasePart") then
+                root.CFrame = spawn.CFrame + Vector3.new(0, 5, 0)
+            end
+        end)
+        task.spawn(function()
+            local root = character:WaitForChild("HumanoidRootPart", 8)
+            if not root then return end
+            local untilTime = os.clock() + 20
+            while root.Parent and os.clock() < untilTime do
+                if root.Position.Y < -20 and spawn and spawn:IsA("BasePart") then
+                    root.AssemblyLinearVelocity = Vector3.zero
+                    root.AssemblyAngularVelocity = Vector3.zero
+                    root.CFrame = spawn.CFrame + Vector3.new(0, 6, 0)
+                    warn("[WorldV2SpawnSafety] rescued falling character to SpawnLocation")
+                end
+                task.wait(0.25)
+            end
+        end)
+    end
+    Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(protectCharacter)
+        if player.Character then protectCharacter(player.Character) end
+    end)
+    for _, player in ipairs(Players:GetPlayers()) do
+        player.CharacterAdded:Connect(protectCharacter)
+        if player.Character then protectCharacter(player.Character) end
+    end
+end
+
 local function startWorldV2Atmosphere()
     task.spawn(function()
         while true do
@@ -170,6 +209,7 @@ loadServices(context)
 VendorPromptService.Bind(context)
 wireRemotes(context)
 local validation = WorldV2Builder.RunValidation()
+installSpawnSafety(world)
 
 Players.PlayerAdded:Connect(function(player)
     context.Services.DataService:PlayerAdded(player)

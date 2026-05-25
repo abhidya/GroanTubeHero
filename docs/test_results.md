@@ -19,6 +19,19 @@ Date: 2026-05-25
 | Screenshot evidence | PASS | Captured `WorldV2_Play_MicReachable_ClearFloor`; view shows reachable glowing mic prompt, circular stage/fence/horde ring, vendors, no AssetInbox wall. |
 | Studio Cmd+S save | BLOCKED | MCP has no save-place tool; `game:SavePlace()` failed because placeID is not valid; GUI `osascript` Cmd+S failed due macOS Accessibility denial. |
 
+
+## 2026-05-25 fall-through hotfix
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| WorldV2 physics lock | PASS | `WorldV2Builder` locks every `Workspace.GTH_WorldV2` BasePart anchored on build; fresh play reported `PhysicsLockedParts=7126`. |
+| Spawn safety | PASS | `GameBootstrap.server.lua` now teleports spawned characters to `Workspace.GTH_WorldV2.SpawnLocation` and rescues Y < -20 for the first 20 seconds. |
+| Studio play no-fall check | PASS | After 3 seconds in play: character `Y=5.724`, state `Running`, floor material `Neon`; `SafeWalkableConcertFloor` anchored/collidable; spawn anchored. |
+| Move to stage mic | PASS | Humanoid `MoveTo(0,3,0)` ended `distance=0.69` from mic/stage center, `Y=9.22`, state `Running`; did not fall through. |
+| UnitTests after hotfix | PASS | Studio `UnitTests.Run()` returned `failed=0`, `passed=11`. |
+| GameTestHarness after hotfix | PASS | Studio `GameTestHarness.Run()` returned session `Harness-LocalAudioSong001-4336577`. |
+| OMX team runtime | BLOCKED | `omx team 4:executor ...` failed with `Team mode requires running inside tmux current leader pane`; native subagents used for sidecar audit instead. |
+
 ## Current counts from fresh Studio validation
 
 | Count | Value |
