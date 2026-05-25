@@ -155,12 +155,6 @@ local function render()
         list.CanvasSize=UDim2.new(0,0,0,#upgrades*134+20)
     elseif currentTab=="Missions" then
         renderMissions()
-    elseif outcomeCards[currentTab] then
-        for i,entry in ipairs(outcomeCards[currentTab]) do
-            local name,desc,outcome=table.unpack(entry)
-            card((i-1)*134,name,desc,0,"","Action",function() showOutcome(outcome) end,nil,"Show",nil,true)
-        end
-        list.CanvasSize=UDim2.new(0,0,0,#outcomeCards[currentTab]*134+20)
     elseif currentTab=="Tour Bus" then
         for i,b in ipairs(busUpgrades) do
             local id,name,desc,cost,currency,max=table.unpack(b)
@@ -172,7 +166,7 @@ local function render()
     elseif renderOutcomeCards() then
         return
     else
-        if #(items[currentTab] or {}) == 0 then showOutcome("No purchasable cards in "..currentTab.." yet — choose another tab.") end
+        if #(items[currentTab] or {}) == 0 then setOutcome("No purchasable cards in "..currentTab.." yet — choose another tab.") end
         for i,it in ipairs(items[currentTab] or {}) do
             local id,name,desc,cost,currency,category=table.unpack(it)
             local isOwned=owned(category,id) or cost==0
@@ -189,9 +183,9 @@ for i,t in ipairs(tabs) do
 end
 openButton.Activated:Connect(function() panel.Visible=not panel.Visible; render() end)
 close.Activated:Connect(function() panel.Visible=false end)
-gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; showOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render(); gui:SetAttribute("Open",false) end end)
-gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; showOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render() end)
-gui:GetAttributeChangedSignal("FocusMessage"):Connect(function() local msg=gui:GetAttribute("FocusMessage"); if msg then showOutcome(msg) end end)
+gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; setOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render(); gui:SetAttribute("Open",false) end end)
+gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; setOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render() end)
+gui:GetAttributeChangedSignal("FocusMessage"):Connect(function() local msg=gui:GetAttribute("FocusMessage"); if msg then setOutcome(msg) end end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
 
 local function watchRhythmGui(rg)

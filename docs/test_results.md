@@ -2,6 +2,21 @@
 
 Date: 2026-05-25
 
+## Post-team finish pass validation — 2026-05-25
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| OMX team `groantubehero-finish-3df4a4b5` | PASS | 7/7 tasks completed; worker commits merged for prompt repair, horde movement, UI outcomes, validation gates, and script-free world audit. |
+| Vendor prompt repair path | PASS | `VendorPromptService.lua` now defines `fireDialogue`, sends `NPCDialogue`, preserves `OpenSongSelect`/`OpenMenu`, and calls `HordeService:RepairSector` after repair dialogue. |
+| Menu option outcomes | PASS | Store/Upgrades/Missions/Security/Tutorial/Hype/Tour Bus tabs now show a visible outcome banner or action card; undefined `showOutcome` merge bug removed. |
+| Horde movement polish | PASS | `HordeService`/`HordeClient` preserve old payload fields and add `movementCue`, `movementEventId`, stronger active-sector push/pull, warning sector visuals, repair cues, and finish beatback. |
+| `rojo build default.project.json --output /private/tmp/GroanTubeHero-postteam-fixed.rbxlx` | PASS | Built latest repo scripts successfully without `rojo serve`. |
+| `git diff --check` | PASS | No whitespace/conflict-marker errors after team merge and UI hotfix. |
+| Conflict-marker/undefined outcome scan | PASS | `rg 'showOutcome|<<<<<<<|=======' StarterPlayer ServerScriptService ReplicatedStorage` returned no matches. |
+| Studio MCP post-team runtime | BLOCKED | Direct `StudioMCP --stdio` currently returns `Not connected to the WS host`, so post-team `UnitTests.Run()`/`GameTestHarness.Run()` could not be rerun in live Studio from this session. Latest pre-team Studio runtime PASS remains recorded above, but post-team code still needs Studio reconnect validation. |
+| Luau CLI syntax | NOT CONFIGURED | No `luau`/`lune` executable in PATH; system `luac` is Lua 5.1 and rejects valid Luau operators such as `+=`, so it is not a valid parser for this repo. |
+
+
 ## Latest validation summary — direct Studio MCP live Play PASS
 
 | Test | Result | Notes |
