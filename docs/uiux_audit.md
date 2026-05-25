@@ -38,6 +38,10 @@ Skill contract used: `gth-uiux-responsive-menu-audit` (repo skill file not prese
 
 It listens for `OpenSongSelect` and `OpenMenu`, and maps ProximityPrompt station names to central menu paths.
 
+## Menu option outcome inventory
+
+The detailed menu option inventory and implementation gap table for the Creator/menu expansion work is captured in `docs/menu_option_inventory_gap_table.md`. It maps each menu option to its current code path, target user story, target visible world/gameplay effect, asset need, validation hook, and downstream gap.
+
 ## Device matrix
 
 | Device | Viewport | Validation source | Result |

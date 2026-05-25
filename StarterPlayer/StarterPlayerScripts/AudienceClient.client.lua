@@ -102,7 +102,16 @@ screenGui:GetAttributeChangedSignal("Open"):Connect(function()
     if screenGui:GetAttribute("Open") then
         forcedOpen = true
         panel.Visible = true
+    else
+        forcedOpen = false
+        panel.Visible = false
     end
+end)
+
+screenGui:GetAttributeChangedSignal("CloseRequested"):Connect(function()
+    forcedOpen = false
+    screenGui:SetAttribute("Open", false)
+    panel.Visible = false
 end)
 
 local function inAudienceZone()

@@ -64,9 +64,8 @@ local function openStoreLike(menuName)
     if storeGui then
         storeGui.Enabled = true
         storeGui:SetAttribute("FocusMessage", focusMessageFor(menuName))
-        storeGui:SetAttribute("Open", true)
         storeGui:SetAttribute("Tab", menuName == "Store" and "Tube Sounds" or menuName)
-        storeGui:SetAttribute("FocusMessage", menuName .. " opened")
+        storeGui:SetAttribute("Open", true)
     end
 end
 
@@ -79,15 +78,21 @@ local function openAudience()
     openStoreLike("Hype")
 end
 
+local closeRequestSerial = 0
+
+local function requestGuiClose(gui)
+    if not gui then return end
+    closeRequestSerial += 1
+    gui:SetAttribute("Open", false)
+    gui:SetAttribute("CloseRequested", closeRequestSerial)
+end
+
 local function closeExternal(menuName)
     if menuName == "Store" or menuName == "Upgrades" or menuName == "Missions" or menuName == "Security" or menuName == "Tutorial" or menuName == "Settings" then
-        local storeGui = playerGui:FindFirstChild("StoreGui")
-        if storeGui then storeGui:SetAttribute("Open", false) end
+        requestGuiClose(playerGui:FindFirstChild("StoreGui"))
     elseif menuName == "Hype" then
-        local gui = playerGui:FindFirstChild("AudienceGui")
-        if gui then gui:SetAttribute("Open", false) end
-        local storeGui = playerGui:FindFirstChild("StoreGui")
-        if storeGui then storeGui:SetAttribute("Open", false) end
+        requestGuiClose(playerGui:FindFirstChild("AudienceGui"))
+        requestGuiClose(playerGui:FindFirstChild("StoreGui"))
     end
 end
 
