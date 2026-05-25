@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -80,6 +81,9 @@ fillCorner.CornerRadius = UDim.new(0, 6)
 fillCorner.Parent = fill
 
 local currentTweens = {}
+local idleBases = {}
+local clusterCache = {}
+local lastClusterScan = 0
 local function addMovementCue(sector, judgement)
     if not sector then return end
     local marker = sector:FindFirstChild("HordeMotionCue")
@@ -126,6 +130,7 @@ local function tweenCluster(cluster, distance, sectorId)
         if conn then conn:Disconnect() end
         value:Destroy()
         currentTweens[cluster] = nil
+        idleBases[cluster] = target
     end)
     tween:Play()
 end
@@ -160,6 +165,38 @@ local function pulse(color)
     TweenService:Create(meter, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { BackgroundColor3 = Color3.fromRGB(12, 14, 28) }):Play()
 end
 
+local function scanClusters()
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local ring = world and world:FindFirstChild("HordeRing")
+    if not ring then return end
+    table.clear(clusterCache)
+    for _, sector in ipairs(ring:GetChildren()) do
+        local cluster = sector:FindFirstChild("HordeCluster")
+        if cluster and cluster:IsA("Model") then
+            setModelPrimaryPart(cluster)
+            table.insert(clusterCache, cluster)
+            idleBases[cluster] = idleBases[cluster] or cluster:GetPivot()
+        end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    local now = os.clock()
+    if now - lastClusterScan > 2 then
+        lastClusterScan = now
+        scanClusters()
+    end
+    for index, cluster in ipairs(clusterCache) do
+        if cluster.Parent and not currentTweens[cluster] then
+            local base = idleBases[cluster] or cluster:GetPivot()
+            local bob = math.sin(now * 2.8 + index * 0.73) * 0.32
+            local sway = math.sin(now * 1.7 + index) * math.rad(1.2)
+            cluster:PivotTo(base * CFrame.new(0, bob, 0) * CFrame.Angles(0, sway, 0))
+        end
+    end
+end)
+
+
 if remotes:FindFirstChild("HordeUpdate") then
     remotes.HordeUpdate.OnClientEvent:Connect(function(payload)
         if type(payload) ~= "table" then return end
@@ -183,6 +220,20 @@ if remotes:FindFirstChild("HordeUpdate") then
             pulse(Color3.fromRGB(25, 120, 70))
         elseif payload.lastJudgement == "Good" or payload.lastJudgement == "Audience" then
             pulse(Color3.fromRGB(30, 75, 120))
+        end
+    end)
+end
+
+if remotes:FindFirstChild("SongFinished") then
+    remotes.SongFinished.OnClientEvent:Connect(function(payload)
+        scanClusters()
+        for _, sectorId in ipairs({ "N", "NE", "E", "SE", "S", "SW", "W", "NW" }) do
+            local sector = getSector(sectorId)
+            addMovementCue(sector, "Perfect")
+            local cluster = getCluster(sectorId)
+            if cluster then
+                tweenCluster(cluster, 100, sectorId)
+            end
         end
     end)
 end

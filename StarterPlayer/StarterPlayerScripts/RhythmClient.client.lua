@@ -696,7 +696,7 @@ local function buildSongCards()
     for _, song in ipairs(SongCatalog.ListLocalTests and SongCatalog.ListLocalTests() or {}) do table.insert(displaySongs, song) end
     for index, song in ipairs(displaySongs) do
         local isLocalTest = song.CatalogGroup == "LocalTest" or song.LocalTestOnly
-        local meta = songMeta[song.Id] or { difficulty = isLocalTest and "Local Test Chart" or "Public Demo", description = isLocalTest and "Imported placeholder chart — not for public release." or "Original Groan Tube Hero stage chart.", reward = "Difficulty × Segment" }
+        local meta = songMeta[song.Id] or { difficulty = isLocalTest and "Bonus Chart" or "Public Demo", description = isLocalTest and "Bonus Groan Tube Hero stage chart." or "Original Groan Tube Hero stage chart.", reward = "Difficulty × Segment" }
         local card = Instance.new("Frame")
         card.Name = song.Id .. "Card"
         card.LayoutOrder = index
@@ -705,7 +705,7 @@ local function buildSongCards()
         card.Parent = songList
         corner(card, 18)
         stroke(card, laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(120, 220, 255), 2)
-        makeLabel(card, "SongTitle", (isLocalTest and "LOCAL TEST: " or "") .. SongCatalog.PrettyTitle(song), UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
+        makeLabel(card, "SongTitle", SongCatalog.PrettyTitle(song), UDim2.new(1, -20, 0, 54), UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Difficulty", meta.difficulty, UDim2.new(1, -20, 0, 26), UDim2.new(0, 10, 0, 66), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
         makeLabel(card, "Desc", meta.description .. "\nSelected: " .. selectedDifficulty .. " • " .. selectedSegment .. "\nReward: " .. meta.reward, UDim2.new(1, -20, 0, 88), UDim2.new(0, 10, 0, 98), Color3.fromRGB(215, 225, 255), Enum.Font.GothamBold)
         local start = makeButton(card, "StartButton", "Start", UDim2.new(1, -34, 0, 36), UDim2.new(0, 17, 1, -44), laneColors[((index - 1) % 4) + 1] or Color3.fromRGB(55, 145, 255))

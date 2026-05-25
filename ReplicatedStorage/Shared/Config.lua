@@ -113,6 +113,7 @@ Config.RemoteNames = {
     "ClaimMission",
     "DataSnapshot",
     "OpenSongSelect",
+    "NPCDialogue",
     "HordeUpdate",
 }
 

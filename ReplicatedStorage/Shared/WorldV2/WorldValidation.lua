@@ -113,11 +113,15 @@ local function countActive(world)
         autogenBlankMeshesExcluded = 0,
         incorrectRingPlacements = 0,
         unauditedAssetPlacements = 0,
+        massBrainrotNPCs = 0,
     }
     local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
     if world then
         for _, desc in ipairs(world:GetDescendants()) do
-            if desc:IsA("Model") then counts.models += 1 end
+            if desc:IsA("Model") then
+                counts.models += 1
+                if desc:GetAttribute("MassBrainrotNPC") == true then counts.massBrainrotNPCs += 1 end
+            end
             if desc:IsA("MeshPart") then counts.meshParts += 1 end
             if isVisibleBasePart(desc) then
                 counts.visibleBaseParts += 1
@@ -284,6 +288,8 @@ function WorldValidation.Run()
     print("[AssetPlacementValidation] scriptsUnderWorldV2 = " .. tostring(counts.quarantinedScripts))
     print("[AssetPlacementValidation] incorrectRingPlacements = " .. tostring(counts.incorrectRingPlacements))
     print("[AssetPlacementValidation] unauditedAssetPlacements = " .. tostring(counts.unauditedAssetPlacements))
+    print("[AssetPlacementValidation] massBrainrotNPCs = " .. tostring(counts.massBrainrotNPCs))
+    add(errors, counts.massBrainrotNPCs >= 500, "Mass brainrot horde NPC gate failed: requires 500 got " .. tostring(counts.massBrainrotNPCs))
     add(errors, counts.missingRequiredAssets == 0, "Missing required assets: " .. tostring(counts.missingRequiredAssets))
     for key, minimum in pairs(PLACEMENT_MINIMUMS) do
         add(errors, (counts[key] or 0) >= minimum, "Asset placement gate failed: " .. key .. " requires " .. tostring(minimum) .. " got " .. tostring(counts[key] or 0))
