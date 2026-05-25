@@ -131,3 +131,11 @@ Rejected/hidden source remains: `ReplicatedStorage.ArtAssets.Audience.Clean_Stad
 | `ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights` | same clean ArtAssets path | `FenceRing.Audited_FenceBarricadeRig_1..8`; `TourBusAndSpawnDressing.Audited_BackstageDepotRig` | 0 | Fence/security dressing and backstage/tour area dressing. |
 
 Sanitization: cloned art now removes imported `ProximityPrompt`/`ClickDetector`, destroys scripts/modules, disables imported Billboard/Surface GUIs, and hides imported Humanoid name/health displays.
+
+## 2026-05-25 Fan NPC Creator local import lane
+
+| Source asset ID/path | Cleaned ArtAssets path | Used WorldV2 path | Scripts under clean copy | Purpose |
+| --- | --- | --- | ---: | --- |
+| Local Fan NPC Creator placeholder import staged at `Workspace.AssetInbox.FanNPC_CreatorLocal.Raw_FanNPC_CreatorLocalPack` | `ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack` | `Workspace.GTH_WorldV2.AudienceRing.Audited_FanNPCCreatorLocalCrowd_1..12` | 0 | Audited local fan audience NPC pack promoted through the inbox/quarantine boundary before active placement. |
+
+Sanitization: `WorldV2Builder.EnsureAssetRoots()` rebuilds the local fan NPC Creator staging model under `Workspace.AssetInbox`, audits it, sends any script descendants through `AssetAuditService.QuarantineScripts`, clones the cleaned visual-only pack to `ReplicatedStorage.ArtAssets.Audience`, then hides the inbox root so quarantine/inbox content never becomes active world art.

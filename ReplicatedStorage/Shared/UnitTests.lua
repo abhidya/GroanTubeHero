@@ -164,6 +164,31 @@ local function testWorldValidationPlaceholderDetection(): ()
     model:Destroy()
 end
 
+local function testFanNpcCreatorLocalManifest(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping fan NPC Creator manifest test (not on server)")
+        return
+    end
+    local serverScriptService = game:GetService("ServerScriptService")
+    local builderScript = serverScriptService:FindFirstChild("Services") and serverScriptService.Services:FindFirstChild("WorldV2Builder")
+    if not builderScript then
+        print("[UnitTests] WorldV2Builder not found, skipping fan NPC Creator manifest test")
+        return
+    end
+    local source = ""
+    local readable = pcall(function()
+        source = builderScript.Source
+    end)
+    if not readable then
+        print("[UnitTests] WorldV2Builder.Source not readable in this runtime, skipping fan NPC Creator manifest test")
+        return
+    end
+    expect(source:find("Workspace.AssetInbox.FanNPC_CreatorLocal", 1, true) ~= nil, "fan NPC Creator import stages through AssetInbox")
+    expect(source:find("ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack", 1, true) ~= nil, "fan NPC Creator clean ArtAssets path recorded")
+    expect(source:find("QuarantineScripts(rawPack", 1, true) ~= nil, "fan NPC Creator raw scripts quarantined before promotion")
+    expect(source:find("Audited_FanNPCCreatorLocalCrowd_", 1, true) ~= nil, "fan NPC Creator clean pack is placed as audited audience crowd")
+end
+
 local function testConfigLanes(): ()
     for _, lane in ipairs(Config.Lanes) do
         expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
@@ -267,6 +292,7 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testAssetAuditService,
         testAssetRegistryMissingBehavior,
         testWorldValidationPlaceholderDetection,
+        testFanNpcCreatorLocalManifest,
         testConfigLanes,
         testAntiExploit,
         testHordeRootPivot,

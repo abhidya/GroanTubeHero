@@ -12,6 +12,7 @@ local AssetAuditService = require(script.Parent.AssetAuditService)
 local WorldV2Builder = {}
 local READABLE_ASSET_SOURCE = "ProjectOwned/ReadableWorldV2Art"
 local prompt
+local prepAuditedClone
 
 local function ensureFolder(parent, name)
     local folder = parent:FindFirstChild(name)
@@ -238,6 +239,82 @@ local function buildTourBusSpawnPath(world)
     end
 end
 
+local function clearChildren(inst)
+    for _, child in ipairs(inst:GetChildren()) do
+        child:Destroy()
+    end
+end
+
+local function fanNpcPart(parent, name, size, cframe, color, material, shape)
+    local p = Instance.new("Part")
+    p.Name = name
+    p.Size = size
+    p.CFrame = cframe
+    p.Color = color
+    p.Material = material or Enum.Material.SmoothPlastic
+    p.Anchored = true
+    p.CanCollide = false
+    p.Massless = true
+    if shape then p.Shape = shape end
+    p.Parent = parent
+    return p
+end
+
+local function buildFanNpcCreatorLocalPack(parent, name)
+    local pack = ensureModel(parent, name)
+    clearChildren(pack)
+    pack:SetAttribute("AssetSource", "LocalFanNPCCreator")
+    pack:SetAttribute("ImportRoot", "Workspace.AssetInbox.FanNPC_CreatorLocal")
+    pack:SetAttribute("QuarantinePolicy", "All scripts removed before ArtAssets promotion")
+    local fanColors = {
+        Color3.fromRGB(255, 80, 175),
+        Color3.fromRGB(80, 225, 255),
+        Color3.fromRGB(255, 215, 80),
+        Color3.fromRGB(120, 255, 140),
+        Color3.fromRGB(190, 125, 255),
+        Color3.fromRGB(255, 120, 70),
+    }
+    for i, color in ipairs(fanColors) do
+        local fan = ensureModel(pack, "FanNPC_" .. i)
+        clearChildren(fan)
+        local x = (i - 3.5) * 2.4
+        local base = CFrame.new(x, 2.4, 0)
+        fanNpcPart(fan, "AuditedFanTorso_" .. i, Vector3.new(1.05, 1.55, 0.6), base, color, Enum.Material.SmoothPlastic)
+        fanNpcPart(fan, "AuditedFanHead_" .. i, Vector3.new(0.82, 0.82, 0.82), base * CFrame.new(0, 1.25, 0), Color3.fromRGB(255, 218, 165), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+        fanNpcPart(fan, "AuditedFanHair_" .. i, Vector3.new(0.9, 0.28, 0.9), base * CFrame.new(0, 1.72, -0.02), Color3.fromRGB(30 + i * 22, 20, 42), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+        fanNpcPart(fan, "AuditedFanGlowSign_" .. i, Vector3.new(1.55, 0.12, 0.8), base * CFrame.new(0, 2.15, -0.55), Color3.fromRGB(255, 255, 120), Enum.Material.Neon)
+        fanNpcPart(fan, "AuditedFanArmLeft_" .. i, Vector3.new(0.28, 1.25, 0.28), base * CFrame.new(-0.78, 0.25, 0), Color3.fromRGB(255, 218, 165), Enum.Material.SmoothPlastic)
+        fanNpcPart(fan, "AuditedFanArmRight_" .. i, Vector3.new(0.28, 1.25, 0.28), base * CFrame.new(0.78, 0.25, 0), Color3.fromRGB(255, 218, 165), Enum.Material.SmoothPlastic)
+        fanNpcPart(fan, "AuditedFanLegLeft_" .. i, Vector3.new(0.32, 1.1, 0.32), base * CFrame.new(-0.28, -1.25, 0), Color3.fromRGB(35, 35, 65), Enum.Material.SmoothPlastic)
+        fanNpcPart(fan, "AuditedFanLegRight_" .. i, Vector3.new(0.32, 1.1, 0.32), base * CFrame.new(0.28, -1.25, 0), Color3.fromRGB(35, 35, 65), Enum.Material.SmoothPlastic)
+    end
+    return pack
+end
+
+local function promoteFanNpcCreatorLocalAssets(roots)
+    local inboxRoot = ensureFolder(roots.Inbox, "FanNPC_CreatorLocal")
+    clearChildren(inboxRoot)
+    inboxRoot:SetAttribute("AssetSource", "LocalFanNPCCreator")
+    inboxRoot:SetAttribute("ImportStatus", "Quarantined in Workspace.AssetInbox before clean ArtAssets promotion")
+    local rawPack = buildFanNpcCreatorLocalPack(inboxRoot, "Raw_FanNPC_CreatorLocalPack")
+    local counts = AssetAuditService.Audit(rawPack)
+    local movedScripts = AssetAuditService.QuarantineScripts(rawPack, "Local Fan NPC Creator import scripts are not allowed in active art")
+    local audienceFolder = ensureFolder(roots.ArtAssets, "Audience")
+    local oldClean = audienceFolder:FindFirstChild("Clean_FanNPCCreatorLocalPack")
+    if oldClean then oldClean:Destroy() end
+    local clean = rawPack:Clone()
+    clean.Name = "Clean_FanNPCCreatorLocalPack"
+    clean:SetAttribute("AssetSource", "LocalFanNPCCreator")
+    clean:SetAttribute("ImportedVia", "Workspace.AssetInbox.FanNPC_CreatorLocal")
+    clean:SetAttribute("ScriptsQuarantined", #movedScripts)
+    clean:SetAttribute("AuditParts", counts.parts or 0)
+    clean:SetAttribute("AuditMeshParts", counts.meshParts or 0)
+    clean.Parent = audienceFolder
+    prepAuditedClone(clean, "ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack", "audienceRing", "audited local fan NPC Creator pack")
+    hideInstanceVisuals(inboxRoot)
+    return clean
+end
+
 
 
 local function findArtAsset(...)
@@ -262,19 +339,7 @@ local function asModelClone(source)
     return wrapper
 end
 
-local function quarantineActiveCloneScript(scriptInst, sourcePath)
-    local quarantine = ServerStorage:FindFirstChild("AssetQuarantine") or ensureFolder(ServerStorage, "AssetQuarantine")
-    pcall(function()
-        if scriptInst:IsA("BaseScript") then
-            scriptInst.Disabled = true
-        end
-    end)
-    scriptInst:SetAttribute("QuarantineReason", "Removed from active WorldV2 visual clone")
-    scriptInst:SetAttribute("AssetSourcePath", sourcePath)
-    scriptInst.Parent = quarantine
-end
-
-local function prepAuditedClone(model, sourcePath, category, purpose)
+function prepAuditedClone(model, sourcePath, category, purpose)
     local partIndex = 0
     for _, desc in ipairs(model:GetDescendants()) do
         if desc:IsA("BasePart") then
@@ -370,11 +435,8 @@ local function buildAuditedAssetPlacements(roots)
 
     local vendorKiosk = findArtAsset("Vendors", "Clean_VendorKioskShopCounter")
     local hordePack = findArtAsset("Horde", "Clean_CartoonMonsterHorde")
-    local hordeTemplates = collectHordeCharacterTemplates(hordePack)
-    local creatorFanCrowd = findArtAsset("Audience", "Clean_CreatorFanCrowdNPC_4884699204")
-    local creatorVendorStation = findArtAsset("Vendors", "Clean_CreatorVendorStation_425283754")
-    local creatorSecurityConsole = findArtAsset("Props", "Clean_CreatorSecurityConsole_11864290745")
-    local creatorTourBus = findArtAsset("TourBus", "Clean_CreatorTourBusProp_75431387")
+    local fanNpcPack = findArtAsset("Audience", "Clean_FanNPCCreatorLocalPack") or hordePack
+    local fanNpcPath = fanNpcPack == hordePack and "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde" or "ReplicatedStorage.ArtAssets.Audience.Clean_FanNPCCreatorLocalPack"
     for _, def in ipairs(Vendors) do
         local parent = roots[def.Root] and roots[def.Root]:FindFirstChild(def.Id)
         if parent then
@@ -414,22 +476,8 @@ local function buildAuditedAssetPlacements(roots)
             end
         end
     end
-    local fanSource = creatorFanCrowd or nil
-    for _, point in ipairs(PolarLayout.distribute(24, 96, 4, 7.5)) do
-        if fanSource then
-            placeAuditedClone(roots.AudienceRing, "Audited_CreatorFanCrowdNPC_" .. point.index, fanSource, "ReplicatedStorage.ArtAssets.Audience.Clean_CreatorFanCrowdNPC_4884699204", "audienceRing", "audited Creator Store fan/crowd NPC pack", point.cframeFacingCenter, 0.18)
-        else
-            local audienceTemplate = pickTemplate(hordeTemplates, point.index, hordePack)
-            local audiencePath = audienceTemplate and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. audienceTemplate.Name) or "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
-            placeAuditedClone(roots.AudienceRing, "Audited_AudienceBrainrotFanNPC_" .. point.index, audienceTemplate, audiencePath, "audienceRing", "audited audience fan NPC", point.cframeFacingCenter, 0.38)
-        end
-        if point.index <= 12 then
-            local anchor = invisible(roots.AudienceRing, "AudienceFanPrompt_" .. point.index, Vector3.new(5, 6, 5), point.cframeFacingCenter * CFrame.new(0, 2.4, -2.4), false)
-            local pr = prompt(anchor, point.index % 3 == 0 and "Encore" or point.index % 2 == 0 and "Cheer" or "Clap", "Fan Crew", "Hype")
-            pr.Name = "AudienceFanPrompt"
-            pr:SetAttribute("FanAction", pr.ActionText)
-            pr.MaxActivationDistance = 24
-        end
+    for _, point in ipairs(PolarLayout.distribute(12, 96, 4, 15)) do
+        placeAuditedClone(roots.AudienceRing, "Audited_FanNPCCreatorLocalCrowd_" .. point.index, fanNpcPack, fanNpcPath, "audienceRing", "audited local fan NPC Creator crowd pack", point.cframeFacingCenter, 0.78)
     end
     local tourBusArea = world and (world:FindFirstChild("TourBusAndSpawnDressing") or ensureModel(world, "TourBusAndSpawnDressing"))
     if tourBusArea then
@@ -552,6 +600,7 @@ end
 
 function WorldV2Builder.EnsureAssetRoots()
     local roots = AssetAuditService.EnsureRoots()
+    promoteFanNpcCreatorLocalAssets(roots)
     if roots.Inbox then
         hideInstanceVisuals(roots.Inbox)
         roots.Inbox:SetAttribute("VisualsDisabled", "AssetInbox is quarantine/inbox only; active art must be cloned into Workspace.GTH_WorldV2")
