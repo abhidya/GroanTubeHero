@@ -84,18 +84,28 @@ local currentTweens = {}
 local idleBases = {}
 local clusterCache = {}
 local lastClusterScan = 0
-local lastEventSerial = 0
-local function colorForCue(judgement)
-    if judgement == "Repair" or judgement == "Finish" or judgement == "Perfect" then
-        return Color3.fromRGB(80, 255, 140)
-    end
-    if judgement == "Miss" or judgement == "PassiveCreep" then
-        return Color3.fromRGB(255, 45, 75)
-    end
-    return Color3.fromRGB(90, 210, 255)
+
+local function cueType(payload)
+    local cue = type(payload.movementCue) == "table" and payload.movementCue or nil
+    return cue and cue.type or payload.lastJudgement
 end
 
-local function addMovementCue(sector, judgement, pressure)
+local function cueStrength(payload)
+    local cue = type(payload.movementCue) == "table" and payload.movementCue or nil
+    return math.clamp(tonumber(cue and cue.strength) or 1, 0.7, 2.5)
+end
+
+local function cueRadiusOffset(cueName, strength)
+    local scale = strength or 1
+    if cueName == "Miss" or cueName == "PassiveCreep" then return -14 * scale end
+    if cueName == "Repair" then return 10 * scale end
+    if cueName == "Finish" then return 24 * scale end
+    if cueName == "Perfect" then return 12 * scale end
+    if cueName == "Good" or cueName == "Audience" then return 7 * scale end
+    return 0
+end
+
+local function addMovementCue(sector, judgement, strength, warningOnly)
     if not sector then return end
     local marker = sector:FindFirstChild("HordeMotionCue")
     if not marker then
@@ -114,27 +124,27 @@ local function addMovementCue(sector, judgement, pressure)
     local angle = tonumber(sector:GetAttribute("AngleDeg")) or 90
     local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
     marker.CFrame = PolarLayout.cframeFacingCenter(58, angle, 7)
-    marker.Transparency = 0.08
-    marker.Color = colorForCue(judgement)
-    local scale = 12 + math.clamp((pressure or 0) / 100, 0, 1) * 10
-    TweenService:Create(marker, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), { Size = Vector3.new(scale, scale, scale), Transparency = 0.55 }):Play()
+    marker.Transparency = warningOnly and 0.25 or 0.08
+    marker.Color = warningOnly and Color3.fromRGB(255, 205, 60)
+        or judgement == "Repair" and Color3.fromRGB(80, 255, 140)
+        or judgement == "Finish" and Color3.fromRGB(120, 255, 255)
+        or judgement == "Miss" and Color3.fromRGB(255, 45, 45)
+        or judgement == "PassiveCreep" and Color3.fromRGB(255, 120, 35)
+        or Color3.fromRGB(90, 210, 255)
+    local pulseSize = warningOnly and 9 or (12 + 4 * (strength or 1))
+    TweenService:Create(marker, TweenInfo.new(0.24, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true), { Size = Vector3.new(pulseSize, pulseSize, pulseSize), Transparency = warningOnly and 0.65 or 0.5 }):Play()
 end
 
-local function tweenCluster(cluster, distance, sectorId, judgement, pressure)
+local function tweenCluster(cluster, distance, sectorId, payload)
     if not cluster or not cluster:IsA("Model") then return end
     local sector = getSector(sectorId)
     local angle = tonumber(sector and sector:GetAttribute("AngleDeg")) or 90
     local alpha = math.clamp((distance or 100) / 100, 0, 1)
-    pressure = pressure or (sector and tonumber(sector:GetAttribute("Pressure")) or 0)
-    local impulse = 0
-    if judgement == "Miss" or judgement == "PassiveCreep" then
-        impulse = -10
-    elseif judgement == "Repair" or judgement == "Perfect" then
-        impulse = 8
-    elseif judgement == "Finish" then
-        impulse = 18
-    end
-    local radius = 48 + alpha * 34 - math.clamp(pressure / 100, 0, 1) * 14 + impulse
+    local pressure = sector and tonumber(sector:GetAttribute("Pressure")) or 0
+    local cueName = type(payload) == "table" and cueType(payload) or nil
+    local strength = type(payload) == "table" and cueStrength(payload) or 1
+    local radius = 48 + alpha * 34 - math.clamp(pressure / 100, 0, 1) * 10 + cueRadiusOffset(cueName, strength)
+    radius = math.clamp(radius, 30, 112)
     local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
     local target = PolarLayout.cframeFacingCenter(radius, angle, 3)
     if currentTweens[cluster] then currentTweens[cluster]:Cancel() end
@@ -144,7 +154,7 @@ local function tweenCluster(cluster, distance, sectorId, judgement, pressure)
     conn = value:GetPropertyChangedSignal("Value"):Connect(function()
         if cluster.Parent then cluster:PivotTo(value.Value) end
     end)
-    local tweenTime = (judgement == "Miss" or judgement == "PassiveCreep") and 0.16 or 0.28
+    local tweenTime = cueName == "Finish" and 0.48 or 0.2
     local tween = TweenService:Create(value, TweenInfo.new(tweenTime, Enum.EasingStyle.Back), { Value = target })
     currentTweens[cluster] = tween
     tween.Completed:Connect(function()
@@ -158,6 +168,8 @@ end
 
 local function updateSectorVisuals(payload)
     if type(payload.sectorHealths) ~= "table" then return end
+    local activeSectorId = tostring(payload.activeSectorId or "")
+    local warningSectorId = tostring(payload.warningSectorId or "")
     for sectorId, health in pairs(payload.sectorHealths) do
         local sector = getSector(sectorId)
         if sector then
@@ -165,7 +177,10 @@ local function updateSectorVisuals(payload)
             local active = sectorId == payload.activeSectorId
             local warning = sectorId == payload.warningSectorId
             sector:SetAttribute("Health", health)
+            local pressure = payload.sectorPressure and payload.sectorPressure[sectorId] or (100 - (health or 100))
             sector:SetAttribute("Pressure", pressure)
+            sector:SetAttribute("HordeActive", tostring(sectorId) == activeSectorId)
+            sector:SetAttribute("HordeWarning", tostring(sectorId) == warningSectorId)
             local fence = sector:FindFirstChild("FenceSegment")
             if fence and fence:IsA("BasePart") then
                 local t = math.clamp((health or 100) / 100, 0, 1)
@@ -180,28 +195,23 @@ local function updateSectorVisuals(payload)
             local siren = sector:FindFirstChild("SirenLight")
             local light = siren and siren:FindFirstChildOfClass("PointLight")
             if light then
-                light.Color = active and colorForCue(payload.lastJudgement or payload.movementCue) or Color3.fromRGB(255, 35, 35)
-                light.Brightness = active and 5 or warning and 3.5 or (health or 100) < 35 and 5 or 0
+                light.Brightness = (tostring(sectorId) == warningSectorId or (health or 100) < 35) and 5 or 0
+                light.Color = tostring(sectorId) == activeSectorId and Color3.fromRGB(255, 130, 35) or Color3.fromRGB(255, 35, 35)
             end
             local vfx = sector:FindFirstChild("FenceDamageVFX")
             if vfx and vfx:IsA("BasePart") then
-                vfx.Color = active and colorForCue(payload.lastJudgement or payload.movementCue) or Color3.fromRGB(255, 80, 40)
-                vfx.Transparency = active and 0.05 or (health or 100) < 60 and 0.15 or 0.75
+                vfx.Transparency = (tostring(sectorId) == activeSectorId or (health or 100) < 60) and 0.12 or 0.75
+                vfx.Color = tostring(sectorId) == warningSectorId and Color3.fromRGB(255, 180, 45) or Color3.fromRGB(255, 80, 40)
             end
             local weak = sector:FindFirstChild("WeakPointMarker")
             if weak and weak:IsA("BasePart") then
-                weak.Color = warning and Color3.fromRGB(255, 45, 75) or active and colorForCue(payload.lastJudgement or payload.movementCue) or Color3.fromRGB(235, 245, 255)
+                weak.Color = tostring(sectorId) == warningSectorId and Color3.fromRGB(255, 205, 60) or Color3.fromRGB(255, 80, 80)
+                weak.Transparency = tostring(sectorId) == warningSectorId and 0.05 or 0.35
             end
             local meterPart = sector:FindFirstChild("HordePressureMeter")
             if meterPart and meterPart:IsA("BasePart") then
                 meterPart.Size = Vector3.new(2 + math.clamp(pressure / 100, 0, 1) * 8, 1.1, 0.6)
-                meterPart.Color = pressure > 55 and Color3.fromRGB(255, 45, 75) or active and colorForCue(payload.lastJudgement or payload.movementCue) or Color3.fromRGB(255, 230, 90)
-            end
-            for _, child in ipairs(sector:GetChildren()) do
-                if child:IsA("BasePart") and tostring(child.Name):match("^SectorWarningSpike_") then
-                    child.Color = warning and Color3.fromRGB(255, 45, 75) or active and colorForCue(payload.lastJudgement or payload.movementCue) or Color3.fromRGB(90, 210, 255)
-                    child.Transparency = warning and 0.05 or active and 0.15 or 0.45
-                end
+                meterPart.Color = tostring(sectorId) == activeSectorId and Color3.fromRGB(255, 125, 35) or Color3.fromRGB(255, 55, 55)
             end
         end
     end
@@ -258,24 +268,21 @@ if remotes:FindFirstChild("HordeUpdate") then
         stroke.Color = colorForCue(payload.lastJudgement or payload.movementCue)
         updateSectorVisuals(payload)
         local sector = getSector(sectorId)
-        local eventSerial = tonumber(payload.eventSerial)
-        if eventSerial == nil or eventSerial ~= lastEventSerial then
-            lastEventSerial = eventSerial or lastEventSerial
-            addMovementCue(sector, payload.lastJudgement or payload.movementCue, pressure)
-            if warningSectorId ~= sectorId then
-                local warningPressure = (payload.sectorPressure and payload.sectorPressure[warningSectorId]) or pressure
-                addMovementCue(getSector(warningSectorId), "Miss", warningPressure)
-            end
+        local judgement = cueType(payload)
+        local strength = cueStrength(payload)
+        addMovementCue(sector, judgement, strength, false)
+        if payload.warningSectorId and payload.warningSectorId ~= sectorId then
+            addMovementCue(getSector(payload.warningSectorId), "Warning", 0.8, true)
         end
         local cluster = getCluster(sectorId)
         if cluster then
-            tweenCluster(cluster, distance, sectorId, payload.lastJudgement or payload.movementCue, pressure)
+            tweenCluster(cluster, distance, sectorId, payload)
         else
             fallbackHordePoints()
         end
-        if payload.lastJudgement == "Miss" or payload.disasterMode then
+        if judgement == "Miss" or judgement == "PassiveCreep" or payload.disasterMode then
             pulse(Color3.fromRGB(120, 25, 35))
-        elseif payload.lastJudgement == "Perfect" then
+        elseif judgement == "Perfect" or judgement == "Repair" or judgement == "Finish" then
             pulse(Color3.fromRGB(25, 120, 70))
         elseif payload.lastJudgement == "Good" or payload.lastJudgement == "Audience" then
             pulse(Color3.fromRGB(30, 75, 120))
@@ -288,10 +295,10 @@ if remotes:FindFirstChild("SongFinished") then
         scanClusters()
         for _, sectorId in ipairs({ "N", "NE", "E", "SE", "S", "SW", "W", "NW" }) do
             local sector = getSector(sectorId)
-            addMovementCue(sector, "Finish", 0)
+            addMovementCue(sector, "Finish", 2.2, false)
             local cluster = getCluster(sectorId)
             if cluster then
-                tweenCluster(cluster, 100, sectorId, "Finish", 0)
+                tweenCluster(cluster, 100, sectorId, { lastJudgement = "Finish", movementCue = { type = "Finish", strength = 2.2 } })
             end
         end
     end)

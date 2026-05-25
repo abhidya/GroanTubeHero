@@ -62,6 +62,17 @@ local function weakestSector(healths)
     return weakestId
 end
 
+local function pressureForCue(judgement, pressure)
+    local current = pressure or 0
+    if judgement == "Miss" then return 32 end
+    if judgement == "PassiveCreep" then return 14 end
+    if judgement == "Repair" then return -28 end
+    if judgement == "Finish" then return -42 end
+    if judgement == "Perfect" then return -20 end
+    if judgement == "Good" or judgement == "Audience" then return -10 end
+    return current > 50 and -6 or 0
+end
+
 function HordeService:Init(runtimeContext)
     self.context = runtimeContext
     self.sessions = {}
@@ -82,9 +93,19 @@ function HordeService:_payload(session, horde, lastJudgement)
         sectorPressure = horde.sectorPressure,
         sectorAngles = horde.sectorAngles,
         warningSectorId = horde.warningSectorId,
-        activeSectorPressure = horde.activeSectorId and horde.sectorPressure and horde.sectorPressure[horde.activeSectorId] or 0,
-        eventSerial = horde.eventSerial or 0,
         movementCue = horde.movementCue,
+        movementEventId = horde.movementEventId or 0,
+    }
+end
+
+function HordeService:_setMovementCue(horde, cueType, sectorId, strength)
+    horde.movementEventId = (horde.movementEventId or 0) + 1
+    horde.movementCue = {
+        type = cueType,
+        sectorId = sectorId or horde.activeSectorId,
+        warningSectorId = horde.warningSectorId,
+        strength = strength or 1,
+        eventId = horde.movementEventId,
     }
 end
 
@@ -125,6 +146,8 @@ function HordeService:StartSession(session)
         sectorPressure = pressure,
         sectorAngles = angles,
         perfectStreak = 0,
+        movementEventId = 0,
+        movementCue = nil,
         step = 0,
         eventSerial = 0,
         movementCue = "Start",
@@ -139,13 +162,14 @@ end
 function HordeService:_applySectorJudgement(session, horde, judgement, delta)
     local sectorId = self:_pickActiveSector(horde, judgement)
     horde.activeSectorId = sectorId
-    horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + (judgement == "Miss" and 18 or -8), 0, 100)
+    horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + pressureForCue(judgement, horde.sectorPressure[sectorId]), 0, 100)
     if judgement == "Miss" then
         horde.perfectStreak = 0
         horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) - math.max(6, math.abs(delta or 8)))
     elseif judgement == "Perfect" then
         horde.perfectStreak = (horde.perfectStreak or 0) + 1
         horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + 3)
+        horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - 8)
         if horde.perfectStreak >= 5 then
             local weak = weakestSector(horde.sectorHealths)
             horde.sectorHealths[weak] = clampHealth((horde.sectorHealths[weak] or 100) + 10)
@@ -156,6 +180,11 @@ function HordeService:_applySectorJudgement(session, horde, judgement, delta)
         horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + 1)
     end
     horde.warningSectorId = weakestSector(horde.sectorHealths)
+    if judgement == "Miss" then
+        horde.warningSectorId = sectorId
+    end
+    local cueStrength = math.clamp(math.abs(delta or 1) / 8, 0.8, 2.4)
+    self:_setMovementCue(horde, judgement, sectorId, cueStrength)
     session.sectorHealths = horde.sectorHealths
     session.activeSectorId = horde.activeSectorId
 end
@@ -212,8 +241,8 @@ function HordeService:Update(dt)
                     horde.distance = clampDistance(horde.distance - horde.passiveBank)
                     local sectorId = self:_pickActiveSector(horde, "PassiveCreep")
                     horde.activeSectorId = sectorId
-                    horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + horde.passiveBank, 0, 100)
-                    horde.warningSectorId = weakestSector(horde.sectorHealths)
+                    horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + math.max(8, horde.passiveBank * 2.5), 0, 100)
+                    self:_setMovementCue(horde, "PassiveCreep", sectorId, 1.15)
                     horde.passiveBank = 0
                     session.hordeDistance = horde.distance
                     session.hordeState = stateFor(horde.distance)
@@ -231,8 +260,10 @@ function HordeService:FinishSession(session)
         horde.distance = clampDistance((horde.distance or 100) + 12)
         for _, sector in ipairs(SECTORS) do
             horde.sectorHealths[sector.id] = clampHealth((horde.sectorHealths[sector.id] or 100) + 8)
-            horde.sectorPressure[sector.id] = math.max(0, (horde.sectorPressure[sector.id] or 0) - 12)
+            horde.sectorPressure[sector.id] = math.max(0, (horde.sectorPressure[sector.id] or 0) - 32)
         end
+        horde.activeSectorId = horde.warningSectorId or horde.activeSectorId
+        self:_setMovementCue(horde, "Finish", horde.activeSectorId, 2.2)
         self:_broadcast(session, "Finish")
         self.sessions[session.id] = nil
     end
@@ -248,6 +279,7 @@ function HordeService:RepairSector(player, sectorId, amount)
         horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - amount)
         horde.activeSectorId = sectorId
         horde.warningSectorId = weakestSector(horde.sectorHealths)
+        self:_setMovementCue(horde, "Repair", sectorId, math.clamp(amount / 20, 0.8, 2.0))
         session.sectorHealths = horde.sectorHealths
         session.activeSectorId = sectorId
         self:_broadcast(session, "Repair")
