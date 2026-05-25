@@ -48,6 +48,7 @@ updateScale()
 local title=label(panel,"Store & Progression",UDim2.new(1,-70,0,52),UDim2.new(0,20,0,12),Color3.new(1,1,1),Enum.Font.GothamBlack)
 local close=button(panel,"X",UDim2.new(0,50,0,46),UDim2.new(1,-64,0,16),Color3.fromRGB(255,95,95))
 local wallet=label(panel,"Coins 0 • Fans 0 • Tickets 0",UDim2.new(1,-40,0,30),UDim2.new(0,20,0,64),Color3.fromRGB(255,240,160),Enum.Font.GothamBold)
+local outcome=label(panel,"Choose an option to see what it unlocks.",UDim2.new(1,-40,0,28),UDim2.new(0,20,0,88),Color3.fromRGB(160,245,255),Enum.Font.GothamBold)
 local tabsFrame=Instance.new("Frame");tabsFrame.BackgroundTransparency=1;tabsFrame.Size=UDim2.new(0,190,1,-110);tabsFrame.Position=UDim2.new(0,18,0,104);tabsFrame.Parent=panel
 local outcomeBanner=label(panel,"Choose a tab or option for a visible outcome.",UDim2.new(1,-234,0,28),UDim2.new(0,214,0,72),Color3.fromRGB(120,255,180),Enum.Font.GothamBold)
 local list=Instance.new("ScrollingFrame");list.Name="Cards";list.BackgroundTransparency=1;list.Size=UDim2.new(1,-234,1,-116);list.Position=UDim2.new(0,214,0,104);list.CanvasSize=UDim2.new(0,0,0,900);list.ScrollBarThickness=8;list.Active=true;list.Parent=panel
@@ -65,21 +66,40 @@ local items={
 local upgrades={{"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended",6},{"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended",10},{"Recovery","Recovery","Miss streaks hurt less.",150,"",5},{"Stagecraft","Stagecraft","Better effects and more Fans.",170,"",10},{"Chaos","Chaos","Battle-ready crowd-control style upgrade.",180,"Coming Soon",5},{"Focus","Focus","Resist battle distractions.",180,"",5},{"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended",10},{"AudiencePower","Audience Power","Audience support gives more Hype.",160,"",8}}
 local busUpgrades={{"BiggerSpeakers","Bigger Speakers","+Hype gain during performances.",120,"Coins",5},{"SnackStand","Snack Stand","Small bonus Fans after completed songs.",140,"Coins",5},{"PracticeSeat","Practice Seat","+XP from retries and replays.",130,"Coins",5},{"MerchBox","Merch Box","+Fans from audience participation.",150,"Fans",5},{"RoadCrew","Road Crew","Reduces venue fees.",180,"Coins",5},{"NeonWrap","Neon Wrap","Cosmetic Tour Bus flex.",100,"Fans",3}}
 local outcomeCards={
-    Security={{"Fence Repair Plan","Use sector prompts around HordeRing to repair weak fences. Watch the Weak sector and red sirens first.","Security plan pinned"},{"Pressure Readout","Green means repaired, red means the horde is close. Misses raise active-sector pressure.","Security readout explained"},{"Emergency Drill","If Disaster mode starts, hit clean notes and repair the weakest sector between songs.","Emergency drill ready"}},
-    Tutorial={{"Rhythm Basics","Choose a song, follow lane arrows, and keep combo alive for Hype and rewards.","Tutorial basics shown"},{"Progression Path","Earn Fans, Coins, XP, and Tickets; then buy upgrades and cosmetics here.","Progression path shown"},{"Horde Lesson","Perfects push the horde back. Misses pull it closer and damage the active sector.","Horde lesson shown"}},
-    Hype={{"Lead the Crowd","Use Hype actions to cheer, clap, support, or call encore during performances.","Crowd leadership ready"},{"Audience Timing","Callouts are strongest when the performer is stable and combo is climbing.","Audience timing tip shown"},{"Encore Cue","Build high Hype to make the end-screen rewards and stage feedback feel bigger.","Encore cue shown"}},
+    Security={
+        intro="Security status is open: read sector risk and then push back the horde in rhythm runs.",
+        cards={
+            {"Fence Repair","Patch weak fence sectors before pressure spills into the stage.", "Watch red security lights and weak-point markers in WorldV2."},
+            {"Horde Pressure","Cleaner note streaks reduce incoming brainrot pressure.", "Use Upgrades > Focus and Recovery if pressure gets too punishing."},
+            {"Battle Readiness","Security does not change judgement timing here.", "Start a song from the DJ to actively defend the sector."},
+        },
+    },
+    Tutorial={
+        intro="Tutorial is open: follow the loop from song choice to hit timing to rewards.",
+        cards={
+            {"1. Choose Song","Open the DJ menu, pick a local chart, and start a short run.", "Use the purple Choose Song button or DJ prompt."},
+            {"2. Hit Arrows","Match lanes when notes cross the judgement line.", "Perfect and Good hits build combo, score, hype, coins, and fans."},
+            {"3. Spend Rewards","Return here after songs to buy upgrades, cosmetics, and tour bus bonuses.", "Missions track progress automatically while you play."},
+        },
+    },
+    Hype={
+        intro="Hype outcome is open: audience callouts give immediate visual feedback.",
+        cards={
+            {"Clap / Cheer","Audience actions reinforce the performer and keep momentum visible.", "Use the Audience panel if it is available near the crowd zone."},
+            {"Encore","Big finish callouts celebrate clean streaks and strong endings.", "Equipped audience packs can change the panel title and flavor."},
+            {"Support","Support callouts are the safe horde-pressure themed choice.", "This screen is informational when the dedicated Audience panel is not loaded."},
+        },
+    },
 }
-
-local function showOutcome(message)
-    local text = tostring(message or "Outcome ready")
-    outcomeBanner.Text = text
-    gui:SetAttribute("LastOutcome", text)
-end
 
 local function owned(category,id)return snapshot.OwnedCosmetics and snapshot.OwnedCosmetics[category] and snapshot.OwnedCosmetics[category][id] end
 local function equipped(category,id)return snapshot.Equipped and snapshot.Equipped[category]==id end
 local function canAfford(currency,cost)return cost<=0 or ((snapshot[currency] or 0) >= cost) end
 local function clearList() for _,c in ipairs(list:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end end
+local function setOutcome(message)
+    outcome.Text = message or ("Opened " .. currentTab)
+    gui:SetAttribute("LastOutcome", outcome.Text)
+end
 local function card(y,titleText,desc,cost,currency,badge,onBuy,onEquip,buyText,equipText,affordable)
     local c=Instance.new("Frame");c.Size=UDim2.new(1,-12,0,124);c.Position=UDim2.new(0,0,0,y);c.BackgroundColor3=Color3.fromRGB(24,28,48);c.Parent=list;corner(c,14);stroke(c,Color3.fromRGB(80,225,255))
     label(c,titleText..(badge and badge~="" and ("  • "..badge) or ""),UDim2.new(.62,0,0,32),UDim2.new(0,14,0,10),Color3.new(1,1,1),Enum.Font.GothamBlack)
@@ -87,6 +107,20 @@ local function card(y,titleText,desc,cost,currency,badge,onBuy,onEquip,buyText,e
     label(c,cost>0 and (cost.." "..currency) or "No cost",UDim2.new(.25,0,0,30),UDim2.new(.67,0,0,12),affordable~=false and Color3.fromRGB(255,240,160) or Color3.fromRGB(255,120,120),Enum.Font.GothamBlack)
     local buy=button(c,buyText or "Buy",UDim2.new(0,118,0,38),UDim2.new(1,-258,1,-50),affordable~=false and Color3.fromRGB(55,145,255) or Color3.fromRGB(95,95,110));buy.Activated:Connect(onBuy)
     if onEquip then local eq=button(c,equipText or "Equip",UDim2.new(0,118,0,38),UDim2.new(1,-130,1,-50),Color3.fromRGB(120,200,95));eq.Activated:Connect(onEquip) end
+end
+
+local function renderOutcomeCards()
+    local section = outcomeCards[currentTab]
+    if not section then return false end
+    setOutcome(section.intro)
+    for i,info in ipairs(section.cards) do
+        local name, desc, result = table.unpack(info)
+        card((i-1)*134,name,desc .. "\nOutcome: " .. result,0,"","Info",function()
+            setOutcome(currentTab .. ": " .. result)
+        end,nil,"Preview",nil,true)
+    end
+    list.CanvasSize=UDim2.new(0,0,0,#section.cards*134+20)
+    return true
 end
 
 local function renderMissions()
@@ -109,6 +143,8 @@ local function render()
     wallet.Text=string.format("Coins %d • Fans %d • Tickets %d",snapshot.Coins or 0,snapshot.Fans or 0,snapshot.Tickets or 0)
     title.Text="Store & Progression — "..currentTab
     clearList()
+    setOutcome(gui:GetAttribute("FocusMessage") or ("Opened " .. currentTab))
+    gui:SetAttribute("FocusMessage", nil)
     if currentTab=="Upgrades" then
         for i,u in ipairs(upgrades) do
             local id,name,desc,cost,tag,max=table.unpack(u)
@@ -133,6 +169,8 @@ local function render()
             card((i-1)*134,name,"Level "..lvl.." / "..max.."\n"..desc.."\nUpgrade your career bonuses here.",finalCost,currency,"Tour Bus",function() remotes.PurchaseItem:FireServer({category="TourBus",itemId=id}) end,nil,lvl>=max and "Maxed" or "Buy",nil,canAfford(currency,finalCost))
         end
         list.CanvasSize=UDim2.new(0,0,0,#busUpgrades*134+20)
+    elseif renderOutcomeCards() then
+        return
     else
         if #(items[currentTab] or {}) == 0 then showOutcome("No purchasable cards in "..currentTab.." yet — choose another tab.") end
         for i,it in ipairs(items[currentTab] or {}) do
@@ -146,8 +184,8 @@ local function render()
 end
 
 for i,t in ipairs(tabs) do
-    local b=button(tabsFrame,t,UDim2.new(1,0,0,38),UDim2.new(0,0,0,(i-1)*44),i==1 and Color3.fromRGB(255,175,70) or Color3.fromRGB(40,45,70))
-    b.Activated:Connect(function() currentTab=t; showOutcome("Opened "..t.." options."); render() end)
+    local b=button(tabsFrame,t,UDim2.new(1,0,0,32),UDim2.new(0,0,0,(i-1)*36),i==1 and Color3.fromRGB(255,175,70) or Color3.fromRGB(40,45,70))
+    b.Activated:Connect(function() currentTab=t; render() end)
 end
 openButton.Activated:Connect(function() panel.Visible=not panel.Visible; render() end)
 close.Activated:Connect(function() panel.Visible=false end)

@@ -66,6 +66,7 @@ local function openStoreLike(menuName)
         storeGui:SetAttribute("FocusMessage", focusMessageFor(menuName))
         storeGui:SetAttribute("Open", true)
         storeGui:SetAttribute("Tab", menuName == "Store" and "Tube Sounds" or menuName)
+        storeGui:SetAttribute("FocusMessage", menuName .. " opened")
     end
 end
 
@@ -73,9 +74,9 @@ local function openAudience()
     local gui = playerGui:FindFirstChild("AudienceGui")
     if gui then
         gui:SetAttribute("Open", true)
-    else
-        openStoreLike("Hype")
+        return
     end
+    openStoreLike("Hype")
 end
 
 local function closeExternal(menuName)
