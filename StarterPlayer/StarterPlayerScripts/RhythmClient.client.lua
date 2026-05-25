@@ -143,6 +143,14 @@ local laneKeys = {
 }
 local openSongSelect
 local openStore
+local function routeMenu(menuName, fallback)
+    local controller = _G.GTH_UIUXMenuController
+    if controller and controller.openMenu then
+        controller.openMenu(menuName)
+    elseif fallback then
+        fallback()
+    end
+end
 
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
@@ -267,12 +275,15 @@ local function makeNavButton(text, onClick, color)
     return btn
 end
 
-makeNavButton("Choose Song", function() openSongSelect() end, Color3.fromRGB(170, 95, 255))
-makeNavButton("Store", function() openStore("Tube Sounds") end, Color3.fromRGB(55, 145, 255))
-makeNavButton("Upgrades", function() openStore("Upgrades") end, Color3.fromRGB(255, 175, 70))
-makeNavButton("Missions", function() openStore("Missions") end, Color3.fromRGB(120, 200, 95))
-makeNavButton("Tour Bus", function() openStore("Tour Bus") end, Color3.fromRGB(90, 210, 220))
-makeNavButton("Watch", function()
+makeNavButton("Choose Song", function() routeMenu("SongSelect", openSongSelect) end, Color3.fromRGB(170, 95, 255))
+makeNavButton("Store", function() routeMenu("Store", function() openStore("Tube Sounds") end) end, Color3.fromRGB(55, 145, 255))
+makeNavButton("Upgrades", function() routeMenu("Upgrades", function() openStore("Upgrades") end) end, Color3.fromRGB(255, 175, 70))
+makeNavButton("Missions", function() routeMenu("Missions", function() openStore("Missions") end) end, Color3.fromRGB(120, 200, 95))
+makeNavButton("Security", function() routeMenu("Security", function() openStore("Security") end) end, Color3.fromRGB(255, 90, 90))
+makeNavButton("Tutorial", function() routeMenu("Tutorial", function() openStore("Tutorial") end) end, Color3.fromRGB(90, 210, 220))
+makeNavButton("Hype", function()
+    local controller = _G.GTH_UIUXMenuController
+    if controller and controller.openMenu then controller.openMenu("Hype"); return end
     local audienceGui = playerGui:FindFirstChild("AudienceGui")
     if audienceGui then
         audienceGui:SetAttribute("Open", true)
@@ -306,6 +317,12 @@ makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -40, 0, 42), UDim2.
 local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeSongSelect.Activated:Connect(function()
     songSelect.Visible = false
+    touchMenu.Visible = true
+end)
+local backSongSelect = makeButton(songSelect, "BackSongSelect", "Back", UDim2.new(0, 86, 0, 40), UDim2.new(1, -158, 0, 17), Color3.fromRGB(90, 110, 145))
+backSongSelect.Activated:Connect(function()
+    songSelect.Visible = false
+    touchMenu.Visible = true
 end)
 makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Local/test audio modules are for local testing only. No copyright infringement intended.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local selectedDifficulty = "Easy"
@@ -387,12 +404,13 @@ resultsScroll.Parent = results
 local resultsText = makeLabel(resultsScroll, "ResultsText", "", UDim2.new(1, -16, 0, 560), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 resultsText.AutomaticSize = Enum.AutomaticSize.Y
 resultsText.TextYAlignment = Enum.TextYAlignment.Top
-local replayButton = makeButton(results, "ReplayButton", "Replay", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
-local chooseButton = makeButton(results, "ChooseButton", "Choose Song", UDim2.new(0, 170, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
-local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90, 0, 48), UDim2.new(0, 356, 1, -70), Color3.fromRGB(255, 175, 70))
-local upgradeButton = makeButton(results, "UpgradeButton", "Upgrades", UDim2.new(0, 120, 0, 48), UDim2.new(0, 456, 1, -70), Color3.fromRGB(255, 175, 70))
-local missionsButton = makeButton(results, "MissionsButton", "Missions", UDim2.new(0, 112, 0, 40), UDim2.new(0, 28, 1, -118), Color3.fromRGB(120, 200, 95))
-local busButton = makeButton(results, "TourBusButton", "Tour Bus", UDim2.new(0, 124, 0, 40), UDim2.new(0, 152, 1, -118), Color3.fromRGB(90, 210, 220))
+local replayButton = makeButton(results, "ContinueButton", "Continue", UDim2.new(0, 130, 0, 48), UDim2.new(0, 28, 1, -70), Color3.fromRGB(55, 145, 255))
+local chooseButton = makeButton(results, "ChooseButton", "Choose Another Song", UDim2.new(0, 210, 0, 48), UDim2.new(0, 172, 1, -70), Color3.fromRGB(170, 95, 255))
+local backToLobbyButton = makeButton(results, "BackToLobbyButton", "Back to Lobby", UDim2.new(0, 170, 0, 48), UDim2.new(0, 396, 1, -70), Color3.fromRGB(90, 110, 145))
+local storeButton = makeButton(results, "StoreButton", "Store", UDim2.new(0, 90, 0, 40), UDim2.new(0, 28, 1, -118), Color3.fromRGB(255, 175, 70))
+local upgradeButton = makeButton(results, "UpgradeButton", "Upgrades", UDim2.new(0, 120, 0, 40), UDim2.new(0, 132, 1, -118), Color3.fromRGB(255, 175, 70))
+local missionsButton = makeButton(results, "MissionsButton", "Missions", UDim2.new(0, 112, 0, 40), UDim2.new(0, 266, 1, -118), Color3.fromRGB(120, 200, 95))
+local busButton = makeButton(results, "HypeButton", "Hype", UDim2.new(0, 124, 0, 40), UDim2.new(0, 392, 1, -118), Color3.fromRGB(90, 210, 220))
 
 local state = {
     active = false,
@@ -448,6 +466,11 @@ local function playSongAudio(song)
 end
 
 function openStore(tab)
+    if tab == "Hype" then
+        local audienceGui = playerGui:FindFirstChild("AudienceGui")
+        if audienceGui then audienceGui:SetAttribute("Open", true) end
+        return
+    end
     local storeGui = playerGui:FindFirstChild("StoreGui")
     if storeGui then
         storeGui.Enabled = true
@@ -622,6 +645,7 @@ function openSongSelect()
     buildSongCards()
     songSelect.Visible = true
     results.Visible = false
+    touchMenu.Visible = false
     setPerformanceUiVisible(false)
     refreshOptionButtons()
     songInfo.Text = "Choose a song\nPick difficulty and 20s/30s/40s/Full segment."
@@ -645,17 +669,22 @@ end
 ProximityPromptService.PromptTriggered:Connect(function(prompt)
     if not prompt or not prompt.Parent then return end
     local name = prompt.Parent.Name
-    if name == "StartPrompt" or name == "Sign_Start" then
+    local stationName = prompt.Parent.Parent and prompt.Parent.Parent.Name or name
+    if name == "StartPrompt" or name == "Sign_Start" or stationName == "DJ_GroanMaster" then
         openSongSelect()
-    elseif name == "StoreKiosk" or name == "Sign_Store" then
+    elseif name == "StoreKiosk" or name == "Sign_Store" or stationName == "Vendor_Store" then
         openStore("Tube Sounds")
-    elseif name == "UpgradeKiosk" or name == "Sign_Upgrades" then
+    elseif name == "UpgradeKiosk" or name == "Sign_Upgrades" or stationName == "Vendor_UpgradeEngineer" then
         openStore("Upgrades")
-    elseif name == "MissionBoard" or name == "Sign_Missions" then
+    elseif name == "MissionBoard" or name == "Sign_Missions" or stationName == "MissionOfficer" then
         openStore("Missions")
+    elseif stationName == "SecurityManager" then
+        openStore("Security")
+    elseif stationName == "TutorialGuide" then
+        openStore("Tutorial")
     elseif name == "BusBody" or name == "TourBus" or name == "Sign_TourBus" then
         openStore("Tour Bus")
-    elseif name == "AudienceZone" or name == "AudienceSign" or name == "Sign_Audience" then
+    elseif name == "AudienceZone" or name == "AudienceSign" or name == "Sign_Audience" or stationName == "AudienceHypeManager" then
         local audienceGui = playerGui:FindFirstChild("AudienceGui")
         if audienceGui then
             audienceGui:SetAttribute("Open", true)
@@ -664,7 +693,12 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
 end)
 
 replayButton.Activated:Connect(function()
-    startSong(state.lastSongId)
+    results.Visible = false
+    touchMenu.Visible = true
+end)
+backToLobbyButton.Activated:Connect(function()
+    results.Visible = false
+    touchMenu.Visible = true
 end)
 chooseButton.Activated:Connect(openSongSelect)
 hudChooseButton.Activated:Connect(openSongSelect)
@@ -678,7 +712,7 @@ storeButton.Activated:Connect(function()
     openStore("Tube Sounds")
 end)
 busButton.Activated:Connect(function()
-    openStore("Tour Bus")
+    openStore("Hype")
 end)
 
 inputBus.Event:Connect(function(payload)
@@ -742,6 +776,8 @@ remotes.StartSong.OnClientEvent:Connect(function(payload)
     pendingStartToken = pendingStartToken + 1
     state.active = true
     hudChooseButton.Visible = false
+    songSelect.Visible = false
+    results.Visible = false
     setPerformanceUiVisible(true)
     state.sessionId = payload.sessionId
     state.song = payload.song

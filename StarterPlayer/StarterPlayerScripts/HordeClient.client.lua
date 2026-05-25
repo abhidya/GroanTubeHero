@@ -6,92 +6,29 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
-local function ensure(parent, className, name)
-    local found = parent:FindFirstChild(name)
-    if found then return found end
-    local instance = Instance.new(className)
-    instance.Name = name
-    instance.Parent = parent
-    return instance
-end
-
 local function setModelPrimaryPart(model)
-    if not model or not model:IsA("Model") then return end
-    if model.PrimaryPart then return end
+    if not model or not model:IsA("Model") or model.PrimaryPart then return end
     local firstPart = model:FindFirstChildWhichIsA("BasePart", true)
-    if firstPart then
-        model.PrimaryPart = firstPart
-    end
+    if firstPart then model.PrimaryPart = firstPart end
 end
 
-local function convertFolderRoot(hordeFolder)
-    local root = hordeFolder:FindFirstChild("HordeRoot")
-    if root and root:IsA("Folder") then
-        local oldFolder = root
-        local model = Instance.new("Model")
-        model.Name = "HordeRoot"
-        model.Parent = hordeFolder
-        for _, child in ipairs(oldFolder:GetChildren()) do
-            child.Parent = model
-            if child:IsA("BasePart") then
-                child.Anchored = true
-                child.CanCollide = false
-            elseif child:IsA("Model") then
-                for _, part in ipairs(child:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.Anchored = true
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end
-        oldFolder:Destroy()
-        root = model
-    end
-    if root and root:IsA("Model") then
-        setModelPrimaryPart(root)
-    end
-    return root
+local function getSector(sectorId)
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local ring = world and world:FindFirstChild("HordeRing")
+    return ring and ring:FindFirstChild("HordeSector_" .. tostring(sectorId or "N")) or nil
 end
 
-local function ensureStageHorde()
-    local stage = workspace:FindFirstChild("Stage") or ensure(workspace, "Folder", "Stage")
-    local hordeFolder = ensure(stage, "Folder", "BrainrotHorde")
-    local root = convertFolderRoot(hordeFolder)
-    if not root then
-        root = Instance.new("Model")
-        root.Name = "HordeRoot"
-        root.Parent = hordeFolder
-        for i = 1, 12 do
-            local part = Instance.new("Part")
-            part.Name = "Brainrot" .. i
-            part.Anchored = true
-            part.CanCollide = false
-            part.Size = Vector3.new(2.2, 4 + (i % 3), 2.2)
-            part.Color = Color3.fromRGB(95, 255, 105)
-            part.Material = Enum.Material.Neon
-            part.CFrame = CFrame.new(((i - 1) % 4 - 1.5) * 4, 4, math.floor((i - 1) / 4) * 4)
-            part.Parent = root
-        end
-        setModelPrimaryPart(root)
-    end
-    local far = hordeFolder:FindFirstChild("HordeFarPoint") or Instance.new("Part")
-    far.Name = "HordeFarPoint"
-    far.Anchored = true
-    far.CanCollide = false
-    far.Transparency = 1
-    far.Size = Vector3.new(2, 2, 2)
-    far.CFrame = CFrame.new(0, 4, -70)
-    far.Parent = hordeFolder
-    local near = hordeFolder:FindFirstChild("HordeNearStagePoint") or Instance.new("Part")
-    near.Name = "HordeNearStagePoint"
-    near.Anchored = true
-    near.CanCollide = false
-    near.Transparency = 1
-    near.Size = Vector3.new(2, 2, 2)
-    near.CFrame = CFrame.new(0, 4, -16)
-    near.Parent = hordeFolder
-    return root, far, near
+local function getCluster(sectorId)
+    local sector = getSector(sectorId)
+    local cluster = sector and sector:FindFirstChild("HordeCluster")
+    if cluster and cluster:IsA("Model") then setModelPrimaryPart(cluster) end
+    return cluster
+end
+
+local function fallbackHordePoints()
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
+    return world, hitboxes
 end
 
 local gui = Instance.new("ScreenGui")
@@ -142,29 +79,55 @@ local fillCorner = Instance.new("UICorner")
 fillCorner.CornerRadius = UDim.new(0, 6)
 fillCorner.Parent = fill
 
-local root, farPoint, nearPoint = ensureStageHorde()
-local currentTween
-local modelTweenValue
-local modelTweenConn
-local function moveHorde(distance)
-    root, farPoint, nearPoint = ensureStageHorde()
-    local alpha = 1 - math.clamp((distance or 100) / 100, 0, 1)
-    local cf = farPoint.CFrame:Lerp(nearPoint.CFrame, alpha)
-    if root:IsA("Model") then
-        if currentTween then currentTween:Cancel() end
-        if modelTweenConn then modelTweenConn:Disconnect() end
-        if modelTweenValue then modelTweenValue:Destroy() end
-        modelTweenValue = Instance.new("CFrameValue")
-        modelTweenValue.Value = root:GetPivot()
-        modelTweenConn = modelTweenValue:GetPropertyChangedSignal("Value"):Connect(function()
-            if root then root:PivotTo(modelTweenValue.Value) end
-        end)
-        currentTween = TweenService:Create(modelTweenValue, TweenInfo.new(0.22, Enum.EasingStyle.Back), { Value = cf })
-        currentTween:Play()
-    elseif root:IsA("BasePart") then
-        if currentTween then currentTween:Cancel() end
-        currentTween = TweenService:Create(root, TweenInfo.new(0.22, Enum.EasingStyle.Back), { CFrame = cf })
-        currentTween:Play()
+local currentTweens = {}
+
+local function tweenCluster(cluster, distance, sectorId)
+    if not cluster or not cluster:IsA("Model") then return end
+    local sector = getSector(sectorId)
+    local angle = tonumber(sector and sector:GetAttribute("AngleDeg")) or 90
+    local alpha = math.clamp((distance or 100) / 100, 0, 1)
+    local radius = 53 + alpha * 22
+    local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
+    local target = PolarLayout.cframeFacingCenter(radius, angle, 3)
+    if currentTweens[cluster] then currentTweens[cluster]:Cancel() end
+    local value = Instance.new("CFrameValue")
+    value.Value = cluster:GetPivot()
+    local conn
+    conn = value:GetPropertyChangedSignal("Value"):Connect(function()
+        if cluster.Parent then cluster:PivotTo(value.Value) end
+    end)
+    local tween = TweenService:Create(value, TweenInfo.new(0.22, Enum.EasingStyle.Back), { Value = target })
+    currentTweens[cluster] = tween
+    tween.Completed:Connect(function()
+        if conn then conn:Disconnect() end
+        value:Destroy()
+        currentTweens[cluster] = nil
+    end)
+    tween:Play()
+end
+
+local function updateSectorVisuals(payload)
+    if type(payload.sectorHealths) ~= "table" then return end
+    for sectorId, health in pairs(payload.sectorHealths) do
+        local sector = getSector(sectorId)
+        if sector then
+            sector:SetAttribute("Health", health)
+            local fence = sector:FindFirstChild("FenceSegment")
+            if fence and fence:IsA("BasePart") then
+                local t = math.clamp((health or 100) / 100, 0, 1)
+                fence.Color = Color3.fromRGB(255 - math.floor(160 * t), 80 + math.floor(175 * t), 80)
+            end
+            local siren = sector:FindFirstChild("SirenLight")
+            local light = siren and siren:FindFirstChildOfClass("PointLight")
+            if light then light.Brightness = (health or 100) < 35 and 5 or 0 end
+            local vfx = sector:FindFirstChild("FenceDamageVFX")
+            if vfx and vfx:IsA("BasePart") then vfx.Transparency = (health or 100) < 60 and 0.15 or 0.75 end
+            local meterPart = sector:FindFirstChild("HordePressureMeter")
+            if meterPart and meterPart:IsA("BasePart") then
+                local pressure = payload.sectorPressure and payload.sectorPressure[sectorId] or (100 - (health or 100))
+                meterPart.Size = Vector3.new(2 + math.clamp(pressure / 100, 0, 1) * 8, 1.1, 0.6)
+            end
+        end
     end
 end
 
@@ -178,9 +141,16 @@ if remotes:FindFirstChild("HordeUpdate") then
         if type(payload) ~= "table" then return end
         local distance = tonumber(payload.distance) or 100
         local state = payload.state or "Far"
-        label.Text = string.format("Brainrot Horde: %s  %d%%", state, math.floor(distance + 0.5))
+        local sectorId = payload.activeSectorId or "N"
+        label.Text = string.format("Brainrot Horde: %s  %d%%  Sector %s", state, math.floor(distance + 0.5), sectorId)
         fill.Size = UDim2.fromScale(1 - math.clamp(distance / 100, 0, 1), 1)
-        moveHorde(distance)
+        updateSectorVisuals(payload)
+        local cluster = getCluster(sectorId)
+        if cluster then
+            tweenCluster(cluster, distance, sectorId)
+        else
+            fallbackHordePoints()
+        end
         if payload.lastJudgement == "Miss" or payload.disasterMode then
             pulse(Color3.fromRGB(120, 25, 35))
         elseif payload.lastJudgement == "Perfect" then

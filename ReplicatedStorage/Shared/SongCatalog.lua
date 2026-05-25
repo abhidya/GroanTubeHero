@@ -54,24 +54,33 @@ end
 local function cleanRawTitle(raw)
     local title = tostring(raw or "")
     title = title:gsub("%b[]", "")
+    title = title:gsub("%b()", "")
     title = title:gsub("_", " ")
     while true do
         local before = title
         title = title:gsub("^%s*%d+%s*[%-%–—]+%s*", "")
         title = title:gsub("^%s*[%-%–—]+%s*", "")
+        title = title:gsub("^%s*%d+%s+", "")
         if title == before then
             break
         end
     end
-    local noiseWords = { "Official", "Lyric", "Video", "Visualizer", "Audio", "Music", "Extended" }
+    local noiseWords = { "Official", "Lyric", "Video", "Visualizer", "Audio", "Music", "Extended", "Cover" }
     for _, word in ipairs(noiseWords) do
         title = title:gsub("%f[%a]" .. word .. "%f[%A]", "")
         title = title:gsub("%f[%a]" .. word:lower() .. "%f[%A]", "")
         title = title:gsub("%f[%a]" .. word:upper() .. "%f[%A]", "")
     end
+    title = title:gsub("^%s*[%-%–—]+%s*", "")
+    title = title:gsub("%s*[%-%–—]+%s*$", "")
     title = title:gsub("%s+", " ")
-    return trim(titleCase(title))
+    local cleaned = trim(titleCase(title))
+    if cleaned == "" then
+        return "Untitled Song"
+    end
+    return cleaned
 end
+
 
 local function validSong(song)
     if type(song) ~= "table" or type(song.Id) ~= "string" or song.Id == "" then
@@ -186,24 +195,34 @@ end
 function SongCatalog.PrettyTitle(songOrId)
     local id = type(songOrId) == "table" and songOrId.Id or tostring(songOrId or "")
     local number = tostring(id):match("LocalAudioSong(%d+)") or tostring(id):match("Local Audio Song (%d+)")
+
     if type(songOrId) == "table" then
         if type(songOrId.SourceTitle) == "string" and trim(songOrId.SourceTitle) ~= "" then
-            return trim(songOrId.SourceTitle)
+            return cleanRawTitle(songOrId.SourceTitle)
         end
         if type(songOrId.Title) == "string" and trim(songOrId.Title) ~= "" then
+            if songOrId.Title:match("^Local Audio Song %d+$") or songOrId.Title:match("^Chart_LocalAudioSong%d+$") then
+                local num = songOrId.Title:match("%d+$")
+                local override = TITLE_OVERRIDES["LocalAudioSong" .. num]
+                if override then
+                    return cleanRawTitle(override)
+                end
+            end
             return cleanRawTitle(songOrId.Title)
         end
     end
-    if number and not Config.DebugRhythm then
-        return "Local Audio Song " .. number
+
+    local override = TITLE_OVERRIDES[id]
+    if not override and number then
+        override = TITLE_OVERRIDES["LocalAudioSong" .. number]
     end
-    if TITLE_OVERRIDES[id] then
-        return TITLE_OVERRIDES[id]
+    if override then
+        return cleanRawTitle(override)
     end
-    if number then
-        return "Local Audio Song " .. number
-    end
-    return tostring(id):gsub("(%l)(%u)", "%1 %2")
+
+    return cleanRawTitle(tostring(id):gsub("(%l)(%u)", "%1 %2"))
 end
+
+SongCatalog.CleanRawTitle = cleanRawTitle
 
 return SongCatalog

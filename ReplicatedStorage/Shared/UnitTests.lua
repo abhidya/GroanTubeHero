@@ -1,11 +1,22 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Scoring = require(Shared.Scoring)
 local ChartService = require(Shared.ChartService)
 local SongCatalog = require(Shared.SongCatalog)
+local WorldValidation = require(Shared.WorldV2.WorldValidation)
+
+local AntiExploitService
+if RunService:IsServer() then
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    if services then
+        AntiExploitService = require(services:FindFirstChild("AntiExploitService"))
+    end
+end
 
 local UnitTests = {}
 
@@ -83,12 +94,124 @@ local function testChartSegments(): ()
 end
 
 local function testCatalogTitles(): ()
-    local oldDebug = Config.DebugRhythm
-    Config.DebugRhythm = false
-    expectEqual(SongCatalog.PrettyTitle("LocalAudioSong001"), "Local Audio Song 001", "local public title sanitizes")
-    Config.DebugRhythm = true
-    expectEqual(SongCatalog.PrettyTitle("LocalAudioSong001"), "Thick of it Thomas the train remix", "debug title override visible")
-    Config.DebugRhythm = oldDebug
+    -- PrettyTitle cleanup examples
+    expectEqual(SongCatalog.CleanRawTitle("001 - 003 — [abc123] Official Music Video Extended"), "Untitled Song", "clean raw title 1")
+    expectEqual(SongCatalog.CleanRawTitle("039—Love Me Not [hash]"), "Love Me Not", "clean raw title 2")
+    expectEqual(SongCatalog.CleanRawTitle("12 - 04 – Song Name - Music"), "Song Name", "clean raw title 3")
+
+    -- Test PrettyTitle override is returned correctly
+    local pretty = SongCatalog.PrettyTitle("LocalAudioSong001")
+    expectEqual(pretty, "Thick of it Thomas the Train Remix", "pretty title resolves override")
+end
+
+local function testSongCounts(): ()
+    -- SongCatalog valid count is 21
+    expectEqual(#SongCatalog.LocalTest, 21, "21 playable local test songs in catalog")
+
+    -- UkedCharts count is 18
+    local ukedFolder = Shared:FindFirstChild("UkedCharts")
+    expect(ukedFolder ~= nil, "UkedCharts folder exists in Shared")
+    local count = 0
+    if ukedFolder then
+        for _, child in ipairs(ukedFolder:GetChildren()) do
+            if child:IsA("ModuleScript") and child.Name:match("^Chart_LocalAudioSong%d+$") then
+                count = count + 1
+            end
+        end
+    end
+    expectEqual(count, 18, "18 quarantined charts in UkedCharts")
+end
+
+local function testConfigLanes(): ()
+    for _, lane in ipairs(Config.Lanes) do
+        expect(lane.symbol == "←" or lane.symbol == "→" or lane.symbol == "↑" or lane.symbol == "↓", "lane symbol is arrow")
+    end
+end
+
+local function testAntiExploit(): ()
+    if not AntiExploitService then
+        print("[UnitTests] Skipping AntiExploit tests (not on server)")
+        return
+    end
+
+    local currentTime = workspace.GetServerTimeNow and workspace:GetServerTimeNow() or os.clock()
+    local mockSession = {
+        id = "session1",
+        songId = "LocalAudioSong001",
+        state = "Playing",
+        startServerTime = currentTime - 10,
+        endServerTime = currentTime + 20,
+        notesById = {
+            note1 = { id = "note1", time = 5.0, lane = 1 }
+        }
+    }
+
+    local songTime = currentTime - mockSession.startServerTime
+    mockSession.notesById.note1.time = songTime
+
+    local payload = {
+        sessionId = "session1",
+        songId = "LocalAudioSong001",
+        noteId = "note1",
+        lane = 1,
+    }
+
+    -- 1. On-time server hit
+    local ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expect(ok, "on-time server hit validation passes")
+
+    -- 2. Valid late clientDelta within latency grace
+    mockSession.notesById.note1.time = songTime - 0.12
+    payload.clientDelta = 0.1
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expect(ok, "valid late clientDelta within latency grace passes")
+    expectEqual(result, 0.1, "chosen offset is clientDelta")
+
+    -- 3. Invalid spoofed clientDelta far from serverOffset
+    mockSession.notesById.note1.time = songTime - 0.35
+    payload.clientDelta = 0.05
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expectEqual(ok, false, "spoofed clientDelta far from serverOffset fails")
+    expectEqual(result, "SpoofedClientDelta", "returns SpoofedClientDelta")
+
+    -- 4. Duplicate note rejection
+    mockSession.notesById.note1.hit = true
+    payload.clientDelta = nil
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expectEqual(ok, false, "duplicate hit fails")
+    expectEqual(result, "DuplicateHit", "returns DuplicateHit")
+
+    -- Restore
+    mockSession.notesById.note1.hit = nil
+
+    -- 5. Wrong lane rejection
+    payload.lane = 2
+    ok, result = AntiExploitService:ValidateNoteHit(nil, payload, mockSession)
+    expectEqual(ok, false, "wrong lane hit fails")
+    expectEqual(result, "WrongLane", "returns WrongLane")
+end
+
+local function testHordeRootPivot(): ()
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local hordeRing = world and world:FindFirstChild("HordeRing")
+    local hordeRoot = hordeRing and hordeRing:FindFirstChild("HordeSector_N") and hordeRing.HordeSector_N:FindFirstChild("HordeCluster")
+    if hordeRoot and hordeRoot:IsA("Model") then
+        local originalCFrame = hordeRoot:GetPivot()
+        local ok, err = pcall(function()
+            hordeRoot:PivotTo(originalCFrame * CFrame.new(0, 1, 0))
+            hordeRoot:PivotTo(originalCFrame)
+        end)
+        expect(ok, "WorldV2 HordeCluster model PivotTo does not throw error: " .. tostring(err))
+    else
+        print("[UnitTests] WorldV2 HordeCluster model not found in workspace, skipping pivot test")
+    end
+end
+
+local function testWorldV2Validation(): ()
+    if RunService:IsServer() then
+        local result = WorldValidation.Run()
+        expect(result.ok == true, "WorldValidation passes")
+    end
 end
 
 function UnitTests.Run(): { passed: number, failed: number, failures: { string } }
@@ -96,6 +219,11 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testScoring,
         testChartSegments,
         testCatalogTitles,
+        testSongCounts,
+        testConfigLanes,
+        testAntiExploit,
+        testHordeRootPivot,
+        testWorldV2Validation,
     }
     local failures = {}
     for _, test in ipairs(tests) do

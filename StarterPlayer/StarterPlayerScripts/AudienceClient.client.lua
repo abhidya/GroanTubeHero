@@ -99,8 +99,13 @@ screenGui:GetAttributeChangedSignal("Open"):Connect(function()
 end)
 
 local function inAudienceZone()
-    local stage = workspace:FindFirstChild("Stage")
-    local zone = stage and stage:FindFirstChild("AudienceZone")
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
+    local zone = hitboxes and hitboxes:FindFirstChild("AudienceZone")
+    if not zone then
+        local stage = workspace:FindFirstChild("Stage")
+        zone = stage and stage:FindFirstChild("AudienceZone")
+    end
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not zone or not root then return false end
     local localPoint = zone.CFrame:PointToObjectSpace(root.Position)

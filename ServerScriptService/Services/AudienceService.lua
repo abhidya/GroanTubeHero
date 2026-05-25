@@ -25,11 +25,13 @@ local function isInAudienceZone(character, zonePart)
 end
 
 function AudienceService:RefreshWatcher(player)
-    local stage = workspace:FindFirstChild("Stage")
-    if not stage then
-        return false
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local hitboxes = world and world:FindFirstChild("InvisibleGameplayHitboxes")
+    local zone = hitboxes and hitboxes:FindFirstChild("AudienceZone")
+    if not zone then
+        local stage = workspace:FindFirstChild("Stage")
+        zone = stage and stage:FindFirstChild("AudienceZone")
     end
-    local zone = stage:FindFirstChild("AudienceZone")
     local inZone = isInAudienceZone(player.Character, zone)
     self.watchers[player.UserId] = inZone and true or nil
     player:SetAttribute("IsAudience", inZone)

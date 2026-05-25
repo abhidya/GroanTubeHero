@@ -29,24 +29,33 @@ local function ensureRemote(folder, name)
     return remote
 end
 
+local function alignInstance(instance, size, cframe, color, material)
+    if instance:IsA("Model") then
+        instance:PivotTo(cframe)
+        for _, desc in ipairs(instance:GetDescendants()) do
+            if desc:IsA("BasePart") then
+                desc.Anchored = true
+                desc.CanCollide = true
+            end
+        end
+    elseif instance:IsA("BasePart") then
+        instance.Anchored = true
+        instance.CanCollide = true
+        instance.Size = size
+        instance.CFrame = cframe
+        if color then instance.Color = color end
+        if material then instance.Material = material end
+    end
+end
+
 local function ensurePart(parent, name, size, cframe, color, material)
     local part = parent:FindFirstChild(name)
-    if part then
-        -- Preserve hand-placed/imported Studio assets. Bootstrapping must not flatten meshes,
-        -- signs, custom stages, or user-positioned props on every server start.
-        return part
+    if not part then
+        part = Instance.new("Part")
+        part.Name = name
+        part.Parent = parent
     end
-    part = Instance.new("Part")
-    part.Name = name
-    part.Anchored = true
-    part.CanCollide = true
-    part.TopSurface = Enum.SurfaceType.Smooth
-    part.BottomSurface = Enum.SurfaceType.Smooth
-    part.Size = size
-    part.CFrame = cframe
-    part.Color = color
-    part.Material = material or Enum.Material.SmoothPlastic
-    part.Parent = parent
+    alignInstance(part, size, cframe, color, material)
     return part
 end
 
@@ -68,22 +77,24 @@ local function setModelPrimaryPart(model)
 end
 
 local function ensurePrompt(part, actionText, objectText)
-    if not part or not part:IsA("BasePart") then return nil end
-    local prompt = part:FindFirstChildOfClass("ProximityPrompt") or Instance.new("ProximityPrompt")
+    local prompt = part:FindFirstChildOfClass("ProximityPrompt")
+    if not prompt then
+        prompt = Instance.new("ProximityPrompt")
+        prompt.Parent = part
+    end
     prompt.ActionText = actionText
     prompt.ObjectText = objectText
     prompt.HoldDuration = 0.15
     prompt.MaxActivationDistance = 18
-    prompt.Parent = part
     return prompt
 end
 
 local function createBillboard(part, text)
-    if not part or not part:IsA("BasePart") then return end
     local gui = part:FindFirstChildOfClass("BillboardGui") or Instance.new("BillboardGui")
     gui.Size = UDim2.new(0, 260, 0, 70)
     gui.StudsOffset = Vector3.new(0, 4, 0)
-    gui.AlwaysOnTop = true
+    gui.AlwaysOnTop = false
+    gui.MaxDistance = 40
     gui.Parent = part
     local label = gui:FindFirstChildOfClass("TextLabel") or Instance.new("TextLabel")
     label.BackgroundTransparency = 1
@@ -96,203 +107,309 @@ local function createBillboard(part, text)
     label.Parent = gui
 end
 
-local function enforceGeneratedPart(parent, name, size, cframe, color, material, props)
-    local part = parent:FindFirstChild(name)
-    if part and not part:IsA("BasePart") then
-        return part
+local function ungroupMapPackage()
+    local unusedAssets = Workspace:FindFirstChild("Unused_MapAssets")
+    if not unusedAssets then return end
+
+    local openMe = unusedAssets:FindFirstChild("OPEN ME! (READ THE READ ME)")
+    if not openMe then return end
+
+    -- 1. MaterialService
+    local materialFolder = openMe:FindFirstChild("Ungroup in MaterialService")
+    if materialFolder then
+        local MaterialService = game:GetService("MaterialService")
+        for _, variant in ipairs(materialFolder:GetChildren()) do
+            if variant:IsA("MaterialVariant") then
+                local existing = MaterialService:FindFirstChild(variant.Name)
+                if not existing then
+                    variant.Parent = MaterialService
+                else
+                    variant:Destroy()
+                end
+            end
+        end
     end
-    if not part then
-        part = Instance.new("Part")
-        part.Name = name
-        part.TopSurface = Enum.SurfaceType.Smooth
-        part.BottomSurface = Enum.SurfaceType.Smooth
-        part.Parent = parent
+
+    -- 2. Lighting & Skybox
+    local lightingFolder = openMe:FindFirstChild("(DELETE YOUR OLD LIGHTING AND UNGROUP THIS FOLDER IN LIGHTING)")
+    if lightingFolder then
+        local targetFolder = lightingFolder:FindFirstChild("This is the new lighting from the latest update")
+        if targetFolder then
+            local Lighting = game:GetService("Lighting")
+            if not Lighting:FindFirstChild("DarkSky") then
+                for _, child in ipairs(Lighting:GetChildren()) do
+                    if child:IsA("Sky") or child:IsA("Atmosphere") or child:IsA("PostEffect") then
+                        child:Destroy()
+                    end
+                end
+                for _, effect in ipairs(targetFolder:GetChildren()) do
+                    effect.Parent = Lighting
+                end
+            end
+        end
     end
-    part.Anchored = true
-    part.Size = size
-    part.CFrame = cframe
-    part.Color = color
-    part.Material = material or Enum.Material.SmoothPlastic
-    if props then
-        setBasePart(part, props)
+
+    -- 3. ReplicatedStorage
+    local replicatedFolder = openMe:FindFirstChild("Ungroup in ReplicatedStorage")
+    if replicatedFolder then
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        for _, child in ipairs(replicatedFolder:GetChildren()) do
+            local existing = ReplicatedStorage:FindFirstChild(child.Name)
+            if not existing then
+                child.Parent = ReplicatedStorage
+            else
+                if child:IsA("Folder") and existing:IsA("Folder") then
+                    for _, subChild in ipairs(child:GetChildren()) do
+                        if not existing:FindFirstChild(subChild.Name) then
+                            subChild.Parent = existing
+                        else
+                            subChild:Destroy()
+                        end
+                    end
+                    child:Destroy()
+                else
+                    child:Destroy()
+                end
+            end
+        end
     end
-    return part
+
+    -- 4. StarterGui
+    local guiFolder = openMe:FindFirstChild("ungroup in startergui")
+    if guiFolder then
+        local StarterGui = game:GetService("StarterGui")
+        for _, child in ipairs(guiFolder:GetChildren()) do
+            if not StarterGui:FindFirstChild(child.Name) then
+                child.Parent = StarterGui
+            else
+                child:Destroy()
+            end
+        end
+    end
+
+    -- 5. StarterPack
+    local packFolder = openMe:FindFirstChild("ungroup in starterpack")
+    if packFolder then
+        local StarterPack = game:GetService("StarterPack")
+        for _, child in ipairs(packFolder:GetChildren()) do
+            if not StarterPack:FindFirstChild(child.Name) then
+                child.Parent = StarterPack
+            else
+                child:Destroy()
+            end
+        end
+    end
+
+    -- 6. ServerScriptService
+    local serverFolder = openMe:FindFirstChild("ungroup in ServerScriptService")
+    if serverFolder then
+        local ServerScriptService = game:GetService("ServerScriptService")
+        for _, child in ipairs(serverFolder:GetChildren()) do
+            if not ServerScriptService:FindFirstChild(child.Name) then
+                child.Parent = ServerScriptService
+            else
+                child:Destroy()
+            end
+        end
+    end
+
+    -- 7. Workspace
+    local workspaceFolder = openMe:FindFirstChild("Ungroup in workspace")
+    if workspaceFolder then
+        for _, child in ipairs(workspaceFolder:GetChildren()) do
+            if not Workspace:FindFirstChild(child.Name) then
+                child.Parent = Workspace
+            else
+                child:Destroy()
+            end
+        end
+    end
+
+    openMe:Destroy()
 end
 
-local function getStageMetrics(stage, base)
-    local cf = CFrame.new(0, 3, 0)
-    local size = Vector3.new(60, 2, 40)
-    if base and base:IsA("Model") then
-        cf, size = base:GetBoundingBox()
-    elseif base and base:IsA("BasePart") then
-        cf, size = base.CFrame, base.Size
+local function getObjectBoundingBox(inst)
+    if inst:IsA("Model") then
+        return inst:GetBoundingBox()
+    elseif inst:IsA("BasePart") then
+        return inst.CFrame, inst.Size
     end
-    local bottomY = cf.Position.Y - (size.Y / 2)
-    local deckY = bottomY + 2.85
-    local center = Vector3.new(0, deckY, 0)
-    return {
-        center = center,
-        bottomY = bottomY,
-        deckY = deckY,
-        width = math.max(72, size.X + 72),
-        depth = math.max(96, size.Z + 96),
-    }
 end
 
-local function buildArenaEnclosure(stage, base)
-    local metrics = getStageMetrics(stage, base)
-    local arena = ensureFolder(stage, "ArenaEnclosure")
-    local floorY = math.max(0.5, metrics.bottomY - 0.25)
-    local width = metrics.width
-    local depth = metrics.depth
-    local wallHeight = 34
-    local wallY = floorY + wallHeight / 2
-    enforceGeneratedPart(stage, "ArenaFloor", Vector3.new(width + 48, 1, depth + 72), CFrame.new(0, floorY - 0.5, 18), Color3.fromRGB(20, 18, 24), Enum.Material.Basalt, { CanCollide = true })
-    enforceGeneratedPart(stage, "LavaMoat", Vector3.new(width + 16, 0.6, depth + 16), CFrame.new(0, floorY + 0.15, 0), Color3.fromRGB(255, 65, 25), Enum.Material.CrackedLava, { CanCollide = false, Transparency = 0.28 })
-    enforceGeneratedPart(stage, "StageTopGlow", Vector3.new(math.min(42, width * 0.55), 0.35, math.min(34, depth * 0.35)), CFrame.new(0, metrics.deckY + 0.05, 0), Color3.fromRGB(50, 210, 255), Enum.Material.Neon, { CanCollide = false, Transparency = 0.4 })
-    enforceGeneratedPart(stage, "HordeLane", Vector3.new(34, 0.35, math.max(86, depth * 0.72)), CFrame.new(0, floorY + 0.4, depth * 0.28), Color3.fromRGB(90, 28, 20), Enum.Material.CrackedLava, { CanCollide = false, Transparency = 0.08 })
-    enforceGeneratedPart(stage, "BrainrotClimbRamp", Vector3.new(22, 3, 48), CFrame.new(0, floorY + 3.2, 34) * CFrame.Angles(math.rad(-8), 0, 0), Color3.fromRGB(85, 34, 24), Enum.Material.CrackedLava, { CanCollide = true, Transparency = 0.02 })
+local function getRotation(inst)
+    if inst:IsA("Model") then
+        local cf = inst:GetPivot()
+        return cf - cf.Position
+    elseif inst:IsA("BasePart") then
+        local cf = inst.CFrame
+        return cf - cf.Position
+    end
+    return CFrame.new()
+end
 
-    local wallSpecs = {
-        { "BackVolcanoWall", Vector3.new(width, wallHeight, 4), CFrame.new(0, wallY, -depth / 2), Color3.fromRGB(92, 35, 25) },
-        { "FrontCrowdWall", Vector3.new(width, wallHeight, 4), CFrame.new(0, wallY, depth / 2 + 28), Color3.fromRGB(45, 32, 42) },
-        { "LeftLavaWall", Vector3.new(4, wallHeight, depth + 64), CFrame.new(-width / 2, wallY, 14), Color3.fromRGB(72, 28, 28) },
-        { "RightLavaWall", Vector3.new(4, wallHeight, depth + 64), CFrame.new(width / 2, wallY, 14), Color3.fromRGB(72, 28, 28) },
-    }
-    for _, spec in ipairs(wallSpecs) do
-        local wall = enforceGeneratedPart(arena, spec[1], spec[2], spec[3], spec[4], Enum.Material.CrackedLava, { CanCollide = true, Transparency = 0.1 })
-        local light = wall:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
-        light.Color = Color3.fromRGB(255, 85, 35)
-        light.Range = 28
-        light.Brightness = 1.4
-        light.Parent = wall
+local function ensureStageObject(stage, name, defaultSize, x, z, rotation, color, material, stageTopY)
+    local inst = stage:FindFirstChild(name)
+    if not inst then
+        local unusedAssets = Workspace:FindFirstChild("Unused_MapAssets")
+        local template = unusedAssets and unusedAssets:FindFirstChild(name)
+        if template then
+            inst = template:Clone()
+            inst.Parent = stage
+        else
+            inst = Instance.new("Part")
+            inst.Name = name
+            inst.Size = defaultSize
+            inst.Parent = stage
+        end
     end
 
-    for i = 1, 8 do
-        local x = ((i - 1) % 4 - 1.5) * (width / 4)
-        local z = (i <= 4) and (-depth / 2 + 7) or (depth / 2 + 20)
-        local fog = enforceGeneratedPart(arena, "ToxicFogBank" .. i, Vector3.new(width / 5, 16, 4), CFrame.new(x, floorY + 9, z), Color3.fromRGB(70, 255, 100), Enum.Material.ForceField, { CanCollide = false, Transparency = 0.62 })
-        fog.CastShadow = false
+    local sz
+    local currentRotation = rotation
+
+    if inst:IsA("Model") then
+        local cf, modelSize = inst:GetBoundingBox()
+        sz = modelSize
+        if not currentRotation then
+            currentRotation = cf - cf.Position
+        end
+    else
+        sz = defaultSize or inst.Size
+        if not currentRotation then
+            currentRotation = inst.CFrame - inst.CFrame.Position
+        end
     end
-    for i = 1, 6 do
-        local truss = enforceGeneratedPart(arena, "OverheadTruss" .. i, Vector3.new(width * 0.78, 0.7, 0.7), CFrame.new(0, wallY + 14, -depth / 2 + i * (depth / 6)) * CFrame.Angles(0, 0, math.rad(0)), Color3.fromRGB(20, 20, 26), Enum.Material.Metal, { CanCollide = false })
-        local light = truss:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
-        light.Color = Color3.fromRGB(80, 220, 255)
-        light.Range = 38
-        light.Brightness = 0.7
-        light.Parent = truss
+
+    local finalY = stageTopY + sz.Y / 2
+    local targetCf = CFrame.new(x, finalY, z) * currentRotation
+
+    if inst:IsA("Model") then
+        inst:PivotTo(targetCf)
+        for _, desc in ipairs(inst:GetDescendants()) do
+            if desc:IsA("BasePart") then
+                desc.Anchored = true
+                desc.CanCollide = true
+            end
+        end
+    else
+        inst.Size = sz
+        inst.CFrame = targetCf
+        inst.Anchored = true
+        inst.CanCollide = true
+        if color then inst.Color = color end
+        if material then inst.Material = material end
     end
+
+    return inst
 end
 
 local function buildMap()
+    ungroupMapPackage()
+
     local stage = ensureFolder(Workspace, "Stage")
     local tourBus = ensureFolder(Workspace, "TourBus")
-    local unusedAssets = Workspace:FindFirstChild("Unused_MapAssets")
-    local importedStage = unusedAssets and unusedAssets:FindFirstChild("Stage")
-    local existingStagePlatform = stage:FindFirstChild("StagePlatform")
-    if importedStage and existingStagePlatform and existingStagePlatform:IsA("BasePart") then
-        existingStagePlatform.Name = "ProgrammaticStagePlatform"
-        existingStagePlatform.Parent = unusedAssets
-    end
-    if importedStage and not stage:FindFirstChild("StagePlatform") then
-        importedStage.Name = "StagePlatform"
-        importedStage.Parent = stage
-        if importedStage:IsA("Model") then
-            setModelPrimaryPart(importedStage)
-            for _, part in ipairs(importedStage:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.Anchored = true
-                    part.CanCollide = true
+
+    local base = stage:FindFirstChild("StagePlatform")
+    if not base then
+        warn("Groan Tube Hero: Workspace.Stage.StagePlatform not found. Creating fallback.")
+        base = ensurePart(stage, "StagePlatform", Vector3.new(60, 2, 40), CFrame.new(0, 10.17, 0), Color3.fromRGB(40, 40, 50), Enum.Material.Metal)
+    else
+        if base:IsA("Model") then
+            base:PivotTo(CFrame.new(0, 10.17, 0))
+            for _, child in ipairs(base:GetDescendants()) do
+                if child:IsA("BasePart") then
+                    child.Anchored = true
+                    child.CanCollide = true
                 end
             end
-            local boundsCf, boundsSize = importedStage:GetBoundingBox()
-            local desiredCenter = Vector3.new(0, 3 + (boundsSize.Y / 2), 0)
-            importedStage:PivotTo(importedStage:GetPivot() + (desiredCenter - boundsCf.Position))
-        elseif importedStage:IsA("BasePart") then
-            importedStage.Anchored = true
-            importedStage.CanCollide = true
-            importedStage.CFrame = CFrame.new(0, 3 + (importedStage.Size.Y / 2), 0)
-        end
-    end
-    local ledPanel = unusedAssets and unusedAssets:FindFirstChild("LED panel")
-    if ledPanel and not stage:FindFirstChild("LED panel") then
-        ledPanel.Parent = stage
-        if ledPanel:IsA("BasePart") then
-            ledPanel.Anchored = true
-            ledPanel.CanCollide = false
-            ledPanel.CFrame = CFrame.new(0, 11, -15)
-        elseif ledPanel:IsA("Model") then
-            setModelPrimaryPart(ledPanel)
-            ledPanel:PivotTo(CFrame.new(0, 11, -15))
+        else
+            base.Size = Vector3.new(60, 2, 40)
+            base.CFrame = CFrame.new(0, 10.17, 0)
+            base.Anchored = true
+            base.CanCollide = true
         end
     end
 
-    local base = stage:FindFirstChild("StagePlatform") or ensurePart(stage, "StagePlatform", Vector3.new(60, 2, 40), CFrame.new(0, 3, 0), Color3.fromRGB(40, 40, 50), Enum.Material.Metal)
+    local stageCf, stageSize
     if base:IsA("Model") then
-        local boundsCf, boundsSize = base:GetBoundingBox()
-        if boundsCf.Position.Y - (boundsSize.Y / 2) < 2.5 then
-            base:PivotTo(base:GetPivot() + (Vector3.new(0, 3 + (boundsSize.Y / 2), 0) - boundsCf.Position))
-        end
+        stageCf, stageSize = base:GetBoundingBox()
     else
-        setBasePart(base, { CanCollide = true })
+        stageCf, stageSize = base.CFrame, base.Size
     end
-    buildArenaEnclosure(stage, base)
-    local stageMetrics = getStageMetrics(stage, base)
-    local singerSpot = ensurePart(stage, "SingerSpot", Vector3.new(6, 1, 6), CFrame.new(0, stageMetrics.deckY + 0.45, 0), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+    local stageTopY = stageCf.Position.Y + (stageSize.Y / 2)
+
+    local singerSpot = ensureStageObject(stage, "SingerSpot", Vector3.new(6, 1, 6), 0, -4, nil, Color3.fromRGB(255, 255, 255), Enum.Material.Neon, stageTopY)
     setBasePart(singerSpot, { CanCollide = false })
-    local audienceZone = ensurePart(stage, "AudienceZone", Vector3.new(30, 1, 20), CFrame.new(stageMetrics.width * 0.28, stageMetrics.deckY - 0.15, 34), Color3.fromRGB(55, 55, 70), Enum.Material.ForceField)
+
+    local audienceZone = ensureStageObject(stage, "AudienceZone", Vector3.new(24, 8, 18), 0, 18, nil, Color3.fromRGB(55, 55, 70), Enum.Material.ForceField, stageTopY)
     setBasePart(audienceZone, { Transparency = 0.7, CanCollide = false })
 
-    local startPromptPart = ensurePart(stage, "StartPrompt", Vector3.new(6, 0.8, 6), CFrame.new(-15, stageMetrics.deckY + 0.7, -6), Color3.fromRGB(80, 170, 255), Enum.Material.Neon)
+    local startPromptPart = ensureStageObject(stage, "StartPrompt", Vector3.new(4, 1, 4), -16, -8, nil, Color3.fromRGB(80, 170, 255), Enum.Material.Neon, stageTopY)
     setBasePart(startPromptPart, { CanCollide = false })
     local prompt = ensurePrompt(startPromptPart, "Choose Song", "START SONG")
     if prompt then prompt.HoldDuration = 0.5 end
     createBillboard(startPromptPart, "START SONG")
 
-    local storeKiosk = ensurePart(stage, "StoreKiosk", Vector3.new(5, 8, 5), CFrame.new(stageMetrics.width * 0.32, stageMetrics.deckY + 1, -6), Color3.fromRGB(120, 255, 180), Enum.Material.SmoothPlastic)
+    local storeKiosk = ensureStageObject(stage, "StoreKiosk", Vector3.new(5, 8, 5), 14, -6, nil, Color3.fromRGB(120, 255, 180), Enum.Material.SmoothPlastic, stageTopY)
     createBillboard(storeKiosk, "STORE")
-    local upgradeKiosk = ensurePart(stage, "UpgradeKiosk", Vector3.new(5, 8, 5), CFrame.new(-stageMetrics.width * 0.32, stageMetrics.deckY + 1, 20), Color3.fromRGB(255, 220, 120), Enum.Material.SmoothPlastic)
+
+    local upgradeKiosk = ensureStageObject(stage, "UpgradeKiosk", Vector3.new(5, 8, 5), 20, -6, nil, Color3.fromRGB(255, 220, 120), Enum.Material.SmoothPlastic, stageTopY)
     createBillboard(upgradeKiosk, "UPGRADES")
-    local missionBoard = ensurePart(stage, "MissionBoard", Vector3.new(11, 8, 2), CFrame.new(stageMetrics.width * 0.32, stageMetrics.deckY + 0.5, 4), Color3.fromRGB(220, 220, 255), Enum.Material.Wood)
+
+    local missionBoard = ensureStageObject(stage, "MissionBoard", Vector3.new(6, 9, 1), 26, -6, nil, Color3.fromRGB(220, 220, 255), Enum.Material.Wood, stageTopY)
     createBillboard(missionBoard, "MISSIONS")
 
-    local microphone = ensurePart(stage, "MicrophoneStand", Vector3.new(1, 8, 1), CFrame.new(0, stageMetrics.deckY + 4, -2), Color3.fromRGB(60, 60, 60), Enum.Material.Metal)
-    setBasePart(microphone, { CanCollide = false })
-
-    local speakerStacks = ensureFolder(stage, "SpeakerStacks")
-    for i = 1, 2 do
-        local speaker = ensurePart(speakerStacks, "SpeakerStack" .. i, Vector3.new(3, 8, 3), CFrame.new(-22 + ((i - 1) * 44), stageMetrics.deckY + 4, -3), Color3.fromRGB(25, 25, 30), Enum.Material.Metal)
-        setBasePart(speaker, { CanCollide = true })
-    end
-
-    local spotlights = ensureFolder(stage, "Spotlights")
-    local hasCustomLightPoles = false
-    for _, child in ipairs(spotlights:GetChildren()) do
-        if child:IsA("Model") and child.Name:match("^GTH_LightPole") then
-            hasCustomLightPoles = true
-            break
-        end
-    end
-    if not hasCustomLightPoles then
-        for i = 1, 4 do
-            local lightBase = ensurePart(spotlights, "Spotlight" .. i, Vector3.new(1, 10, 1), CFrame.new(-12 + (i - 1) * 8, 10, -10), Color3.fromRGB(255, 255, 255), Enum.Material.Metal)
-            setBasePart(lightBase, { CanCollide = false })
-            if lightBase:IsA("BasePart") then
-                local light = lightBase:FindFirstChildOfClass("SpotLight") or Instance.new("SpotLight")
-                light.Angle = 70
-                light.Brightness = 2
-                light.Range = 18
-                light.Parent = lightBase
+    local microphone = ensureStageObject(stage, "MicrophoneStand", Vector3.new(1, 8, 1), 0, -2, nil, Color3.fromRGB(60, 60, 60), Enum.Material.Metal, stageTopY)
+    if microphone:IsA("Model") then
+        for _, desc in ipairs(microphone:GetDescendants()) do
+            if desc:IsA("BasePart") then
+                desc.CanCollide = false
             end
         end
+    else
+        setBasePart(microphone, { CanCollide = false })
     end
 
+    local speakerStacks = ensureFolder(stage, "SpeakerStacks")
+    local speaker1 = ensureStageObject(speakerStacks, "SpeakerStack1", Vector3.new(3, 8, 3), -22, -3, nil, Color3.fromRGB(25, 25, 30), Enum.Material.Metal, stageTopY)
+    local speaker2 = ensureStageObject(speakerStacks, "SpeakerStack2", Vector3.new(3, 8, 3), 22, -3, nil, Color3.fromRGB(25, 25, 30), Enum.Material.Metal, stageTopY)
+
+    local spotlights = ensureFolder(stage, "Spotlights")
+    for i = 1, 8 do
+        local name = "GTH_LightPole_" .. i
+        local pole = spotlights:FindFirstChild(name)
+        if pole and pole:IsA("Model") then
+            local cf, size = pole:GetBoundingBox()
+            pole:PivotTo(stageCf * CFrame.new(-16 + (i - 1) * 4.5, (stageSize.Y / 2) + (size.Y / 2), -12))
+            for _, desc in ipairs(pole:GetDescendants()) do
+                if desc:IsA("BasePart") then
+                    desc.Anchored = true
+                    desc.CanCollide = false
+                end
+            end
+        elseif pole and pole:IsA("BasePart") then
+            pole.CFrame = stageCf * CFrame.new(-16 + (i - 1) * 4.5, (stageSize.Y / 2) + 5, -12)
+            pole.Anchored = true
+            pole.CanCollide = false
+        else
+            local lightBase = ensurePart(spotlights, "Spotlight" .. i, Vector3.new(1, 10, 1), stageCf * CFrame.new(-12 + (i - 1) * 8, (stageSize.Y / 2) + 5, -10), Color3.fromRGB(255, 255, 255), Enum.Material.Metal)
+            setBasePart(lightBase, { CanCollide = false })
+            local light = lightBase:FindFirstChildOfClass("SpotLight") or Instance.new("SpotLight")
+            light.Angle = 70
+            light.Brightness = 2
+            light.Range = 18
+            light.Parent = lightBase
+        end
+    end
 
     local hordeFolder = ensureFolder(stage, "BrainrotHorde")
-    local farPoint = ensurePart(hordeFolder, "HordeFarPoint", Vector3.new(2, 2, 2), CFrame.new(0, stageMetrics.deckY + 1, stageMetrics.depth * 0.43), Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
+
+    local farPointPos = stageCf * CFrame.new(0, 0, -(stageSize.Z / 2) - 52)
+    local nearPointPos = stageCf * CFrame.new(0, 0, -(stageSize.Z / 2) - 2)
+    local farPoint = ensurePart(hordeFolder, "HordeFarPoint", Vector3.new(2, 2, 2), CFrame.new(farPointPos.Position.X, 1.4, farPointPos.Position.Z), Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
     setBasePart(farPoint, { Transparency = 1, CanCollide = false })
-    local nearPoint = ensurePart(hordeFolder, "HordeNearStagePoint", Vector3.new(2, 2, 2), CFrame.new(0, stageMetrics.deckY + 1, 18), Color3.fromRGB(255, 255, 80), Enum.Material.Neon)
+    local nearPoint = ensurePart(hordeFolder, "HordeNearStagePoint", Vector3.new(2, 2, 2), CFrame.new(nearPointPos.Position.X, stageTopY, nearPointPos.Position.Z), Color3.fromRGB(255, 255, 80), Enum.Material.Neon)
     setBasePart(nearPoint, { Transparency = 1, CanCollide = false })
+
     local hordeRoot = hordeFolder:FindFirstChild("HordeRoot")
     if hordeRoot and hordeRoot:IsA("Folder") then
         local oldFolder = hordeRoot
@@ -324,15 +441,18 @@ local function buildMap()
         for i = 1, 16 do
             local row = math.floor((i - 1) / 4)
             local col = ((i - 1) % 4) - 1.5
-            local creep = ensurePart(hordeRoot, "Brainrot" .. i, Vector3.new(2.4, 4 + (i % 3), 2.4), CFrame.new(col * 4, 4, -72 + row * 4), Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
+            local creep = ensurePart(hordeRoot, "Brainrot" .. i, Vector3.new(2.4, 4 + (i % 3), 2.4), stageCf * CFrame.new(col * 4, 1.2, -(stageSize.Z / 2) - 52 + row * 4), Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
             setBasePart(creep, { CanCollide = false, Shape = Enum.PartType.Block })
         end
         setModelPrimaryPart(hordeRoot)
     elseif hordeRoot:IsA("Model") then
         setModelPrimaryPart(hordeRoot)
     end
-    local lane = ensurePart(stage, "BrainrotHordeLane", Vector3.new(26, 0.5, stageMetrics.depth * 0.7), CFrame.new(0, stageMetrics.deckY - 0.7, stageMetrics.depth * 0.24), Color3.fromRGB(80, 30, 30), Enum.Material.CrackedLava)
+
+    local lanePos = stageCf * CFrame.new(0, -(stageSize.Y / 2) + 0.25, -(stageSize.Z / 2) - 27)
+    local lane = ensurePart(stage, "BrainrotHordeLane", Vector3.new(22, 0.5, 54), lanePos, Color3.fromRGB(80, 30, 30), Enum.Material.CrackedLava)
     setBasePart(lane, { CanCollide = false, Transparency = 0.15 })
+
     local backdrop = ensureFolder(stage, "BrainrotBackdrop")
     local hasCustomBackdrop = false
     for _, child in ipairs(backdrop:GetChildren()) do
@@ -344,32 +464,40 @@ local function buildMap()
     if not hasCustomBackdrop then
         for i = 1, 5 do
             local angle = (i / 5) * math.pi * 2
-            local volcano = ensurePart(backdrop, "Volcano" .. i, Vector3.new(10, 22, 10), CFrame.new(math.cos(angle) * 34, 10, -70 + math.sin(angle) * 12), Color3.fromRGB(130, 45, 25), Enum.Material.CrackedLava)
+            local volcano = ensurePart(backdrop, "Volcano" .. i, Vector3.new(10, 22, 10), stageCf * CFrame.new(math.cos(angle) * 34, 10, -(stageSize.Z / 2) - 50 + math.sin(angle) * 12), Color3.fromRGB(130, 45, 25), Enum.Material.CrackedLava)
             setBasePart(volcano, { Anchored = true, CanCollide = false })
-            if volcano:IsA("BasePart") then
-                local fire = volcano:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
-                fire.Color = Color3.fromRGB(255, 80, 20)
-                fire.Range = 22
-                fire.Brightness = 2
-                fire.Parent = volcano
-            end
+            local fire = volcano:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+            fire.Color = Color3.fromRGB(255, 80, 20)
+            fire.Range = 22
+            fire.Brightness = 2
+            fire.Parent = volcano
         end
     end
-    local hordeSign = ensurePart(stage, "BrainrotHordeSign", Vector3.new(16, 5, 1), CFrame.new(0, stageMetrics.deckY + 5, 18), Color3.fromRGB(90, 255, 90), Enum.Material.SmoothPlastic)
+
+    local hordeSign = ensurePart(stage, "BrainrotHordeSign", Vector3.new(16, 5, 1), stageCf * CFrame.new(0, (stageSize.Y / 2) + 5, 18), Color3.fromRGB(90, 255, 90), Enum.Material.SmoothPlastic)
     createBillboard(hordeSign, "BRAINROT HORDE")
 
     local venueSigns = ensureFolder(stage, "VenueSigns")
-    local sign = ensurePart(venueSigns, "MainSign", Vector3.new(24, 6, 1), CFrame.new(0, stageMetrics.deckY + 8, -12), Color3.fromRGB(70, 70, 90), Enum.Material.SmoothPlastic)
+    local sign = ensurePart(venueSigns, "MainSign", Vector3.new(24, 6, 1), stageCf * CFrame.new(0, (stageSize.Y / 2) + 8, -12), Color3.fromRGB(70, 70, 90), Enum.Material.SmoothPlastic)
     createBillboard(sign, "GROAN TUBE HERO")
 
     local crowd = ensureFolder(stage, "Crowd")
     for i = 1, 8 do
-        local c = ensurePart(crowd, "Crowd" .. i, Vector3.new(2, 5, 2), CFrame.new(-18 + i * 4, stageMetrics.deckY - 0.5, 38 + (i % 2) * 2), Color3.fromRGB(90, 90, 100), Enum.Material.SmoothPlastic)
+        local c = ensurePart(crowd, "Crowd" .. i, Vector3.new(2, 5, 2), stageCf * CFrame.new(-18 + i * 4, -0.5, (stageSize.Z / 2) + 4 + (i % 2) * 2), Color3.fromRGB(90, 90, 100), Enum.Material.SmoothPlastic)
         setBasePart(c, { CanCollide = false })
     end
 
-    local busBase = ensurePart(tourBus, "BusBody", Vector3.new(22, 8, 10), CFrame.new(50, 7, 18), Color3.fromRGB(25, 25, 35), Enum.Material.Metal)
-    if busBase:IsA("BasePart") then
+    local busBase = tourBus:FindFirstChild("BusBody")
+    if busBase and busBase:IsA("Model") then
+        busBase:PivotTo(stageCf * CFrame.new(50, 4, 18))
+        for _, desc in ipairs(busBase:GetDescendants()) do
+            if desc:IsA("BasePart") then
+                desc.Anchored = true
+                desc.CanCollide = true
+            end
+        end
+    else
+        busBase = ensurePart(tourBus, "BusBody", Vector3.new(22, 8, 10), stageCf * CFrame.new(50, 4, 18), Color3.fromRGB(25, 25, 35), Enum.Material.Metal)
         local wrap = Instance.new("SelectionBox")
         wrap.Adornee = busBase
         wrap.LineThickness = 0.04
@@ -377,17 +505,26 @@ local function buildMap()
         wrap.Parent = busBase
     end
     for i = 1, 4 do
-        local wheel = ensurePart(tourBus, "Wheel" .. i, Vector3.new(3, 3, 3), CFrame.new(41 + ((i - 1) % 2) * 14, stageMetrics.deckY - 3, 13 + math.floor((i - 1) / 2) * 10), Color3.fromRGB(10, 10, 10), Enum.Material.Rubber)
-        setBasePart(wheel, { Shape = Enum.PartType.Cylinder, CanCollide = false })
+        local name = "Wheel" .. i
+        local wheel = tourBus:FindFirstChild(name)
+        if wheel and wheel:IsA("BasePart") then
+            wheel.CFrame = busBase:GetPivot() * CFrame.new(-9 + ((i - 1) % 2) * 18, -4, -5 + math.floor((i - 1) / 2) * 10)
+            wheel.Anchored = true
+            wheel.CanCollide = false
+        else
+            wheel = ensurePart(tourBus, name, Vector3.new(3, 3, 3), stageCf * CFrame.new(41 + ((i - 1) % 2) * 14, -3, 13 + math.floor((i - 1) / 2) * 10), Color3.fromRGB(10, 10, 10), Enum.Material.Rubber)
+            setBasePart(wheel, { Shape = Enum.PartType.Cylinder, CanCollide = false })
+        end
     end
     createBillboard(busBase, "TOUR BUS")
 
     local pathFolder = ensureFolder(stage, "SpawnPath")
     for i = 1, 7 do
-        local pad = ensurePart(pathFolder, "ArrowPad" .. i, Vector3.new(5, 0.25, 3), CFrame.new(-34 + i * 4, stageMetrics.deckY + 0.05, -10 + i), Color3.fromRGB(255, 230, 80), Enum.Material.Neon)
+        local pad = ensurePart(pathFolder, "ArrowPad" .. i, Vector3.new(5, 0.25, 3), stageCf * CFrame.new(-34 + i * 4, 0.05, -10 + i), Color3.fromRGB(255, 230, 80), Enum.Material.Neon)
         setBasePart(pad, { CanCollide = false, Transparency = 0.15 })
     end
-    local audienceSign = ensurePart(stage, "AudienceSign", Vector3.new(8, 5, 1), CFrame.new(-22, stageMetrics.deckY + 4, 18), Color3.fromRGB(80, 170, 255), Enum.Material.SmoothPlastic)
+
+    local audienceSign = ensurePart(stage, "AudienceSign", Vector3.new(8, 5, 1), stageCf * CFrame.new(-22, 4, 18), Color3.fromRGB(80, 170, 255), Enum.Material.SmoothPlastic)
     createBillboard(audienceSign, "AUDIENCE / WATCH")
 
     local cleanSigns = stage:FindFirstChild("CleanSigns")
@@ -402,24 +539,257 @@ local function buildMap()
         }
         for name, values in pairs(signActions) do
             local signPart = cleanSigns:FindFirstChild(name)
-            ensurePrompt(signPart, values[1], values[2])
-            createBillboard(signPart, values[2])
+            if signPart then
+                local x = signPart.Position.X
+                local z = signPart.Position.Z
+                local rot = signPart.CFrame - signPart.Position
+                local finalY = stageTopY + signPart.Size.Y / 2
+                signPart.CFrame = CFrame.new(x, finalY, z) * rot
+                signPart.Anchored = true
+                signPart.CanCollide = true
+                ensurePrompt(signPart, values[1], values[2])
+            end
         end
     end
 end
 
-local function wirePrompt(context)
-    local stage = Workspace:WaitForChild("Stage")
-    local promptPart = stage:WaitForChild("StartPrompt")
-    local prompt = promptPart:WaitForChild("ProximityPrompt")
-    prompt.Triggered:Connect(function(player)
-        -- Dedicated song-select remote; keep StartSong fallback for older clients.
-        if context.Remotes.OpenSongSelect then
-            context.Remotes.OpenSongSelect:FireClient(player)
-        else
-            context.Remotes.StartSong:FireClient(player, { openSongSelect = true })
+
+local function ensureArtAssets()
+    local artAssets = ensureFolder(ReplicatedStorage, "ArtAssets")
+    local kit = artAssets:FindFirstChild("WorldV2_SafeProceduralKit") or Instance.new("Model")
+    kit.Name = "WorldV2_SafeProceduralKit"
+    kit.Parent = artAssets
+    kit:SetAttribute("AssetSource", "project-owned procedural; no Creator Store IDs")
+    kit:SetAttribute("ScriptsQuarantined", 0)
+    return artAssets, kit
+end
+
+local function archiveVisualInstance(inst, reason)
+    if not inst or inst.Name == "GTH_WorldV2" or inst.Name == "Unused_MapAssets" or inst.Name == "AssetInbox" then return nil end
+    local ServerStorage = game:GetService("ServerStorage")
+    local archive = ensureFolder(ServerStorage, "WorldArchive")
+    local archivedName = inst.Name .. "_ArchivedV1"
+    local existing = archive:FindFirstChild(archivedName)
+    if existing then existing:Destroy() end
+    for _, desc in ipairs(inst:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            desc.Transparency = 1
+            desc.CanCollide = false
+        elseif desc:IsA("BillboardGui") or desc:IsA("SurfaceGui") then
+            desc.Enabled = false
+        elseif desc:IsA("ParticleEmitter") or desc:IsA("Beam") or desc:IsA("Trail") or desc:IsA("Smoke") or desc:IsA("Fire") or desc:IsA("Sparkles") or desc:IsA("SurfaceLight") or desc:IsA("PointLight") or desc:IsA("SpotLight") then
+            desc.Enabled = false
         end
-    end)
+    end
+    inst:SetAttribute("WorldV2ArchiveReason", reason or "Known V1 placeholder visual")
+    inst.Name = archivedName
+    inst.Parent = archive
+    return inst
+end
+
+local function createInvisiblePart(parent, name, size, cframe)
+    local part = ensurePart(parent, name, size, cframe, Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+    setBasePart(part, { Transparency = 1, CanCollide = false, Anchored = true })
+    return part
+end
+
+local function createDisplayPart(parent, name, size, cframe, color, material, shape)
+    local part = ensurePart(parent, name, size, cframe, color, material)
+    setBasePart(part, { Anchored = true, CanCollide = true, Transparency = 0 })
+    if shape then part.Shape = shape end
+    return part
+end
+
+local function createSurfaceLabel(part, text, face)
+    local gui = part:FindFirstChild("SurfaceLabel") or Instance.new("SurfaceGui")
+    gui.Name = "SurfaceLabel"
+    gui.Face = face or Enum.NormalId.Front
+    gui.AlwaysOnTop = false
+    gui.LightInfluence = 0.2
+    gui.PixelsPerStud = 48
+    gui.Parent = part
+    local label = gui:FindFirstChild("Text") or Instance.new("TextLabel")
+    label.Name = "Text"
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.fromScale(1, 1)
+    label.Text = text
+    label.TextScaled = true
+    label.TextWrapped = true
+    label.Font = Enum.Font.GothamBlack
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextStrokeTransparency = 0.25
+    label.Parent = gui
+    return gui
+end
+
+local function makeStation(vendorRing, id, menuName, angle, radius, color)
+    local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
+    local model = vendorRing:FindFirstChild(id) or Instance.new("Model")
+    model.Name = id
+    model.Parent = vendorRing
+    local baseCf = PolarLayout.cframeFacingCenter(radius, angle, 3)
+    local plinth = createDisplayPart(model, "StationPlinth", Vector3.new(7, 1.2, 5), baseCf, color, Enum.Material.SmoothPlastic)
+    local body = createDisplayPart(model, "NpcBody", Vector3.new(2.2, 5, 1.5), baseCf * CFrame.new(0, 3.1, 0), color:Lerp(Color3.new(1,1,1), 0.18), Enum.Material.Neon)
+    local head = createDisplayPart(model, "NpcHead", Vector3.new(1.8, 1.8, 1.8), baseCf * CFrame.new(0, 6.1, 0), Color3.fromRGB(255, 225, 170), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+    local sign = createDisplayPart(model, "MenuSurfaceSign", Vector3.new(6.5, 3, 0.35), baseCf * CFrame.new(0, 4.4, -2.8), color, Enum.Material.Neon)
+    createSurfaceLabel(sign, menuName, Enum.NormalId.Front)
+    local promptAnchor = createInvisiblePart(model, "PromptAnchor", Vector3.new(5, 6, 5), baseCf * CFrame.new(0, 3, 0))
+    local prompt = ensurePrompt(promptAnchor, "Open " .. menuName, menuName)
+    prompt.Name = "ProximityPrompt"
+    prompt:SetAttribute("MenuName", menuName)
+    model.PrimaryPart = plinth
+    return model, prompt
+end
+
+local SECTOR_ORDER = {
+    { id = "N", angle = 90 }, { id = "NE", angle = 45 }, { id = "E", angle = 0 }, { id = "SE", angle = 315 },
+    { id = "S", angle = 270 }, { id = "SW", angle = 225 }, { id = "W", angle = 180 }, { id = "NW", angle = 135 },
+}
+
+local function buildWorldV2()
+    ensureArtAssets()
+    local ServerStorage = game:GetService("ServerStorage")
+    ensureFolder(ServerStorage, "AssetQuarantine")
+
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child.Name == "Stage" or child.Name == "TourBus" or child.Name == "ImportedArenaAssets" then
+            archiveVisualInstance(child, "WorldV2 replaced known V1/placeholder visuals")
+        end
+    end
+
+    local world = Workspace:FindFirstChild("GTH_WorldV2")
+    if not world then
+        world = Instance.new("Model")
+        world.Name = "GTH_WorldV2"
+        world.Parent = Workspace
+    end
+    world:SetAttribute("CoordinateConvention", "0=East(+X), 90=North(+Z), 180=West(-X), 270=South(-Z)")
+    world:SetAttribute("AssetPolicy", "No unaudited Creator Store asset IDs used")
+
+    local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
+    local arenaCore = ensureFolder(world, "ArenaCore")
+    local fenceRing = ensureFolder(world, "FenceRing")
+    local vendorRing = ensureFolder(world, "VendorRing")
+    local audienceRing = ensureFolder(world, "AudienceRing")
+    local hordeRing = ensureFolder(world, "HordeRing")
+    local volcanoRing = ensureFolder(world, "OuterVolcanoRing")
+    local hitboxes = ensureFolder(world, "InvisibleGameplayHitboxes")
+    local adapters = ensureFolder(world, "CompatibilityAdapters")
+
+    createDisplayPart(arenaCore, "ArenaDisc", Vector3.new(72, 1.4, 72), CFrame.new(0, 0, 0), Color3.fromRGB(38, 38, 54), Enum.Material.Slate, Enum.PartType.Cylinder).CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(90))
+    createDisplayPart(arenaCore, "PerformanceCircle", Vector3.new(18, 0.35, 18), CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(80, 225, 255), Enum.Material.Neon, Enum.PartType.Cylinder)
+    createInvisiblePart(hitboxes, "AudienceZone", Vector3.new(95, 14, 95), CFrame.new(0, 5, 0))
+    createInvisiblePart(hitboxes, "SingerSpot", Vector3.new(8, 5, 8), CFrame.new(0, 4, 0))
+    local spawn = world:FindFirstChild("SpawnLocation") or Workspace:FindFirstChildOfClass("SpawnLocation") or Instance.new("SpawnLocation")
+    spawn.Name = "SpawnLocation"
+    spawn.Anchored = true
+    spawn.CanCollide = true
+    spawn.Size = Vector3.new(8, 1, 8)
+    spawn.CFrame = CFrame.new(0, 2, 12)
+    spawn.Transparency = 1
+    spawn.Parent = world
+
+    for _, point in ipairs(PolarLayout.distribute(32, 38, 2.2, 0)) do
+        local seg = createDisplayPart(fenceRing, "FenceArcSegment_" .. tostring(point.index), Vector3.new(5.5, 4.2, 0.8), point.cframeFacingCenter, Color3.fromRGB(95, 255, 120), Enum.Material.Metal)
+        seg.CanCollide = true
+    end
+
+    makeStation(vendorRing, "DJ_GroanMaster", "SongSelect", 270, 24, Color3.fromRGB(170, 95, 255))
+    makeStation(vendorRing, "Vendor_Store", "Store", 225, 25, Color3.fromRGB(55, 145, 255))
+    makeStation(vendorRing, "Vendor_UpgradeEngineer", "Upgrades", 315, 25, Color3.fromRGB(255, 175, 70))
+    makeStation(vendorRing, "MissionOfficer", "Missions", 180, 27, Color3.fromRGB(120, 200, 95))
+    makeStation(vendorRing, "SecurityManager", "Security", 0, 27, Color3.fromRGB(255, 90, 90))
+    makeStation(vendorRing, "TutorialGuide", "Tutorial", 135, 27, Color3.fromRGB(90, 210, 220))
+    makeStation(audienceRing, "AudienceHypeManager", "Hype", 90, 29, Color3.fromRGB(255, 220, 90))
+
+    for _, sectorInfo in ipairs(SECTOR_ORDER) do
+        local sector = hordeRing:FindFirstChild("HordeSector_" .. sectorInfo.id) or Instance.new("Folder")
+        sector.Name = "HordeSector_" .. sectorInfo.id
+        sector:SetAttribute("SectorId", sectorInfo.id)
+        sector:SetAttribute("AngleDeg", sectorInfo.angle)
+        sector:SetAttribute("Health", 100)
+        sector.Parent = hordeRing
+        local centerCf = PolarLayout.cframeFacingCenter(51, sectorInfo.angle, 3)
+        local fence = createDisplayPart(sector, "FenceSegment", Vector3.new(13, 5, 1), centerCf, Color3.fromRGB(95, 255, 120), Enum.Material.Metal)
+        fence:SetAttribute("SectorId", sectorInfo.id)
+        local vfx = createDisplayPart(sector, "FenceDamageVFX", Vector3.new(10, 0.4, 0.4), centerCf * CFrame.new(0, 2.9, -0.7), Color3.fromRGB(255, 80, 40), Enum.Material.Neon)
+        vfx.Transparency = 0.55
+        local security = createDisplayPart(sector, "SecurityLight", Vector3.new(1.2, 1.2, 1.2), centerCf * CFrame.new(-4.8, 3.8, -1), Color3.fromRGB(150, 220, 255), Enum.Material.Neon, Enum.PartType.Ball)
+        local sl = security:FindFirstChildOfClass("PointLight") or Instance.new("PointLight"); sl.Name = "SecurityPointLight"; sl.Range = 18; sl.Brightness = 1.2; sl.Color = security.Color; sl.Parent = security
+        local siren = createDisplayPart(sector, "SirenLight", Vector3.new(1.5, 1.5, 1.5), centerCf * CFrame.new(4.8, 3.8, -1), Color3.fromRGB(255, 35, 35), Enum.Material.Neon, Enum.PartType.Ball)
+        local pl = siren:FindFirstChildOfClass("PointLight") or Instance.new("PointLight"); pl.Name = "SirenPointLight"; pl.Range = 20; pl.Brightness = 0; pl.Color = siren.Color; pl.Parent = siren
+        local horde = sector:FindFirstChild("HordeCluster") or Instance.new("Model")
+        horde.Name = "HordeCluster"
+        horde.Parent = sector
+        for i = 1, 5 do
+            local offset = CFrame.new((i - 3) * 2.4, 0, 0)
+            local creep = createDisplayPart(horde, "HordeFigure_" .. sectorInfo.id .. "_" .. i, Vector3.new(1.7, 3.6 + (i % 2), 1.7), PolarLayout.cframeFacingCenter(66 + (i % 2) * 3, sectorInfo.angle, 3) * offset, Color3.fromRGB(90, 255, 90), Enum.Material.Neon)
+            creep.CanCollide = false
+        end
+        setModelPrimaryPart(horde)
+        local meter = createDisplayPart(sector, "HordePressureMeter", Vector3.new(8, 1.1, 0.6), centerCf * CFrame.new(0, -2.7, -1.2), Color3.fromRGB(255, 230, 90), Enum.Material.Neon)
+        meter:SetAttribute("Pressure", 0)
+        createDisplayPart(sector, "WeakPointMarker", Vector3.new(2.2, 2.2, 0.5), centerCf * CFrame.new(0, 0.7, -1.25), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+        local repair = createInvisiblePart(sector, "RepairPromptAnchor", Vector3.new(5, 6, 5), centerCf * CFrame.new(0, 2, -4))
+        ensurePrompt(repair, "Repair Fence", "Sector " .. sectorInfo.id)
+    end
+
+    for _, point in ipairs(PolarLayout.distribute(16, 82, 8, 11.25)) do
+        local cliff = createDisplayPart(volcanoRing, "VolcanicCliff_" .. tostring(point.index), Vector3.new(11, 20 + (point.index % 3) * 5, 8), point.cframeFacingCenter, Color3.fromRGB(105, 45, 30), Enum.Material.CrackedLava)
+        cliff.CanCollide = false
+        local glow = cliff:FindFirstChildOfClass("PointLight") or Instance.new("PointLight")
+        glow.Color = Color3.fromRGB(255, 85, 25)
+        glow.Range = 24
+        glow.Brightness = 1.1
+        glow.Parent = cliff
+    end
+
+    local compatStage = ensureFolder(Workspace, "Stage")
+    compatStage:SetAttribute("CompatibilityOnly", true)
+    local aliases = {
+        StartPrompt = world.VendorRing.DJ_GroanMaster,
+        StoreKiosk = world.VendorRing.Vendor_Store,
+        UpgradeKiosk = world.VendorRing.Vendor_UpgradeEngineer,
+        MissionBoard = world.VendorRing.MissionOfficer,
+        AudienceZone = world.InvisibleGameplayHitboxes.AudienceZone,
+    }
+    for name, target in pairs(aliases) do
+        local ref = compatStage:FindFirstChild(name) or Instance.new("ObjectValue")
+        ref.Name = name
+        ref.Value = target
+        ref.Parent = compatStage
+    end
+    local brainrot = ensureFolder(compatStage, "BrainrotHorde")
+    local rootRef = brainrot:FindFirstChild("HordeRoot") or Instance.new("ObjectValue")
+    rootRef.Name = "HordeRoot"
+    rootRef.Value = world.HordeRing.HordeSector_N.HordeCluster
+    rootRef.Parent = brainrot
+
+    return world
+end
+
+local function wirePrompt(context)
+    local world = Workspace:WaitForChild("GTH_WorldV2")
+    local promptMap = {
+        DJ_GroanMaster = "SongSelect",
+        Vendor_Store = "Store",
+        Vendor_UpgradeEngineer = "Upgrades",
+        MissionOfficer = "Missions",
+        SecurityManager = "Security",
+        TutorialGuide = "Tutorial",
+        AudienceHypeManager = "Hype",
+    }
+    for stationName, menuName in pairs(promptMap) do
+        local station = world:FindFirstChild(stationName, true)
+        local prompt = station and station:FindFirstChildWhichIsA("ProximityPrompt", true)
+        if prompt then
+            prompt.Triggered:Connect(function(player)
+                if menuName == "SongSelect" and context.Remotes.OpenSongSelect then
+                    context.Remotes.OpenSongSelect:FireClient(player)
+                end
+            end)
+        end
+    end
 end
 
 local function createRemotes()
@@ -523,25 +893,18 @@ end
 
 
 local function startStageAtmosphere()
-    local stage = Workspace:FindFirstChild("Stage")
-    if not stage then return end
-    local spotlights = stage:FindFirstChild("Spotlights")
-    local speakerStacks = stage:FindFirstChild("SpeakerStacks")
+    local world = Workspace:FindFirstChild("GTH_WorldV2")
+    if not world then return end
+    local hordeRing = world:FindFirstChild("HordeRing")
     task.spawn(function()
         while true do
-            if spotlights then
-                for index, lightBase in ipairs(spotlights:GetChildren()) do
-                    local light = lightBase:FindFirstChildOfClass("SpotLight") or lightBase:FindFirstChildWhichIsA("SpotLight", true)
+            if hordeRing then
+                for index, sector in ipairs(hordeRing:GetChildren()) do
+                    local security = sector:FindFirstChild("SecurityLight")
+                    local light = security and security:FindFirstChildOfClass("PointLight")
                     if light then
                         light.Color = Color3.fromHSV((os.clock() * 0.06 + index * 0.17) % 1, 0.65, 1)
-                        light.Brightness = 2 + math.sin(os.clock() * 1.5 + index) * 0.6
-                    end
-                end
-            end
-            if speakerStacks then
-                for _, speaker in ipairs(speakerStacks:GetChildren()) do
-                    if speaker:IsA("BasePart") then
-                        speaker.Size = Vector3.new(3, 8 + math.sin(os.clock() * 3) * 0.25, 3)
+                        light.Brightness = 1.2 + math.sin(os.clock() * 1.5 + index) * 0.4
                     end
                 end
             end
@@ -556,7 +919,7 @@ local context = {
     Readme = makeClientReadmeString(),
 }
 
-buildMap()
+buildWorldV2()
 local remotesFolder, remotes = createRemotes()
 context.Remotes = remotes
 loadServices(context)

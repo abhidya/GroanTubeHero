@@ -29,14 +29,22 @@ local function flashLighting(color, brightness)
 end
 
 local function updateStageColor(color)
+    local world = workspace:FindFirstChild("GTH_WorldV2")
+    local hordeRing = world and world:FindFirstChild("HordeRing")
+    if hordeRing then
+        for _, sector in ipairs(hordeRing:GetChildren()) do
+            local lightBase = sector:FindFirstChild("SecurityLight")
+            local light = lightBase and lightBase:FindFirstChildOfClass("PointLight")
+            if light then
+                light.Color = color
+                light.Brightness = 3
+            end
+        end
+        return
+    end
     local stage = workspace:FindFirstChild("Stage")
-    if not stage then
-        return
-    end
-    local spotlights = stage:FindFirstChild("Spotlights")
-    if not spotlights then
-        return
-    end
+    local spotlights = stage and stage:FindFirstChild("Spotlights")
+    if not spotlights then return end
     for _, lightBase in ipairs(spotlights:GetChildren()) do
         local light = lightBase:FindFirstChildOfClass("SpotLight")
         if light then

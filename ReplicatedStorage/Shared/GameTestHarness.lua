@@ -1,11 +1,15 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local ChartService = require(Shared.ChartService)
 local Scoring = require(Shared.Scoring)
 local SongCatalog = require(Shared.SongCatalog)
+local UnitTests = require(Shared.UnitTests)
+local WorldValidation = require(Shared.WorldV2.WorldValidation)
+local UIUXValidation = require(Shared.WorldV2.UIUXValidation)
 
 local GameTestHarness = {}
 
@@ -74,13 +78,98 @@ function GameTestHarness.BuildSimulatedRun(songId: string?, difficulty: string?,
 end
 
 function GameTestHarness.Run()
+    print("[GameTestHarness] Starting test suite...")
+
+    -- 1. Run UnitTests
+    local unitResult = UnitTests.Run()
+    assert(unitResult.failed == 0, "UnitTests must pass")
+
+    -- 2. Run simulation
     local run = GameTestHarness.BuildSimulatedRun(nil, "Easy", "20s")
     assert(run.song.Duration == 20, "Harness 20s duration mismatch")
     assert(#run.events == #run.song.Notes, "Harness event count mismatch")
     assert(run.summary.perfect > 0, "Harness expected perfect hits")
     assert(run.summary.good > 0, "Harness expected good hits")
     assert(run.summary.grade == "S" or run.summary.grade == "A", "Harness expected strong grade")
-    print(string.format("[GameTestHarness] PASS song=%s events=%d grade=%s accuracy=%.1f", run.song.Id, #run.events, run.summary.grade, run.summary.accuracyPercent))
+
+    -- 3. If on Server, test game service integrations
+    if RunService:IsServer() then
+        local ServerScriptService = game:GetService("ServerScriptService")
+        local services = ServerScriptService:FindFirstChild("Services")
+        if services then
+            local SongSessionService = require(services:FindFirstChild("SongSessionService"))
+            local Players = game:GetService("Players")
+            local player = Players:GetPlayers()[1]
+            if player then
+                print("[GameTestHarness] Simulating SongSessionService active play on Server for: " .. player.Name)
+
+                -- Start Song Session
+                local session = SongSessionService:StartSong(player, {
+                    songId = "LocalAudioSong001",
+                    difficulty = "Easy",
+                    segmentLength = "20s",
+                })
+                assert(session, "Failed to start song session via SongSessionService")
+
+                -- Simulate note hit
+                local note = session.notes[1]
+                if note then
+                    local hitPayload = {
+                        sessionId = session.id,
+                        songId = "LocalAudioSong001",
+                        noteId = note.id,
+                        lane = note.lane,
+                        clientSongTime = note.time,
+                        clientDelta = 0,
+                    }
+                    SongSessionService:NoteHit(player, hitPayload)
+                    assert(note.hit == true, "Expected note to be marked hit on the server")
+                    print("[GameTestHarness] NoteHit successfully processed and note marked as hit")
+                end
+
+                -- Remove session
+                SongSessionService:RemoveSession(player)
+            else
+                print("[GameTestHarness] Warning: No active player found to simulate live session hit")
+            end
+        end
+
+        -- WorldV2 validation and prompt paths check
+        local worldResult = WorldValidation.Run()
+        assert(worldResult.ok == true, "WorldValidation must pass")
+        local counts = worldResult.counts or {}
+        print("[GameTestHarness] Active WorldV2 Models: " .. tostring(counts.models or 0))
+        print("[GameTestHarness] Active WorldV2 MeshParts: " .. tostring(counts.meshParts or 0))
+        print("[GameTestHarness] Active WorldV2 visible BaseParts: " .. tostring(counts.visibleBaseParts or 0))
+        print("[GameTestHarness] ArtAssets source models: " .. tostring(counts.artAssetSourceModels or 0))
+        print("[GameTestHarness] Quarantined scripts: " .. tostring(counts.quarantinedScripts or 0))
+        print("[GameTestHarness] Missing required assets: " .. tostring(counts.missingRequiredAssets or 0))
+        print("[GameTestHarness] Visible placeholder violations: " .. tostring(counts.visiblePlaceholderViolations or 0))
+    end
+
+    -- 4. If on Client, test UI modals
+    if RunService:IsClient() then
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local rhythmGui = player.PlayerGui:FindFirstChild("RhythmGui")
+        if rhythmGui then
+            local modal = rhythmGui.Root:FindFirstChild("SongSelectModal")
+            if modal then
+                modal.Visible = true
+                print("[GameTestHarness] Client UI: SongSelectModal successfully opened")
+                task.wait(0.1)
+                modal.Visible = false
+                print("[GameTestHarness] Client UI: SongSelectModal successfully closed")
+                task.wait(0.1)
+                modal.Visible = true
+                print("[GameTestHarness] Client UI: SongSelectModal successfully reopened")
+            end
+        end
+        local uiResult = UIUXValidation.Run(player)
+        assert(uiResult.ok == true, "UIUXValidation must pass")
+    end
+
+    print("[GameTestHarness] ALL HARNESS TESTS PASSED SUCCESSFULLY!")
     return run
 end
 
