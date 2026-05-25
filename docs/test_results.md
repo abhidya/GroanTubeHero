@@ -61,7 +61,7 @@ Date: 2026-05-25
 | Vendor prompt repair path | PASS | `VendorPromptService.lua` now defines `fireDialogue`, sends `NPCDialogue`, preserves `OpenSongSelect`/`OpenMenu`, and calls `HordeService:RepairSector` after repair dialogue. |
 | Menu option outcomes | PASS | Store/Upgrades/Missions/Security/Tutorial/Hype/Tour Bus tabs now show a visible outcome banner or action card; undefined `showOutcome` merge bug removed. |
 | Horde movement polish | PASS | `HordeService`/`HordeClient` preserve old payload fields and add `movementCue`, `movementEventId`, stronger active-sector push/pull, warning sector visuals, repair cues, and finish beatback. |
-| `rojo build default.project.json --output /private/tmp/GroanTubeHero-postteam-fixed.rbxlx` | PASS | Built latest repo scripts successfully without `rojo serve`. |
+| `rojo build default.project.json --output /private/tmp/GroanTubeHero-postteam-fixed.rbxlx` | PASS | Built latest repo scripts successfully using build-only Rojo validation. |
 | `git diff --check` | PASS | No whitespace/conflict-marker errors after team merge and UI hotfix. |
 | Conflict-marker/undefined outcome scan | PASS | `rg 'showOutcome|<<<<<<<|=======' StarterPlayer ServerScriptService ReplicatedStorage` returned no matches. |
 | Studio MCP post-team runtime | PASS | Superseded by the live Play rerun above: `WorldValidation.Run()`, `UnitTests.Run()`, and `GameTestHarness.Run()` all passed through Studio MCP after reconnect. |
@@ -116,7 +116,7 @@ Date: 2026-05-25
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| Rojo serve | PASS | `rojo` listening on `127.0.0.1:34872`; active Studio is `GroanTubeHero.synced.rbxlx`. |
+| Rojo live sync (historical) | PASS | Historical synced-Studio evidence; current worker validation policy uses `rojo build` rather than launching a live sync server. |
 | Studio script sync | PASS | MCP `script_read` confirmed latest `WorldV2Builder` has `ProjectOwned/ReadableWorldV2Art`, `GlowingStageMicPrompt`, AssetInbox hiding, and spawn `0,2,-30`; `HordeService.RepairSector` and repair prompt binding are present. |
 | `git diff --check` | PASS | Run after readable placement/playability fix. |
 | `rojo build default.project.json -o /private/tmp/GroanTubeHero.verify.rbxlx` | PASS | Built latest synced repo. |
@@ -312,7 +312,7 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 
 | Test | Result | Notes |
 | --- | --- | --- |
-| Rojo serve sync | PASS | Active Studio `GroanTubeHero.synced.rbxlx`; source probes found latest `WorldV2Builder`, `VendorPromptService`, `HordeService`, `UIUXMenuController`, `RhythmClient`, and `GameTestHarness` patches synced. |
+| Rojo live sync (historical) | PASS | Historical active Studio sync evidence; current worker validation policy uses `rojo build` rather than launching a live sync server. |
 | `git diff --check` | PASS | No whitespace errors after Phase X fixes. |
 | `rojo build default.project.json -o /private/tmp/GroanTubeHero.verify.rbxlx` | PASS | Project builds successfully. |
 | Fresh WorldV2 rebuild | PASS | `WorldV2Builder.Build()` now destroys stale `Workspace.GTH_WorldV2` before rebuilding, removing bad/stale placements. |
@@ -407,4 +407,4 @@ Active Studio MCP tree is not synced with repo source modules (`ReplicatedStorag
 | --- | --- | --- |
 | Creator Store bucket identification | PASS | Documented import/search buckets in `docs/asset_manifest_real.md`: stage/truss/lights, horde NPCs, fan crowd, vendor kiosk, security console, tour bus, and volcano/lava. |
 | Harness regression coverage | PASS | Added `UnitTests.testCreatorStoreBucketManifestSource` to assert the builder source keeps `Workspace.AssetInbox`, `ServerStorage.AssetQuarantine`, required clean ArtAssets source paths, and runtime placement buckets wired. |
-| No Rojo serve policy | PASS | Verification uses `rojo build` only; no `rojo serve` command is required for this task. |
+| Build-only Rojo policy | PASS | Verification uses `rojo build` only; no live sync server command is required for this task. |
