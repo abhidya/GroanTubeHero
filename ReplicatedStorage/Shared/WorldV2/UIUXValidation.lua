@@ -74,6 +74,11 @@ local function visible(guiObject)
     return guiObject and guiObject:IsA("GuiObject") and guiObject.Visible == true
 end
 
+local function findVisiblePanel(gui, panelName)
+    local panel = gui and gui:FindFirstChild(panelName, true)
+    return panel, visible(panel)
+end
+
 local function countOpenModals(modals)
     local count = 0
     for _, modal in pairs(modals) do
@@ -189,6 +194,39 @@ function UIUXValidation.Run(player)
                 expect(visible(songSelect), "SongSelect reopens after closing")
                 controller.back()
                 expect(not visible(songSelect), "back closes top modal")
+                local storeGui = playerGui and playerGui:FindFirstChild("StoreGui")
+                local storePanel = storeGui and storeGui:FindFirstChild("StorePanel", true)
+                if storePanel then
+                    controller.openMenu("Store")
+                    local _, storeOpen = findVisiblePanel(storeGui, "StorePanel")
+                    expect(storeOpen, "Store opens visible StorePanel through controller")
+                    expect(storeGui:GetAttribute("LastOutcome") ~= nil, "Store open records outcome text")
+                    controller.closeTopMenu()
+                    local _, storeClosed = findVisiblePanel(storeGui, "StorePanel")
+                    expect(not storeClosed, "closeTopMenu closes visible StorePanel")
+                    controller.openMenu("Store")
+                    local _, storeReopened = findVisiblePanel(storeGui, "StorePanel")
+                    expect(storeReopened, "Store reopens after controller close")
+                    controller.back()
+                    local _, storeBackClosed = findVisiblePanel(storeGui, "StorePanel")
+                    expect(not storeBackClosed, "back closes StorePanel")
+                end
+                local audienceGui = playerGui and playerGui:FindFirstChild("AudienceGui")
+                local audiencePanel = audienceGui and audienceGui:FindFirstChild("Panel", true)
+                if audiencePanel then
+                    controller.openMenu("Hype")
+                    local _, audienceOpen = findVisiblePanel(audienceGui, "Panel")
+                    expect(audienceOpen, "Hype opens visible AudienceGui Panel through controller")
+                    controller.closeTopMenu()
+                    local _, audienceClosed = findVisiblePanel(audienceGui, "Panel")
+                    expect(not audienceClosed, "closeTopMenu closes visible AudienceGui Panel")
+                    controller.openMenu("Hype")
+                    local _, audienceReopened = findVisiblePanel(audienceGui, "Panel")
+                    expect(audienceReopened, "Hype reopens after controller close")
+                    controller.back()
+                    local _, audienceBackClosed = findVisiblePanel(audienceGui, "Panel")
+                    expect(not audienceBackClosed, "back closes AudienceGui Panel")
+                end
                 controller.restoreLobbyState()
                 expect(nav == nil or nav.Visible == true, "NavigationMenu returns in lobby")
             end

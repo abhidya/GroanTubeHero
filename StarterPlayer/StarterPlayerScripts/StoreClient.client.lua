@@ -182,8 +182,15 @@ for i,t in ipairs(tabs) do
     b.Activated:Connect(function() currentTab=t; render() end)
 end
 openButton.Activated:Connect(function() panel.Visible=not panel.Visible; render() end)
-close.Activated:Connect(function() panel.Visible=false end)
+local function closePanel(message)
+    panel.Visible=false
+    gui:SetAttribute("Open", false)
+    if message then setOutcome(message) end
+end
+
+close.Activated:Connect(function() closePanel("Closed " .. currentTab .. " options.") end)
 gui:GetAttributeChangedSignal("Open"):Connect(function() if gui:GetAttribute("Open") then panel.Visible=true; currentTab=gui:GetAttribute("Tab") or currentTab; setOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render(); gui:SetAttribute("Open",false) end end)
+gui:GetAttributeChangedSignal("CloseRequested"):Connect(function() closePanel("Closed " .. currentTab .. " options.") end)
 gui:GetAttributeChangedSignal("Tab"):Connect(function() currentTab=gui:GetAttribute("Tab") or currentTab; setOutcome(gui:GetAttribute("FocusMessage") or ("Opened "..currentTab.." options.")); render() end)
 gui:GetAttributeChangedSignal("FocusMessage"):Connect(function() local msg=gui:GetAttribute("FocusMessage"); if msg then setOutcome(msg) end end)
 remotes.DataSnapshot.OnClientEvent:Connect(function(s) if s then snapshot=s; render() end end)
