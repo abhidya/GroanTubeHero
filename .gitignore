@@ -11,3 +11,9 @@ downloads/
 *.jpg
 __pycache__/
 *.pyc
+# Roblox Studio place saves are local/export artifacts. Keep source under Rojo; commit compressed evidence only.
+*.rbxlx
+*.rbxl
+!GroanTubeHero.rbxlx
+!GroanTubeHero.synced.repo-built.rbxlx
+!*.rbxlx.zip
