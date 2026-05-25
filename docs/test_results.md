@@ -6,7 +6,7 @@ Date: 2026-05-25
 | --- | --- | --- |
 | `git diff --check` | PASS | Run after WorldV2 remaining-phase edits. |
 | Static WorldV2 requirement scan | PASS | WorldV2 roots, vendor paths, sector payload compatibility, UIUX API, validation modules present. |
-| Unsafe asset ID scan | PASS | No previous candidate Creator Store IDs in active Lua; no fake `Search: "..."` comments. |
+| Unsafe asset ID scan | PASS | No previous candidate Creator Store IDs in active Lua; no fake search-placeholder comments. |
 | Song module count | PASS | 21 playable `ReplicatedStorage.Shared.Chart_LocalAudioSong*.lua`; 18 uked modules under `Shared.UkedCharts`. |
 | Studio MCP load | PASS | Loaded active `Workspace.GTH_WorldV2` via MCP with 8 sectors, 15 prompts, 166 visible BaseParts, 0 scripts, 0 placeholders. |
 | Studio MCP Play validation | PASS | Play started; validation returned 8 sectors, 15 prompts, 166 visible BaseParts, 0 scripts, 0 placeholders. |
@@ -61,3 +61,12 @@ Latest counts from Studio MCP:
 | Visible placeholder violations | 0 |
 | Playable songs | 21 |
 | Uked songs | 18 |
+
+## 2026-05-25 Asset manifest doc hardening
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Manifest integration | PASS | `docs/asset_manifest_real.md` now records supplied `Workspace.Unused_MapAssets`, `Workspace.Stage`, and `Workspace.TourBus` source candidates plus active `WorldV2_SafeProceduralKit`. |
+| Audit-policy wording | PASS | Local place-file assets are candidate sources only until copied to quarantine/inbox, audited, script-quarantined, and published to `ReplicatedStorage.ArtAssets`. |
+| Stale docs scan | PASS | No stale-runtime marker, wired-not-run marker, old `181` visible-part count, inflated unique-asset claim, or fake search-placeholder strings remain in docs/design scan. |
+| Current active Studio source check | INFO | Active MCP Studio currently has minimal WorldV2/compat state and does not expose the supplied `Workspace.Unused_MapAssets` / `Workspace.TourBus` inventory; manifest rows are therefore treated as user-supplied source inventory, not current MCP runtime proof. |

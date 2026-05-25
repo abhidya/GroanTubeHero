@@ -1,12 +1,12 @@
 # Roblox Studio Asset Manifest - Groan Tube Hero
 
-This manifest inventories all visual assets discovered in the live Roblox Studio place file under `Workspace.Unused_MapAssets`, `Workspace.Stage`, and `Workspace.TourBus`.
+This manifest inventories visual assets from the supplied live Roblox Studio place-file manifest under `Workspace.Unused_MapAssets`, `Workspace.Stage`, and `Workspace.TourBus`.
 
 ---
 
 ## 1. Unactivated Package: `Workspace.Unused_MapAssets.OPEN ME! (READ THE READ ME)`
 
-These assets are currently imported in the place file but are inactive. They must be programmatically moved (ungrouped) on server startup to their respective Roblox services.
+These assets are currently imported in the place file but are inactive. They must be programmatically moved only after audit/quarantine rules pass; project remotes and empty folders stay ignored.
 
 | Instance Path | Class Name | Destination Service | Status / Notes |
 | :--- | :--- | :--- | :--- |
@@ -86,6 +86,6 @@ These 98 custom imported mesh models are templates used at runtime to spawn the 
 
 ## 5. Summary statistics
 *   **Total active stage models/parts**: 19
-*   **Total unactivated package assets in "OPEN ME!"**: 14
+*   **Total unactivated package entries in "OPEN ME!"**: 16 rows / 14 asset-bearing entries per Studio summary
 *   **Total brainrot horde templates**: 98
 *   **Total descendants across all map assets**: 8,710
