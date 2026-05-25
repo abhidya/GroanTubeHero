@@ -2,6 +2,50 @@
 
 Date: 2026-05-25
 
+## Latest validation summary — Rojo synced, playable placement repaired
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Rojo serve | PASS | `rojo` listening on `127.0.0.1:34872`; active Studio is `GroanTubeHero.synced.rbxlx`. |
+| Studio script sync | PASS | MCP `script_read` confirmed latest `WorldV2Builder` has `ProjectOwned/ReadableWorldV2Art`, `GlowingStageMicPrompt`, AssetInbox hiding, and spawn `0,2,-30`; `HordeService.RepairSector` and repair prompt binding are present. |
+| `git diff --check` | PASS | Run after readable placement/playability fix. |
+| `rojo build default.project.json -o /private/tmp/GroanTubeHero.verify.rbxlx` | PASS | Built latest synced repo. |
+| `rojo build default.project.json -o GroanTubeHero.synced.repo-built.rbxlx` | PASS | Packaged latest repo scripts into a reproducible rbxlx evidence file. |
+| Studio edit-mode `WorldValidation.Run()` | PASS | `activePlacedArtInstances=1370`, `visibleBaseParts=1370`, `stageCore=141`, `vendorRing=90`, `fenceRing=64`, `hordeRing=481`, `audienceRing=219`, `volcanoOuterRing=196`, `tourBusAndSpawn=43`, placeholders=0, unaudited placements=0. |
+| Studio play movement to mic | PASS | Humanoid `MoveTo(0,3,0)` reached within `1.89` studs; floor material `Slate`; player did not fall. |
+| Glowing stage mic prompt | PASS | Prompt path `Workspace.GTH_WorldV2.StageCircle.GlowingStageMicPrompt.ProximityPrompt`; action `Choose Song`; menu `SongSelect`; distance from player `1.93`; enabled=true. |
+| `require(ReplicatedStorage.Shared.UnitTests).Run()` in Studio | PASS | `failed=0`, `passed=11`. |
+| `require(ReplicatedStorage.Shared.GameTestHarness).Run()` in Studio | PASS | Harness returned valid song session and result summary; simulated note judgments completed. |
+| Screenshot evidence | PASS | Captured `WorldV2_Play_MicReachable_ClearFloor`; view shows reachable glowing mic prompt, circular stage/fence/horde ring, vendors, no AssetInbox wall. |
+| Studio Cmd+S save | BLOCKED | MCP has no save-place tool; `game:SavePlace()` failed because placeID is not valid; GUI `osascript` Cmd+S failed due macOS Accessibility denial. |
+
+## Current counts from fresh Studio validation
+
+| Count | Value |
+| --- | ---: |
+| Active WorldV2 Models | 878 |
+| Active WorldV2 MeshParts | 89 |
+| Active WorldV2 visible BaseParts | 1370 |
+| Active placed art instances | 1370 |
+| Stage/core art | 141 |
+| Lighting/trusses art | 136 |
+| Vendor ring art | 90 |
+| Fence ring art | 64 |
+| Horde ring art | 481 |
+| Audience ring art | 219 |
+| Volcano outer ring art | 196 |
+| Tour bus/spawn art | 43 |
+| Invisible hitboxes | 42 |
+| Quarantined scripts | 63 |
+| Horde sectors | 8 |
+| Missing required assets | 0 |
+| Visible placeholder violations | 0 |
+| Unaudited visible placements | 0 |
+
+---
+
+Date: 2026-05-25
+
 ## Latest validation summary — synced Studio + 500 placed-art gate
 
 | Test | Result | Notes |
