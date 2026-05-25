@@ -222,7 +222,8 @@ local function countActive(world)
     else
         counts.missingRequiredAssets += #REQUIRED_ART_ASSETS
     end
-    local serverStorage = getServerStorage()
+    local shouldCountGlobalQuarantine = world ~= nil and world.Name == "GTH_WorldV2" and world.Parent == Workspace
+    local serverStorage = shouldCountGlobalQuarantine and getServerStorage() or nil
     local quarantine = serverStorage and serverStorage:FindFirstChild("AssetQuarantine")
     if quarantine then
         for _, desc in ipairs(quarantine:GetDescendants()) do
