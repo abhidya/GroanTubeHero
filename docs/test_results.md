@@ -2,6 +2,41 @@
 
 Date: 2026-05-25
 
+## Rhythm input/audio/song-title hotfix — 2026-05-25
+
+| Test | Result | Notes |
+| --- | --- | --- |
+| Root cause audit | PASS | Found three regressions: client hit timing ignored captured input time, miss glitch ducked audio without guaranteed restore, and SongCatalog hid readable names as `Local Audio Song ###`. |
+| `git diff --check` | PASS | No whitespace errors after rhythm/song-title/source-path fixes. |
+| `rojo build default.project.json -o /private/tmp/GroanTubeHero-rhythm-hotfix-3.rbxlx` | PASS | Built latest repo scripts successfully; no `rojo serve` used. |
+| `python3 tools/validate_blocked_asset_ids.py` | PASS | Repo scan reports `blocked_id_count=11`, no blocked asset IDs remain; `GroanTubeHero.synced.rbxlx` XML also parses after scrub (`xml_parse_ok 7691142`). |
+| Studio MCP source apply | PASS | Active Studio `GroanTubeHero.synced.rbxlx` patched through `StudioMCP --stdio`; `SongCatalog` source has readable title assignment and `WorldV2Builder` source-path fix. |
+| Studio Play `WorldValidation.Run()` | PASS | `ok=true`; `activePlacedArtInstances=21064`, `visiblePlaceholderViolations=0`, `unauditedAssetPlacements=0`, `invalidAuditedSourcePaths=0`, `activeWorldScripts=0`. |
+| Studio Play `UnitTests.Run()` | PASS | `failed=0`, `passed=21`; added regressions for client input timestamp, audio duck/restore contract, visible song titles, and harness note payload fields. |
+| Studio Play `GameTestHarness.Run()` | PASS | Harness completed `LocalAudioSong001`; 38-note simulated run, score `4725`, max combo `38`, grade `A`, misses `0`; payload fixture includes timing fields. |
+| Live rhythm E2E MCP probe | PASS | In Play, probe started `LocalAudioSong001`, fired lane 2 at first-note target delta `0.0049s`, received `NoteJudged` = `Perfect`, and `SongAudioPipe` was playing. |
+| Audio duck/restore E2E | PASS | During auto-miss streak, audio ducked to `0.13` only momentarily then restored to `0.65` on following judgement events; not stuck muted. |
+| Song title proof | PASS | Fresh Play validation returned `song001="Thick of it Thomas the train remix"`; generic `Local Audio Song 001` no longer replaces real titles. |
+| OMX team runtime | BLOCKED | `omx team launch ...` failed: `Team mode requires running inside tmux current leader pane`; native subagents were used instead. |
+
+### Rhythm hotfix counts
+
+| Count | Value |
+| --- | ---: |
+| Active WorldV2 Models | 4117 |
+| Active WorldV2 MeshParts | 894 |
+| Active visible BaseParts | 21064 |
+| Active placed art instances | 21064 |
+| Mass brainrot NPC models | 512 |
+| Vendor prompts | 18 |
+| Horde sectors | 8 |
+| Scripts under `Workspace.GTH_WorldV2` | 0 |
+| Missing required assets | 0 |
+| Visible placeholder violations | 0 |
+| Unaudited visible placements | 0 |
+| Invalid audited source paths | 0 |
+
+
 ## Horde surge regression hotfix — 2026-05-25
 
 | Test | Result | Notes |

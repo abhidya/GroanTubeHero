@@ -486,7 +486,7 @@ local function buildAuditedAssetPlacements(roots)
             local baseCf = PolarLayout.cframeFacingCenter(def.Radius + 1.8, def.Angle, 3.2)
             placeAuditedClone(parent, "Audited_Kiosk_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " audited vendor kiosk", baseCf, 0.40)
             local roleTemplate = pickTemplate(hordeTemplates, def.Angle + #def.Id, hordePack)
-            local rolePath = roleTemplate and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. roleTemplate.Name) or "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
+            local rolePath = roleTemplate and roleTemplate:GetFullName() or "ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde"
             placeAuditedClone(parent, "Audited_RoleNPC_" .. def.Id, roleTemplate, rolePath, category, def.Menu .. " visible brainrot NPC/vendor", baseCf * CFrame.new(-3.7, 1.2, 1.6), 0.42)
             placeAuditedClone(parent, "Audited_RoleProps_Left_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " mission/store/upgrade prop left", baseCf * CFrame.new(-5.5, 0, -1.4), 0.18)
             placeAuditedClone(parent, "Audited_RoleProps_Right_" .. def.Id, vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", category, def.Menu .. " mission/store/upgrade prop right", baseCf * CFrame.new(5.5, 0, -1.4), 0.18)
@@ -511,9 +511,7 @@ local function buildAuditedAssetPlacements(roots)
                 local col = ((npcIndex - 1) % 16) - 7.5
                 local radius = 62 + row * 5.2 + ((npcIndex % 3) * 0.55)
                 local template = pickTemplate(hordeTemplates, npcIndex + sectorDef.Angle, hordePack)
-                local templatePath = hordePack and template and template:IsDescendantOf(hordePack)
-                    and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. template.Name)
-                    or (template and ("Workspace.Unused_MapAssets." .. template.Name) or "UNKNOWN")
+                local templatePath = template and template:GetFullName() or "UNKNOWN"
                 local cf = PolarLayout.cframeFacingCenter(radius, sectorDef.Angle, 3.4) * CFrame.new(col * 1.75, 0, 0)
                 local clone = placeAuditedClone(horde, "Audited_BrainrotNPC_" .. sectorDef.Id .. "_" .. string.format("%03d", npcIndex), template, templatePath, "hordeRing", "audited live brainrot horde NPC " .. sectorDef.Id, cf, 0.46 + ((npcIndex % 4) * 0.025))
                 tagBrainrotNPC(clone, sectorDef.Id, npcIndex)
@@ -527,9 +525,7 @@ local function buildAuditedAssetPlacements(roots)
     if tourBusArea then
         placeAuditedClone(tourBusArea, "Audited_BackstageDepotRig", stageRig, "ReplicatedStorage.ArtAssets.Stage.Clean_ConcertStageTrussSpeakerLights", "tourBusAndSpawn", "audited backstage/tour-bus depot rig", CFrame.new(-18, 5, -68) * CFrame.Angles(0, math.rad(90), 0), 0.12)
         local busTemplate = pickTemplate(hordeTemplates, 9, hordePack)
-        local busPath = hordePack and busTemplate and busTemplate:IsDescendantOf(hordePack)
-            and ("ReplicatedStorage.ArtAssets.Horde.Clean_CartoonMonsterHorde." .. busTemplate.Name)
-            or (busTemplate and ("Workspace.Unused_MapAssets." .. busTemplate.Name) or "UNKNOWN")
+        local busPath = busTemplate and busTemplate:GetFullName() or "UNKNOWN"
         placeAuditedClone(tourBusArea, "Audited_TourBusManagerNPC", busTemplate, busPath, "tourBusAndSpawn", "audited tour bus manager NPC", CFrame.new(-4, 4, -51) * CFrame.Angles(0, math.rad(180), 0), 0.42)
         placeAuditedClone(tourBusArea, "Audited_BackstageMerchProps", vendorKiosk, "ReplicatedStorage.ArtAssets.Vendors.Clean_VendorKioskShopCounter", "tourBusAndSpawn", "audited tour bus/store backstage props", CFrame.new(7, 3.2, -44) * CFrame.Angles(0, math.rad(180), 0), 0.24)
         placeAuditedClone(tourBusArea, "Audited_CreatorTourBusProp_Main", creatorTourBus, "ReplicatedStorage.ArtAssets.TourBus.Clean_CreatorTourBusProp_75431387", "tourBusAndSpawn", "Creator Store tour bus prop", CFrame.new(-26, 4.2, -72) * CFrame.Angles(0, math.rad(90), 0), 0.12)
@@ -630,7 +626,7 @@ local function buildCreatorMenuExpansionPlacements(roots)
     -- Keep the audited Creator expansion at the required distribution instead of
     -- flooding the client with 1,100+ decorative clones that can starve input/audio.
     -- These are active placements cloned from audited Creator Store sources, not
-    -- distinct source asset IDs. Validation tracks source family count separately.
+    -- 1,000 distinct source asset IDs. Validation tracks source family count separately.
     placeMany("stageCore", "StageTruss", 60, 24, 5, 0, 0.22)
     placeMany("lightingAndTrusses", "ConcertLights", 40, 32, 8, 2, 0.035)
     placeMany("lightingAndTrusses", "StageTruss", 40, 34, 7, 5, 0.24)
