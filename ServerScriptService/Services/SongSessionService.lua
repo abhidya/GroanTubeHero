@@ -50,21 +50,36 @@ function SongSessionService:_attachNotes(song)
     local byId = {}
     local order = {}
     for index, note in ipairs(song.Notes or {}) do
-        local copy = {
-            id = note.id,
-            time = note.time,
-            lane = note.lane,
-            groan = note.groan,
-            pose = note.pose,
-            lightCue = note.lightCue,
-            crowdCue = note.crowdCue,
-            hit = false,
-            index = index,
-        }
+        local copy = {}
+        for key, value in pairs(note) do
+            copy[key] = value
+        end
+        copy.hit = false
+        copy.index = index
         byId[copy.id] = copy
         order[#order + 1] = copy
     end
     return byId, order
+end
+
+function SongSessionService:_buildGroanPayload(note, judgement)
+    if judgement ~= "Perfect" and judgement ~= "Good" then
+        return nil
+    end
+    local assetId = note and (note.groanAssetId or note.groanSoundId)
+    if type(assetId) ~= "string" or assetId == "" or assetId == "rbxassetid://0" then
+        return nil
+    end
+    return {
+        assetId = assetId,
+        soundKey = note.groanSoundKey,
+        lyric = note.lyric,
+        syllable = note.syllable,
+        word = note.word,
+        volume = tonumber(note.groanVolume) or 0.75,
+        playbackSpeed = tonumber(note.groanPlaybackSpeed) or 1,
+        duration = tonumber(note.duration) or 0.45,
+    }
 end
 
 function SongSessionService:_createSession(player, payload)
@@ -258,6 +273,7 @@ function SongSessionService:NoteHit(player, payload)
         downed = summaryState.downed,
         lastDamage = summaryState.lastDamage,
         power = summaryState.power,
+        groan = self:_buildGroanPayload(note, judgement),
         visuals = self.context.Services.BuffAttackService:VisualModifiers(session),
     })
 

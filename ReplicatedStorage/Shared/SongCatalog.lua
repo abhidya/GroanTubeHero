@@ -136,7 +136,7 @@ end
 
 local generatedModules = {}
 for _, child in ipairs(shared:GetChildren()) do
-    if child:IsA("ModuleScript") and (child.Name:match("^Chart_LocalAudioSong%d+$") or child.Name:match("^Chart_DownloadSong%d+$")) then
+    if child:IsA("ModuleScript") and (child.Name:match("^Chart_LocalAudioSong%d+$") or child.Name:match("^Chart_DownloadSong%d+$") or child.Name:match("^Chart_CarryOkie_")) then
         table.insert(generatedModules, child)
     end
 end
@@ -150,7 +150,10 @@ for _, module in ipairs(generatedModules) do
         song.LocalAudioGenerated = true
         song.LocalTestOnly = true
         local number = module.Name:match("Chart_LocalAudioSong(%d+)$")
-        if number then
+        if song.CarryOkieImport then
+            song.SourceTitle = song.Title
+            song.Title = cleanRawTitle(song.Title)
+        elseif number then
             song.Id = "LocalAudioSong" .. number
             song.SourceTitle = TITLE_OVERRIDES[song.Id] or cleanRawTitle(song.Title)
             -- Keep real, readable titles visible in SongSelect/results. Do not

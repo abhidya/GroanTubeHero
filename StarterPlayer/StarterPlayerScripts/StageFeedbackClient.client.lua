@@ -168,14 +168,8 @@ local function pulseFeedbackParts(rootName, color, duration)
 end
 
 local function playGroan(kind)
-    local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://0"
-    sound.Volume = 0.6
-    sound.Parent = workspace.CurrentCamera or workspace
-    sound:Play()
-    task.delay(0.25, function()
-        sound:Destroy()
-    end)
+    -- Per-note groan audio is played by RhythmClient from NoteJudged.groan.
+    -- This feedback client keeps only lighting, haptics, and camera response.
 end
 
 remotes.NoteJudged.OnClientEvent:Connect(function(payload)

@@ -518,6 +518,10 @@ songSound.Volume = baseSongVolume
 songSound.Looped = false
 songSound.Parent = SoundService
 
+local groanSoundFolder = Instance.new("Folder")
+groanSoundFolder.Name = "GroanHitPipe"
+groanSoundFolder.Parent = SoundService
+
 local function stopSongAudio()
     songSound:Stop()
     songSound.SoundId = ""
@@ -537,6 +541,30 @@ local function playSongAudio(song)
         if state.active and state.song == song and songSound.SoundId == audioId then
             songSound.TimePosition = math.max(0, (song.SegmentStart or 0) + serverNow() - (state.startServerTime or serverNow()))
             songSound:Play()
+        end
+    end)
+end
+
+local function isPlayableAssetId(assetId)
+    return type(assetId) == "string" and assetId:match("^rbxassetid://%d+$") and assetId ~= "rbxassetid://0"
+end
+
+local function playGroanPayload(payload)
+    local groan = type(payload) == "table" and payload.groan or nil
+    if type(groan) ~= "table" or not isPlayableAssetId(groan.assetId) then
+        return
+    end
+    local sound = Instance.new("Sound")
+    sound.Name = "GroanHit"
+    sound.SoundId = groan.assetId
+    sound.Volume = math.clamp(tonumber(groan.volume) or 0.75, 0, 1)
+    sound.PlaybackSpeed = math.clamp(tonumber(groan.playbackSpeed) or 1, 0.5, 2)
+    sound.Parent = groanSoundFolder
+    sound:Play()
+    local cleanupDelay = math.clamp(tonumber(groan.duration) or 0.45, 0.15, 3) + 0.35
+    task.delay(cleanupDelay, function()
+        if sound then
+            sound:Destroy()
         end
     end)
 end
@@ -935,6 +963,7 @@ remotes.NoteJudged.OnClientEvent:Connect(function(payload)
     if payload.judgement == "Miss" then
         playMissGlitch()
     elseif payload.judgement == "Perfect" or payload.judgement == "Good" then
+        playGroanPayload(payload)
         if songSound then
             songSound.Volume = baseSongVolume
         end

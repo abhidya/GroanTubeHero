@@ -1,0 +1,43 @@
+{
+  "schema": "groan-tube-hero.groan-bank.v1",
+  "noMp4": true,
+  "generatedFilesAreUploadSourcesOnly": true,
+  "sounds": {
+    "short_pop": {
+      "localFile": "assets/groans/short_pop.wav",
+      "duration": 0.28,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    },
+    "long_slide": {
+      "localFile": "assets/groans/long_slide.wav",
+      "duration": 0.82,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    },
+    "rising_wah": {
+      "localFile": "assets/groans/rising_wah.wav",
+      "duration": 0.54,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    },
+    "falling_wah": {
+      "localFile": "assets/groans/falling_wah.wav",
+      "duration": 0.58,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    },
+    "wobble_phrase": {
+      "localFile": "assets/groans/wobble_phrase.wav",
+      "duration": 1.12,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    },
+    "miss_squeak": {
+      "localFile": "assets/groans/miss_squeak.wav",
+      "duration": 0.32,
+      "robloxAudioId": "rbxassetid://0",
+      "usage": "Upload this WAV to Roblox, then replace robloxAudioId with the returned asset id."
+    }
+  }
+}
