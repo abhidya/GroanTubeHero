@@ -23,6 +23,12 @@ local function isInAudienceZone(character, zonePart)
     if not character or not zonePart then
         return false
     end
+    if zonePart:IsA("ObjectValue") then
+        zonePart = zonePart.Value
+    end
+    if not (zonePart and zonePart:IsA("BasePart")) then
+        return false
+    end
     local root = character:FindFirstChild("HumanoidRootPart")
     if not root then
         return false

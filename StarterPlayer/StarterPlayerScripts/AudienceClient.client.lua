@@ -92,26 +92,32 @@ for i, action in ipairs(actions) do
 end
 
 local forcedOpen = false
+local songActive = false
+local lastZone = false
+
+local function setPanelVisible()
+    panel.Visible = not songActive and (forcedOpen or lastZone)
+end
+
 close.Activated:Connect(function()
     forcedOpen = false
     screenGui:SetAttribute("Open", false)
-    panel.Visible = false
+    setPanelVisible()
 end)
 
 screenGui:GetAttributeChangedSignal("Open"):Connect(function()
     if screenGui:GetAttribute("Open") then
         forcedOpen = true
-        panel.Visible = true
     else
         forcedOpen = false
-        panel.Visible = false
     end
+    setPanelVisible()
 end)
 
 screenGui:GetAttributeChangedSignal("CloseRequested"):Connect(function()
     forcedOpen = false
     screenGui:SetAttribute("Open", false)
-    panel.Visible = false
+    setPanelVisible()
 end)
 
 local function inAudienceZone()
@@ -124,16 +130,60 @@ local function inAudienceZone()
     end
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not zone or not root then return false end
+    if zone:IsA("ObjectValue") then
+        zone = zone.Value
+    end
+    if not (zone and zone:IsA("BasePart")) then return false end
     local localPoint = zone.CFrame:PointToObjectSpace(root.Position)
     local half = zone.Size * 0.5
     return math.abs(localPoint.X) <= half.X and math.abs(localPoint.Y) <= half.Y + 5 and math.abs(localPoint.Z) <= half.Z
 end
 
-local lastZone = false
+local boundRhythmGui = nil
+local songActiveConnection = nil
+
+local function findRhythmScreenGui()
+    for _, child in ipairs(playerGui:GetChildren()) do
+        if child.Name == "RhythmGui" and child:IsA("ScreenGui") then
+            return child
+        end
+    end
+    return nil
+end
+
+local function refreshSongActiveState()
+    local rhythmGui = boundRhythmGui or findRhythmScreenGui()
+    songActive = rhythmGui and rhythmGui:GetAttribute("SongActive") == true or false
+    setPanelVisible()
+end
+
+local function bindRhythmGui(rhythmGui)
+    if not rhythmGui or boundRhythmGui == rhythmGui then
+        refreshSongActiveState()
+        return
+    end
+    if songActiveConnection then
+        songActiveConnection:Disconnect()
+    end
+    boundRhythmGui = rhythmGui
+    songActiveConnection = rhythmGui:GetAttributeChangedSignal("SongActive"):Connect(refreshSongActiveState)
+    refreshSongActiveState()
+end
+
+task.defer(function()
+    bindRhythmGui(findRhythmScreenGui())
+end)
+
+playerGui.ChildAdded:Connect(function(child)
+    if child.Name == "RhythmGui" and child:IsA("ScreenGui") then
+        bindRhythmGui(child)
+    end
+end)
+
 task.spawn(function()
     while true do
         lastZone = inAudienceZone()
-        panel.Visible = forcedOpen or lastZone
+        setPanelVisible()
         task.wait(0.5)
     end
 end)

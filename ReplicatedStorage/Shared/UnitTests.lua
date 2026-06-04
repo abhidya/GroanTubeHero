@@ -11,6 +11,7 @@ local WorldValidation = require(Shared.WorldV2.WorldValidation)
 local AssetAuditService = require(Shared.WorldV2.AssetAuditService)
 local AssetRegistry = require(Shared.WorldV2.AssetRegistry)
 local VendorDefinitions = require(Shared.WorldV2.VendorDefinitions)
+local RoomConfig = require(Shared.WorldV2.RoomConfig)
 
 local AntiExploitService
 if RunService:IsServer() then
@@ -178,6 +179,38 @@ local function testAssetRegistryMissingBehavior(): ()
     local stageCandidates = AssetRegistry.GetSearchCandidates("StageConcertPack")
     expect(stageCandidates and stageCandidates.query == "concert stage lights speakers", "asset search candidate query recorded")
     expect(type(stageCandidates.assetIds) == "table" and #stageCandidates.assetIds >= 3, "asset search candidate ids recorded")
+    local roomCandidateBuckets = {
+        "CyberArcadeOverclock",
+        "SubwayMemeTunnel",
+        "HauntedKaraokeTheater",
+        "AquariumBassDrop",
+        "DoomscrollDataCenter",
+    }
+    for _, bucketName in ipairs(roomCandidateBuckets) do
+        local bucket = AssetRegistry.GetSearchCandidates(bucketName)
+        expect(bucket ~= nil, bucketName .. " room expansion search bucket exists")
+        expect(bucket.reviewState == "claimed_maybe_requires_studio_inspection", bucketName .. " is not treated as palette-approved")
+        expect(type(bucket.assetIds) == "table" and #bucket.assetIds >= 5, bucketName .. " has a real MCP inspection shortlist")
+    end
+    local cyberReadiness = AssetRegistry.GetRoomAssetReadiness("cyber_arcade_overclock")
+    expectEqual(cyberReadiness.visualStatus, "inspected_with_fixes", "Cyber Arcade readiness mirrors Studio asset lab result")
+    expectEqual(cyberReadiness.passCount, 1, "Cyber Arcade has one pass asset")
+    expectEqual(cyberReadiness.fixCount, 1, "Cyber Arcade has one fix asset")
+    expect(cyberReadiness.paletteCommitted == true, "Cyber Arcade inspection palette is committed")
+    expectEqual(cyberReadiness.paletteAssetCount, 2, "Cyber Arcade has two committed inspection-palette assets")
+    expect(cyberReadiness.publishPermission == "missing", "publish permission gap remains explicit")
+    expectEqual(cyberReadiness.placementStatus, "palette_committed_pending_permission_and_fragment", "committed palette still waits on permission and fragment merge")
+    local aquariumReadiness = AssetRegistry.GetRoomAssetReadiness("aquarium_bass_drop")
+    expect(aquariumReadiness.paletteCommitted == true, "Aquarium Bass Drop inspection palette is committed")
+    expectEqual(aquariumReadiness.paletteAssetCount, 2, "Aquarium Bass Drop has two committed inspection-palette assets")
+    local hauntedReadiness = AssetRegistry.GetRoomAssetReadiness("haunted_karaoke_theater")
+    expect(hauntedReadiness.paletteCommitted == true, "Haunted Karaoke Theater inspection palette is committed")
+    local doomscrollReadiness = AssetRegistry.GetRoomAssetReadiness("doomscroll_data_center")
+    expect(doomscrollReadiness.paletteCommitted == true, "Doomscroll Data Center inspection palette is committed")
+    local subwayReadiness = AssetRegistry.GetRoomAssetReadiness("subway_meme_tunnel")
+    expectEqual(subwayReadiness.visualStatus, "candidate_rejected", "Subway records rejected oversized station candidate")
+    expectEqual(subwayReadiness.rejectCount, 1, "Subway has one rejected inspected asset")
+    expect(subwayReadiness.paletteCommitted == false, "Subway remains uncommitted after rejected oversized shell")
 end
 
 local function testWorldValidationPlaceholderDetection(): ()
@@ -458,6 +491,12 @@ local function testRhythmSongStartRemoteAndAudioSourceContract(): ()
     expectSourceContains(rhythmSource, "remotes.SongFinished.OnClientEvent:Connect(function(payload)", "RhythmClient handles song finish")
     expectSourceContains(rhythmSource, "screenGui:SetAttribute(\"SongActive\", false)", "SongFinished clears SongActive")
     expectSourceContains(rhythmSource, "stopSongAudio()", "SongFinished stops song audio")
+    expectSourceContains(rhythmSource, "formatRoomUnlockSummary", "RhythmClient formats room unlocks on results screen")
+    expectSourceContains(rhythmSource, "RoomUnlocks", "RhythmClient reads room unlock payloads")
+    expectSourceContains(rhythmSource, "GroanTokens", "RhythmClient displays GroanToken room rewards")
+    expectSourceContains(rhythmSource, "helperAffinityGains", "RhythmClient displays helper affinity gains")
+    expectSourceContains(rhythmSource, "newSkins", "RhythmClient displays room skin unlocks")
+    expectSourceContains(rhythmSource, "newBoosts", "RhythmClient displays room boost unlocks")
 
     local serverScriptService = game:GetService("ServerScriptService")
     local services = serverScriptService:FindFirstChild("Services")
@@ -517,6 +556,24 @@ local function testHordeClientMovementSource(): ()
     expect(source:find("local function colorForCue", 1, true) ~= nil, "HordeClient defines colorForCue before HordeUpdate uses it")
     expect(source:find("colorForCue(payload.movementCue or payload.lastJudgement)", 1, true) ~= nil, "HordeClient prefers movement cue color over action label")
     expect(source:find("payload.lastJudgement or payload.movementCue", 1, true) == nil, "HordeClient never prefers action labels over movement cues")
+    expect(source:find("payload.helperEvent", 1, true) ~= nil, "HordeClient displays helper NPC horde events")
+    expect(source:find("payload.roomMechanicEvent", 1, true) ~= nil, "HordeClient displays room mechanic events")
+    expect(source:find("ROOM_HAZARD_CUES", 1, true) ~= nil, "HordeClient recognizes room-specific hazard cues")
+    expect(source:find("ROOM_SUPPORT_CUES", 1, true) ~= nil, "HordeClient recognizes room-specific helper cues")
+    expect(source:find("HeatOverload", 1, true) ~= nil, "HordeClient recognizes Doomscroll overload hazard cue")
+    expect(source:find("FirewallFreeze", 1, true) ~= nil, "HordeClient recognizes Doomscroll firewall support cue")
+    expect(source:find("CacheRecovery", 1, true) ~= nil, "HordeClient recognizes Doomscroll cache support cue")
+    expect(source:find("AudienceHeatPushback", 1, true) ~= nil, "HordeClient recognizes helper-driven pushback waves")
+    expect(source:find("renderNpcAction", 1, true) ~= nil, "HordeClient renders explicit NPC action waves")
+    expect(source:find("payload.npcAction", 1, true) ~= nil, "HordeClient consumes authoritative NPC action payloads")
+    expect(source:find("HordeActionShockwave", 1, true) ~= nil, "HordeClient creates action shockwave markers")
+    expect(source:find("HordeHelperBeam", 1, true) ~= nil, "HordeClient creates helper beam pushback markers")
+    expect(source:find("HordeActionTelegraphRing", 1, true) ~= nil, "HordeClient creates windup telegraph rings")
+    expect(source:find("actionNumber(action, \"windupSeconds\"", 1, true) ~= nil, "HordeClient consumes NPC action windup timing")
+    expect(source:find("actionInteger(action, \"laneCount\"", 1, true) ~= nil, "HordeClient consumes NPC action lane counts")
+    expect(source:find("npcAction.pushbackStuds", 1, true) ~= nil, "HordeClient applies helper pushback distance")
+    expect(source:find("npcAction.knockbackStuds", 1, true) ~= nil, "HordeClient applies hazard knockback distance")
+    expect(source:find("LastNpcActionPathStyle", 1, true) ~= nil, "HordeClient records rendered NPC path style")
     expect(source:find("tweenCluster(cluster, distance, sectorId, payload)", 1, true) ~= nil, "HordeClient HordeUpdate calls tweenCluster")
     expect(source:find("RunService.Heartbeat:Connect", 1, true) ~= nil, "HordeClient has idle horde motion heartbeat")
 end
@@ -535,6 +592,27 @@ local function testHordeServiceMovementPayloadSource(): ()
     expect(source:find("audienceAssist = horde.audienceAssist", 1, true) ~= nil, "HordeService payload includes audience assist feedback")
     expect(source:find("focusReduction", 1, true) ~= nil, "HordeService applies Focus recovery to miss horde surge")
     expect(source:find("movementCue = horde.movementCue", 1, true) ~= nil, "HordeService payload preserves movementCue table")
+    expect(source:find("roomMechanicEvent = horde.roomMechanicEvent", 1, true) ~= nil, "HordeService payload includes room mechanic events")
+    expect(source:find("roomHazard = horde.roomHazard", 1, true) ~= nil, "HordeService payload includes room hazards")
+    expect(source:find("npcAction = horde.npcAction", 1, true) ~= nil, "HordeService payload includes explicit NPC action data")
+    expect(source:find("function HordeService:_setNpcAction", 1, true) ~= nil, "HordeService centralizes NPC action events")
+    expect(source:find("actionKindForCue", 1, true) ~= nil, "HordeService classifies NPC action cues")
+    expect(source:find("actionChoreography", 1, true) ~= nil, "HordeService builds explicit NPC action choreography")
+    expect(source:find("attackId = string.format", 1, true) ~= nil, "HordeService tags NPC actions with stable attack ids")
+    expect(source:find("laneCount = choreography.laneCount", 1, true) ~= nil, "HordeService NPC actions include lane counts")
+    expect(source:find("windupSeconds = choreography.windupSeconds", 1, true) ~= nil, "HordeService NPC actions include windup timing")
+    expect(source:find("impactSeconds = choreography.impactSeconds", 1, true) ~= nil, "HordeService NPC actions include impact timing")
+    expect(source:find("pushbackStuds = choreography.pushbackStuds", 1, true) ~= nil, "HordeService NPC actions include helper pushback")
+    expect(source:find("knockbackStuds = choreography.knockbackStuds", 1, true) ~= nil, "HordeService NPC actions include hazard knockback")
+    expect(source:find("npcActionEventId = npcAction and npcAction.eventId", 1, true) ~= nil, "HordeService movement cue links to NPC action event")
+    expect(source:find("ROOM_MECHANICS", 1, true) ~= nil, "HordeService owns room-specific mechanic table")
+    expect(source:find("GlitchSurge", 1, true) ~= nil, "HordeService defines Cyber Arcade hazard")
+    expect(source:find("BubbleShieldPulse", 1, true) ~= nil, "HordeService defines Aquarium helper cue")
+    expect(source:find("HeatOverload", 1, true) ~= nil, "HordeService defines Doomscroll Data Center hazard")
+    expect(source:find("FirewallFreeze", 1, true) ~= nil, "HordeService defines Doomscroll FirewallAdmin helper cue")
+    expect(source:find("CacheRecovery", 1, true) ~= nil, "HordeService defines Doomscroll CacheMedic helper cue")
+    expect(source:find("scoreSectorTarget", 1, true) ~= nil, "HordeService scores horde sector targets instead of pure round-robin movement")
+    expect(source:find("targetReason = horde.lastTargeting", 1, true) ~= nil, "HordeService payload exposes horde targeting reason")
     expect(source:find("horde.movementCue = lastJudgement", 1, true) == nil, "HordeService broadcast does not overwrite movementCue table")
 end
 
@@ -616,6 +694,205 @@ local function testHordeAudienceAssistBehavior(): ()
     expectEqual(horde.distance, 42, "Focus reduces horde miss surge from 10 to 8")
 end
 
+local function testHordeHelperNpcBehavior(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping HordeService helper NPC behavior test (not on server)")
+        return
+    end
+    local HordeService = requireServerServiceClone("HordeService")
+    local fired = {}
+    local fakeRemote = {
+        FireAllClients = function(_, payload)
+            table.insert(fired, payload)
+        end,
+    }
+    HordeService:Init({
+        Remotes = { HordeUpdate = fakeRemote },
+        Services = {},
+    })
+    local session = {
+        id = "UnitHordeHelpers",
+        playerId = 456,
+        difficulty = "Easy",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 80, hype = 70 },
+        modifiers = {},
+        roomBoosts = { "HordePushback", "AudienceHeat" },
+        roomHelperNPCs = {
+            { Id = "SecurityManager" },
+            { Id = "AudienceHypeManager" },
+            { Id = "DJ_GroanMaster" },
+        },
+    }
+    HordeService:StartSession(session)
+    local horde = HordeService.sessions[session.id]
+    horde.warningSectorId = "N"
+    horde.sectorHealths.N = 42
+    horde.sectorPressure.N = 82
+
+    HordeService:ApplyJudgement(session, "Perfect")
+    local helperPayload = fired[#fired]
+    expect(type(helperPayload.helperEvent) == "table", "helper NPC emits helperEvent payload")
+    expectEqual(helperPayload.helperEvent.id, "SecurityManager", "SecurityManager repairs the weak sector first")
+    expectEqual(helperPayload.helperEvent.sectorId, "N", "SecurityManager targets the warning sector")
+    expect(horde.sectorHealths.N > 42, "SecurityManager repair increases weak sector health")
+    expect(horde.sectorPressure.N < 82, "SecurityManager repair lowers weak sector pressure")
+end
+
+local function testHordeRoomSpecificMechanics(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping HordeService room-specific mechanics test (not on server)")
+        return
+    end
+    local HordeService = requireServerServiceClone("HordeService")
+    local fired = {}
+    local fakeRemote = {
+        FireAllClients = function(_, payload)
+            table.insert(fired, payload)
+        end,
+    }
+    HordeService:Init({
+        Remotes = { HordeUpdate = fakeRemote },
+        Services = {},
+    })
+
+    local hazardSession = {
+        id = "UnitCyberHazard",
+        playerId = 789,
+        roomId = "cyber_arcade_overclock",
+        roomName = "Cyber Arcade Overclock",
+        difficulty = "Hard",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 80, hype = 40 },
+        modifiers = {},
+        roomBoosts = {},
+        roomHelperNPCs = {},
+    }
+    HordeService:StartSession(hazardSession)
+    local hazardHorde = HordeService.sessions[hazardSession.id]
+    hazardHorde.sectorPressure.E = 88
+    hazardHorde.sectorHealths.E = 78
+    HordeService:ApplyJudgement(hazardSession, "Miss")
+    local hazardPayload = fired[#fired]
+    expect(type(hazardPayload.roomHazard) == "table", "Cyber Arcade miss emits a room hazard")
+    expectEqual(hazardPayload.roomHazard.type, "GlitchSurge", "Cyber Arcade uses GlitchSurge hazard")
+    expectEqual(hazardPayload.roomMechanicEvent.type, "GlitchSurge", "Cyber Arcade hazard emits roomMechanicEvent")
+    expect(type(hazardPayload.npcAction) == "table", "Cyber Arcade hazard emits explicit NPC action")
+    expectEqual(hazardPayload.npcAction.kind, "hazard", "Cyber Arcade hazard NPC action is classified as hazard")
+    expectEqual(hazardPayload.npcAction.type, "GlitchSurge", "Cyber Arcade hazard NPC action carries cue type")
+    expectEqual(hazardPayload.npcAction.sectorId, "E", "Cyber Arcade hazard NPC action targets hot sector")
+    expect(tostring(hazardPayload.npcAction.attackId):find("GlitchSurge", 1, true) ~= nil, "Cyber Arcade hazard NPC action has cue-scoped attack id")
+    expectEqual(hazardPayload.npcAction.pathStyle, "horde_lunge", "Cyber Arcade hazard uses lunge choreography")
+    expect((hazardPayload.npcAction.laneCount or 0) >= 2, "Cyber Arcade hazard broadcasts multiple attack lanes")
+    expect((hazardPayload.npcAction.windupSeconds or 0) > 0, "Cyber Arcade hazard broadcasts windup timing")
+    expect((hazardPayload.npcAction.impactSeconds or 0) > 0, "Cyber Arcade hazard broadcasts impact timing")
+    expect((hazardPayload.npcAction.knockbackStuds or 0) > 0, "Cyber Arcade hazard broadcasts knockback distance")
+    expectEqual(hazardPayload.movementCue.npcActionEventId, hazardPayload.npcAction.eventId, "movement cue links to hazard NPC action")
+    expectEqual(hazardPayload.activeSectorId, "E", "Cyber Arcade miss targets the hot pressure sector instead of round-robin")
+    expect(type(hazardPayload.targeting) == "table", "Cyber Arcade miss emits targeting metadata")
+    expect(tostring(hazardPayload.targetReason):find("pressure", 1, true) ~= nil, "Cyber Arcade target reason records pressure intent")
+    expectEqual(hazardPayload.roomHazard.sectorId, "E", "Cyber Arcade room hazard uses the targeted sector")
+
+    local helperSession = {
+        id = "UnitCyberHelper",
+        playerId = 790,
+        roomId = "cyber_arcade_overclock",
+        roomName = "Cyber Arcade Overclock",
+        difficulty = "Hard",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 80, hype = 40 },
+        modifiers = {},
+        roomBoosts = { "ComboCache" },
+        roomHelperNPCs = {
+            { Id = "PatchBot" },
+            { Id = "ArcadeTech" },
+        },
+    }
+    HordeService:StartSession(helperSession)
+    local horde = HordeService.sessions[helperSession.id]
+    horde.warningSectorId = "N"
+    horde.sectorHealths.N = 62
+    horde.sectorPressure.N = 70
+
+    HordeService:ApplyJudgement(helperSession, "Good")
+    local helperPayload = fired[#fired]
+    expect(type(helperPayload.helperEvent) == "table", "room helper emits helperEvent")
+    expectEqual(helperPayload.helperEvent.id, "PatchBot", "PatchBot responds to a weak Cyber Arcade sector")
+    expectEqual(helperPayload.roomMechanicEvent.type, "PatchBotStabilize", "PatchBot emits room-specific cue")
+    expect(type(helperPayload.npcAction) == "table", "room helper emits explicit NPC action")
+    expectEqual(helperPayload.npcAction.kind, "support", "room helper NPC action is classified as support")
+    expectEqual(helperPayload.npcAction.actorId, "PatchBot", "room helper NPC action records helper actor")
+    expectEqual(helperPayload.npcAction.type, "PatchBotStabilize", "room helper NPC action carries helper cue type")
+    expectEqual(helperPayload.npcAction.pathStyle, "helper_pushback", "room helper NPC action uses pushback choreography")
+    expect((helperPayload.npcAction.pushbackStuds or 0) > 0, "room helper NPC action broadcasts pushback distance")
+    expect((helperPayload.npcAction.toDistance or 0) > (helperPayload.npcAction.fromDistance or 0), "room helper NPC action pushes outward")
+    expect((helperPayload.npcAction.laneCount or 0) >= 1, "room helper NPC action broadcasts helper lane count")
+    expectEqual(helperPayload.movementCue.npcActionEventId, helperPayload.npcAction.eventId, "movement cue links to helper NPC action")
+    expect(horde.sectorHealths.N > 62, "PatchBot repairs weak Cyber Arcade sector health")
+    expect(horde.sectorPressure.N < 70, "PatchBot lowers weak Cyber Arcade sector pressure")
+
+    local doomHazardSession = {
+        id = "UnitDoomscrollHazard",
+        playerId = 791,
+        roomId = "doomscroll_data_center",
+        roomName = "Doomscroll Data Center",
+        difficulty = "Extreme",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 78, hype = 35 },
+        modifiers = {},
+        roomBoosts = {},
+        roomHelperNPCs = {},
+    }
+    HordeService:StartSession(doomHazardSession)
+    local doomHazard = HordeService.sessions[doomHazardSession.id]
+    doomHazard.sectorPressure.E = 86
+    doomHazard.sectorHealths.E = 74
+    HordeService:ApplyJudgement(doomHazardSession, "Miss")
+    local doomHazardPayload = fired[#fired]
+    expect(type(doomHazardPayload.roomHazard) == "table", "Doomscroll miss emits a room hazard")
+    expectEqual(doomHazardPayload.roomHazard.type, "HeatOverload", "Doomscroll uses HeatOverload hazard")
+    expectEqual(doomHazardPayload.roomHazard.sectorId, "E", "Doomscroll hazard targets hot rack sector")
+    expect(type(doomHazardPayload.npcAction) == "table", "Doomscroll hazard emits explicit NPC action")
+    expectEqual(doomHazardPayload.npcAction.kind, "hazard", "Doomscroll hazard NPC action is classified as hazard")
+    expectEqual(doomHazardPayload.npcAction.type, "HeatOverload", "Doomscroll hazard NPC action carries cue type")
+    expect((doomHazardPayload.npcAction.laneCount or 0) >= 2, "Doomscroll hazard broadcasts multiple overload lanes")
+    expect((doomHazardPayload.npcAction.knockbackStuds or 0) > 0, "Doomscroll hazard broadcasts knockback distance")
+
+    local doomHelperSession = {
+        id = "UnitDoomscrollHelper",
+        playerId = 792,
+        roomId = "doomscroll_data_center",
+        roomName = "Doomscroll Data Center",
+        difficulty = "Extreme",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 82, hype = 42 },
+        modifiers = {},
+        roomBoosts = { "FirewallFreeze", "CooldownCache" },
+        roomHelperNPCs = {
+            { Id = "FirewallAdmin" },
+            { Id = "CacheMedic" },
+        },
+    }
+    HordeService:StartSession(doomHelperSession)
+    local doomHelper = HordeService.sessions[doomHelperSession.id]
+    doomHelper.warningSectorId = "W"
+    doomHelper.sectorHealths.W = 60
+    doomHelper.sectorPressure.W = 72
+
+    HordeService:ApplyJudgement(doomHelperSession, "Good")
+    local doomHelperPayload = fired[#fired]
+    expect(type(doomHelperPayload.helperEvent) == "table", "Doomscroll helper emits helperEvent")
+    expectEqual(doomHelperPayload.helperEvent.id, "FirewallAdmin", "FirewallAdmin responds to overloaded rack pressure")
+    expectEqual(doomHelperPayload.roomMechanicEvent.type, "FirewallFreeze", "FirewallAdmin emits room-specific support cue")
+    expect(type(doomHelperPayload.npcAction) == "table", "Doomscroll helper emits explicit NPC action")
+    expectEqual(doomHelperPayload.npcAction.kind, "support", "Doomscroll helper NPC action is classified as support")
+    expectEqual(doomHelperPayload.npcAction.actorId, "FirewallAdmin", "Doomscroll helper NPC action records helper actor")
+    expectEqual(doomHelperPayload.npcAction.type, "FirewallFreeze", "Doomscroll helper NPC action carries helper cue type")
+    expect((doomHelperPayload.npcAction.pushbackStuds or 0) > 0, "Doomscroll helper broadcasts pushback distance")
+    expect(doomHelper.sectorHealths.W > 60, "FirewallAdmin repairs overloaded Doomscroll rack sector")
+    expect(doomHelper.sectorPressure.W < 72, "FirewallAdmin lowers overloaded Doomscroll rack pressure")
+end
+
 local function testCreatorMenuExpansionBuilderSource(): ()
     if not RunService:IsServer() then
         print("[UnitTests] Skipping Creator menu expansion builder source test (not on server)")
@@ -631,6 +908,400 @@ local function testCreatorMenuExpansionBuilderSource(): ()
     expect(source:find("Clean_FanNPCCreatorLocalPack", 1, true) ~= nil, "builder replaces blocked Creator NPC source with safe local fan pack")
     expect(source:find("CreatorMenuExpansionPlacements", 1, true) ~= nil, "builder records Creator expansion placement count")
     expect(source:find("not 1,000 distinct source asset IDs", 1, true) ~= nil, "builder documents placement-vs-source-ID boundary")
+end
+
+local function testRoomConfigThemedMultiplayerRooms(): ()
+    local rooms = RoomConfig.GetRooms()
+    expect(#rooms >= 10, "RoomConfig defines a bunch of themed rooms")
+    local defaultRoom = RoomConfig.GetDefaultRoom()
+    expect(defaultRoom.Id == "brainrot_volcano_horde_rave", "Room 1 is Brainrot Volcano Horde Rave")
+    expect(defaultRoom.Index == 1, "Brainrot Volcano Horde Rave is room 1")
+    expect(defaultRoom.Capacity >= 4, "Room 1 supports multiplayer capacity")
+    expect((defaultRoom.MinPlayers or 0) >= 1, "Room 1 declares min players")
+    expect((defaultRoom.FillSeconds or 0) > 0, "Room 1 declares queue fill seconds")
+    expect(type(defaultRoom.TeamMode) == "string" and defaultRoom.TeamMode ~= "", "Room 1 declares team mode")
+    expect(typeof(RoomConfig.GetLaunchCFrame(1)) == "CFrame", "RoomConfig exposes launch CFrames")
+    expect(typeof(RoomConfig.GetReturnCFrame(1)) == "CFrame", "RoomConfig exposes return CFrames")
+    expect(RoomConfig.IsDifficultyAllowed(defaultRoom, "Brainrot"), "Room 1 supports Brainrot difficulty")
+    expect((defaultRoom.RewardMultiplier or 1) > 1, "Room 1 has room reward multiplier")
+    expect(type(defaultRoom.HelperNPCs) == "table" and #defaultRoom.HelperNPCs >= 3, "Room 1 has helper NPC roles")
+    expect(type(defaultRoom.AssetSearchSlots) == "table" and #defaultRoom.AssetSearchSlots >= 4, "Room 1 keeps asset-search slots")
+
+    local defaultSpace = RoomConfig.GetRoomSpace(defaultRoom.Id)
+    expect(typeof(defaultSpace.Center) == "Vector3", "Room 1 has a playable room space center")
+    expect(typeof(defaultSpace.Entry) == "Vector3", "Room 1 has a player-entry review point")
+
+    local cyberSpace = RoomConfig.GetRoomSpace("cyber_arcade_overclock")
+    expect(typeof(cyberSpace.Center) == "Vector3", "Cyber Arcade has a playable room space center")
+    expect((cyberSpace.Center - defaultSpace.Center).Magnitude > 60, "later rooms occupy separate multiplayer spaces")
+    local doomscrollRoom = RoomConfig.GetRoom("doomscroll_data_center")
+    expect(doomscrollRoom.Id == "doomscroll_data_center", "Doomscroll Data Center is promoted into the active room slate")
+    local doomscrollSpace = RoomConfig.GetRoomSpace("doomscroll_data_center")
+    expect(typeof(doomscrollSpace.Center) == "Vector3", "Doomscroll Data Center has a source room space for screenshots")
+    expect((doomscrollSpace.Center - defaultSpace.Center).Magnitude > 60, "Doomscroll Data Center no longer falls back to Room 1 space")
+    local volcanoLaunch = RoomConfig.GetLaunchCFrame(defaultRoom.Id, 1)
+    local cyberLaunch = RoomConfig.GetLaunchCFrame("cyber_arcade_overclock", 1)
+    local doomscrollLaunch = RoomConfig.GetLaunchCFrame("doomscroll_data_center", 1)
+    expect(typeof(cyberLaunch) == "CFrame", "room-specific launch CFrames are available")
+    expect((cyberLaunch.Position - volcanoLaunch.Position).Magnitude > 60, "room sessions launch into their own room space")
+    expect((doomscrollLaunch.Position - volcanoLaunch.Position).Magnitude > 60, "Doomscroll sessions launch into their own room space")
+
+    local hasHighDifficultyRoom = false
+    local hasSixPlayerRoom = false
+    for _, room in ipairs(rooms) do
+        expect(type(room.SkinUnlocks) == "table" and #room.SkinUnlocks > 0, "room has skin unlocks: " .. tostring(room.Id))
+        expect(type(room.Boosts) == "table" and #room.Boosts > 0, "room has boosts: " .. tostring(room.Id))
+        expect(type(room.HelperNPCs) == "table" and #room.HelperNPCs > 0, "room has helper NPCs: " .. tostring(room.Id))
+        expect((room.MinPlayers or 0) >= 1, "room declares min players: " .. tostring(room.Id))
+        expect((room.FillSeconds or 0) > 0, "room declares fill timer: " .. tostring(room.Id))
+        expect(type(room.TeamMode) == "string" and room.TeamMode ~= "", "room declares team mode: " .. tostring(room.Id))
+        expect(type(room.ReviewSpaceId) == "string" and room.ReviewSpaceId ~= "", "room has visual review space id: " .. tostring(room.Id))
+        if RoomConfig.IsDifficultyAllowed(room, "Brainrot") then hasHighDifficultyRoom = true end
+        if (room.Capacity or 0) >= 6 then hasSixPlayerRoom = true end
+    end
+    expect(hasHighDifficultyRoom, "at least one themed room supports Brainrot difficulty")
+    expect(hasSixPlayerRoom, "later rooms support larger multiplayer capacity")
+    expect(#RoomConfig.GetAssetSearchSlots() >= #rooms * 4, "room asset-search slot list is broad enough for deep curation")
+    local reviewSpaces = RoomConfig.GetReviewSpaces()
+    expect(#reviewSpaces >= #rooms, "room review spaces are available for screenshot planning")
+    expect(typeof(reviewSpaces[1].center) == "Vector3", "room review spaces include player-angle center coordinates")
+end
+
+local function testEconomyRoomProgressRewards(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping EconomyService room progress rewards test (not on server)")
+        return
+    end
+
+    local EconomyService = requireServerServiceClone("EconomyService")
+    local profile = Config.DeepCopy(Config.DefaultProfile)
+    local player = {
+        UserId = 43210,
+        Name = "RoomRewardUnit",
+    }
+    local missionEvents = {}
+    local savedCount = 0
+
+    EconomyService:Init({
+        Services = {
+            DataService = {
+                GetProfile = function(_service, requestedPlayer)
+                    expect(requestedPlayer == player, "EconomyService requests the active player profile")
+                    return profile
+                end,
+                SavePlayer = function(_service, requestedPlayer)
+                    expect(requestedPlayer == player, "EconomyService saves the active player profile")
+                    savedCount += 1
+                end,
+                UpdateProfile = function(_service, requestedPlayer, callback)
+                    expect(requestedPlayer == player, "EconomyService updates the active player profile")
+                    if callback then
+                        callback(profile)
+                    end
+                end,
+                GetSnapshot = function(_service, requestedPlayer)
+                    expect(requestedPlayer == player, "EconomyService snapshots the active player profile")
+                    return profile
+                end,
+            },
+            MissionService = {
+                RecordEvent = function(_service, _profile, eventName, amount, _options)
+                    table.insert(missionEvents, {
+                        eventName = eventName,
+                        amount = amount,
+                    })
+                    return {}
+                end,
+            },
+            VenueService = {
+                GetRewardModifiers = function(_service, _venueId)
+                    return nil, { fans = 1, tickets = 0 }
+                end,
+                GetFeeMultiplier = function(_service, _venueId, _profile)
+                    return 0
+                end,
+            },
+            TourBusService = {
+                ApplyRewardModifiers = function(_service, _profile, rewards)
+                    return rewards
+                end,
+            },
+        },
+        Remotes = {
+            DataSnapshot = {
+                FireClient = function(_remote, requestedPlayer, snapshot)
+                    expect(requestedPlayer == player, "EconomyService fires snapshot to the active player")
+                    expect(snapshot == profile, "EconomyService sends the updated profile snapshot")
+                end,
+            },
+        },
+    })
+
+    local rewards = EconomyService:FinalizeSong(player, {
+        id = "RoomRewardSession",
+        songId = "UnitSong",
+        roomId = "cyber_arcade_overclock",
+        roomName = "Cyber Arcade Overclock",
+        roomSessionId = "RoomSession_Cyber_1",
+        roomTeamMode = "ComboCrew",
+        roomTeamName = "Cyber Crew",
+        roomCrewKey = "cyber_arcade_overclock:crew:RoomSession_Cyber_1",
+        roomCrewLaunchId = "CrewLaunch_Cyber_1",
+        roomParticipantCount = 3,
+        roomRewardMultiplier = 1.28,
+        roomRewardBonuses = { Fans = 14, Coins = 12, XP = 18, Tickets = 0 },
+        roomSkinUnlocks = { "Pixel Visor", "Arcade Arrow Skin", "CRT Speaker Stack" },
+        roomBoosts = { "ComboCache", "LanePreview", "CoinJackpot" },
+        roomHelperNPCs = {
+            { Id = "PatchBot" },
+            { Id = "ArcadeTech" },
+        },
+        difficulty = "Hard",
+        difficultyConfig = { rewardMultiplier = 1.5 },
+        segmentLength = "30s",
+        segmentSection = "Intro",
+        mode = Config.Modes.Career,
+        venueId = "SchoolStage",
+        song = { Id = "UnitSong" },
+    }, {
+        score = 5000,
+        grade = "A",
+        hype = 70,
+        maxCombo = 25,
+        accuracyPercent = 90,
+        miss = 2,
+    })
+
+    expect(type(rewards) == "table", "EconomyService returns room rewards")
+    expectEqual(rewards.RoomCrewKey, "cyber_arcade_overclock:crew:RoomSession_Cyber_1", "EconomyService returns stable room crew key")
+    expectEqual(rewards.RoomParticipantCount, 3, "EconomyService returns room participant count")
+    local roomProgress = profile.RoomProgress.cyber_arcade_overclock
+    expect(type(roomProgress) == "table", "EconomyService persists room progress")
+    expectEqual(roomProgress.ClearCount, 1, "room clear count increments")
+    expect(roomProgress.Awards["cyber_arcade_overclock:first_clear"], "first room clear award is stored")
+    expect(roomProgress.Awards["cyber_arcade_overclock:difficulty:Hard"], "difficulty room clear award is stored")
+    expect(type(roomProgress.Difficulties.Hard) == "table", "difficulty clear record is stored")
+    expectEqual(roomProgress.BestGrade, "A", "room best grade is stored")
+    expect(roomProgress.Skins["Pixel Visor"], "first room skin is stored")
+    expect(roomProgress.Skins["Arcade Arrow Skin"], "A-grade room skin is stored")
+    expect(roomProgress.Boosts.ComboCache, "first room boost is stored")
+    expect(roomProgress.Boosts.LanePreview, "Hard room boost is stored")
+    expect((roomProgress.HelperAffinity.PatchBot or 0) > 0, "PatchBot helper affinity increases")
+    expect((roomProgress.HelperAffinity.ArcadeTech or 0) > 0, "ArcadeTech helper affinity increases")
+    expectEqual(rewards.RoomUnlocks.firstRoomClear, true, "reward payload reports first room clear")
+    expectEqual(rewards.RoomUnlocks.roomName, "Cyber Arcade Overclock", "reward payload reports room name")
+    expect(#rewards.RoomUnlocks.helperAffinityGains >= 2, "reward payload reports helper affinity gains")
+    expect((rewards.GroanTokens or 0) >= 2, "new room awards grant GroanTokens")
+    expectEqual(profile.GroanTokens, rewards.GroanTokens, "GroanTokens persist to profile")
+    expect(savedCount == 1, "EconomyService saves the room reward profile once")
+
+    local sawRoomClear = false
+    local sawRoomDifficulty = false
+    for _, event in ipairs(missionEvents) do
+        if event.eventName == "RoomClear_cyber_arcade_overclock" then
+            sawRoomClear = true
+        elseif event.eventName == "RoomDifficulty_cyber_arcade_overclock_Hard" then
+            sawRoomDifficulty = true
+        end
+    end
+    expect(sawRoomClear, "room clear mission event is recorded")
+    expect(sawRoomDifficulty, "room difficulty mission event is recorded")
+end
+
+local function testRoomServiceSourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping RoomService source contract (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    local roomService = services and services:FindFirstChild("RoomService")
+    expect(roomService ~= nil and roomService:IsA("ModuleScript"), "RoomService ModuleScript exists")
+    local source = roomService and roomService.Source or ""
+    expectSourceContains(source, "function RoomService:JoinRoom", "RoomService owns server-authoritative joins")
+    expectSourceContains(source, "function RoomService:LeaveRoom", "RoomService owns server-authoritative leaves")
+    expectSourceContains(source, "function RoomService:DecorateSongPayload", "RoomService decorates song payloads")
+    expectSourceContains(source, "function RoomService:PrepareSongPayload", "RoomService gates song start on room readiness")
+    expectSourceContains(source, "createdDuringPrepare", "RoomService tracks room sessions created during song preparation")
+    expectSourceContains(source, "if createdDuringPrepare then", "RoomService broadcasts active room snapshots after song-start promotion")
+    expectSourceContains(source, "function RoomService:_ensureRoomSession", "RoomService creates active room sessions")
+    expectSourceContains(source, "function RoomService:FinishPlayerRoomSession", "RoomService finishes room participants")
+    expectSourceContains(source, "function RoomService:_applyRoomObjective", "RoomService owns room objective effects")
+    expectSourceContains(source, "function RoomService:_recordRoomObjective", "RoomService records session objective progress")
+    expectSourceContains(source, "function RoomService:_roomObjectiveSnapshot", "RoomService exposes objective progress snapshots")
+    expectSourceContains(source, "objectiveProgress", "RoomService tracks room objective progress")
+    expectSourceContains(source, "objectiveMomentum", "RoomService tracks room objective momentum")
+    expectSourceContains(source, "objectiveCombo", "RoomService tracks room objective combo chains")
+    expectSourceContains(source, "objectiveContributions", "RoomService tracks per-player objective contributions")
+    expectSourceContains(source, "objectiveMilestone", "RoomService emits objective milestones")
+    expectSourceContains(source, "function RoomService:_bindRoomObjectivePrompt", "RoomService binds room objective prompts separately")
+    expectSourceContains(source, "RoomObjectivePrompt", "RoomService recognizes objective prompts")
+    expectSourceContains(source, "RoomObjectiveBound", "RoomService prevents duplicate objective prompt binding")
+    expectSourceContains(source, "RoomObjectiveCooldown", "RoomService enforces objective cooldown metadata")
+    expectSourceContains(source, "not prompt:GetAttribute(\"RoomObjectiveId\")", "RoomService excludes objectives from room queue prompt binding")
+    expectSourceContains(source, "hordeService:ApplyAudienceSupport", "RoomService objectives can push horde support")
+    expectSourceContains(source, "hordeService:RepairSector", "RoomService objectives can repair horde sectors")
+    expectSourceContains(source, "activeRoomSessions", "RoomService tracks active room sessions")
+    expectSourceContains(source, "roomSessionId", "RoomService emits shared room session ids")
+    expectSourceContains(source, "roomCrewKey", "RoomService emits stable room crew keys")
+    expectSourceContains(source, "participants", "RoomService emits participant rosters")
+    expectSourceContains(source, "participantUserIds", "RoomService emits participant user-id rosters")
+    expectSourceContains(source, "roomParticipantCount", "RoomService decorates song payloads with participant counts")
+    expectSourceContains(source, "roomParticipantUserIds", "RoomService decorates song payloads with participant user ids")
+    expectSourceContains(source, "RoomUpdate", "RoomService broadcasts room snapshots")
+    expectSourceContains(source, "RoomActionResult", "RoomService sends action results")
+    expectSourceContains(source, "roomRewardMultiplier", "RoomService passes room reward multiplier into sessions")
+    expectSourceContains(source, "assetReadiness = AssetRegistry.GetRoomAssetReadiness(room.Id)", "RoomService includes asset readiness in room snapshots")
+    expectSourceContains(source, "function RoomService:_refreshQueueState", "RoomService owns min-player/fill-timer state")
+    expectSourceContains(source, "function RoomService:Update", "RoomService advances queue countdowns")
+    expectSourceContains(source, "countdownSeconds", "RoomService snapshots countdown seconds")
+    expectSourceContains(source, "profileLevel(profile) < (room.MinLevel or 1)", "RoomService enforces level gates server-side")
+    expectSourceContains(source, "RoomConfig.GetLaunchCFrame(session.roomId, participant.slot)", "RoomService launches players into room-specific spaces")
+    expectSourceContains(source, "RoomConfig.GetReturnCFrame(session.roomId, participant.slot)", "RoomService returns players through room-aware exits")
+end
+
+local function testRoomSessionPropagationSourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping room session propagation source contract (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    expect(services ~= nil, "Services folder exists")
+
+    local sessionSource = getScriptSource(services, "SongSessionService", "ModuleScript")
+    expectSourceContains(sessionSource, "RoomService:PrepareSongPayload", "SongSessionService asks RoomService to prepare room payloads")
+    expectSourceContains(sessionSource, "function SongSessionService:_startRoomCrewSong", "SongSessionService can launch room crews together")
+    expectSourceContains(sessionSource, "sharedStartServerTime", "SongSessionService gives crew members one server countdown")
+    expectSourceContains(sessionSource, "roomLaunches", "SongSessionService de-duplicates room crew launches")
+    expectSourceContains(sessionSource, "Players:GetPlayerByUserId(participant.userId)", "SongSessionService resolves room participants by user id")
+    expectSourceContains(sessionSource, "roomSessionId = payload.roomSessionId", "SongSessionService stores roomSessionId")
+    expectSourceContains(sessionSource, "roomCrewKey = payload.roomCrewKey", "SongSessionService stores room crew key")
+    expectSourceContains(sessionSource, "roomParticipantCount = payload.roomParticipantCount", "SongSessionService stores room participant count")
+    expectSourceContains(sessionSource, "roomParticipantUserIds = payload.roomParticipantUserIds", "SongSessionService stores room participant user ids")
+    expectSourceContains(sessionSource, "participant.status = \"playing\"", "SongSessionService marks all crew participants playing before launch fanout")
+    expectSourceContains(sessionSource, "memberPayload.roomTeamName = participant.teamName", "SongSessionService preserves per-participant team names during crew launch")
+    expectSourceContains(sessionSource, "memberPayload.roomLaunchSlot = participant.slot", "SongSessionService preserves per-participant launch slots during crew launch")
+    expectSourceContains(sessionSource, "roomCrewLaunchId = options.roomCrewLaunchId", "SongSessionService stores room crew launch id")
+    expectSourceContains(sessionSource, "crewLaunchId = session.roomCrewLaunchId", "SongSessionService sends crew launch id to clients")
+    expectSourceContains(sessionSource, "participantUserIds = session.roomParticipantUserIds", "SongSessionService sends participant user-id rosters to clients")
+    expectSourceContains(sessionSource, "participants = session.roomParticipants", "SongSessionService sends room participant roster")
+    expectSourceContains(sessionSource, "RoomService:FinishPlayerRoomSession", "SongSessionService reports room participant finish")
+
+    local economySource = getScriptSource(services, "EconomyService", "ModuleScript")
+    expectSourceContains(economySource, "RoomSessionId = session.roomSessionId", "EconomyService includes RoomSessionId in rewards")
+    expectSourceContains(economySource, "RoomCrewKey = session.roomCrewKey", "EconomyService includes RoomCrewKey in rewards")
+    expectSourceContains(economySource, "RoomCrewLaunchId = session.roomCrewLaunchId", "EconomyService includes RoomCrewLaunchId in rewards")
+    expectSourceContains(economySource, "RoomParticipantCount = session.roomParticipantCount", "EconomyService includes room participant count in rewards")
+    expectSourceContains(economySource, "roomSessionId = session.roomSessionId", "EconomyService records RoomSessionId in history")
+    expectSourceContains(economySource, "roomCrewKey = session.roomCrewKey", "EconomyService records RoomCrewKey in history")
+    expectSourceContains(economySource, "roomCrewLaunchId = session.roomCrewLaunchId", "EconomyService records RoomCrewLaunchId in history")
+    expectSourceContains(economySource, "roomParticipantCount = session.roomParticipantCount", "EconomyService records participant count in history")
+    expectSourceContains(economySource, "RoomProgress", "EconomyService persists room progress")
+    expectSourceContains(economySource, "RoomUnlocks = roomUnlocks", "EconomyService returns room unlock payloads")
+    expectSourceContains(economySource, "helperAffinityGains", "EconomyService reports helper affinity gains")
+
+    local scoreSource = getScriptSource(services, "ScoreService", "ModuleScript")
+    expectSourceContains(scoreSource, "roomObjectiveBoostUntil", "ScoreService consumes room objective boost windows")
+    expectSourceContains(scoreSource, "lastRoomObjectiveBoost", "ScoreService records room objective boost feedback")
+
+    local starterPlayerScripts = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
+    local roomClientSource = getScriptSource(starterPlayerScripts, "RoomClient", "LocalScript")
+    expectSourceContains(roomClientSource, "crew active", "RoomClient displays active room-session state")
+    expectSourceContains(roomClientSource, "describeArtReadiness", "RoomClient displays room asset readiness")
+    expectSourceContains(roomClientSource, "assetReadiness", "RoomClient consumes asset readiness snapshots")
+    expectSourceContains(roomClientSource, "RoomBoardList", "RoomClient renders a full room board list")
+    expectSourceContains(roomClientSource, "renderRoomCards", "RoomClient rebuilds room cards from snapshots")
+    expectSourceContains(roomClientSource, "RoomCard_", "RoomClient creates a card per themed room")
+    expectSourceContains(roomClientSource, "JoinRoomButton", "RoomClient exposes a per-room queue button")
+    expectSourceContains(roomClientSource, "JoinRoomRequest", "RoomClient queues selected rooms through the server remote")
+    expectSourceContains(roomClientSource, "RoomRewardSummary", "RoomClient displays room rewards")
+    expectSourceContains(roomClientSource, "RoomAssetReadiness", "RoomClient displays room asset readiness per card")
+    expectSourceContains(roomClientSource, "paletteCommitted", "RoomClient surfaces committed inspection palettes")
+    expectSourceContains(roomClientSource, "perm missing", "RoomClient keeps publish-permission gaps visible")
+    expectSourceContains(roomClientSource, "RoomBoardResponsiveScale", "RoomClient keeps the board responsive on smaller screens")
+    expectSourceContains(roomClientSource, "describeObjectiveProgress", "RoomClient displays room objective progress")
+    expectSourceContains(roomClientSource, "objectiveProgress", "RoomClient consumes objective progress payloads")
+    expectSourceContains(roomClientSource, "objectiveCombo", "RoomClient displays room objective combo payloads")
+    expectSourceContains(roomClientSource, "objectiveMilestone", "RoomClient displays objective milestone toasts")
+    expectSourceContains(roomClientSource, "RoomSongStatusChip", "RoomClient has compact in-song room status")
+    expectSourceContains(roomClientSource, "SongActive", "RoomClient reacts to active rhythm HUD state")
+    expectSourceContains(roomClientSource, "child:IsA(\"ScreenGui\")", "RoomClient ignores duplicate RhythmGui folders")
+    expectSourceContains(roomClientSource, "refreshSongChip(findSelectedRoom(latestSnapshot))", "RoomClient resets chip from latest room snapshot on song start")
+    expectSourceContains(roomClientSource, "panel.Visible = not songActive", "RoomClient hides full room board during songs")
+
+    local dataClientSource = getScriptSource(starterPlayerScripts, "DataClient", "LocalScript")
+    expectSourceContains(dataClientSource, "WelcomeCard", "DataClient owns the welcome card chrome")
+    expectSourceContains(dataClientSource, "refreshSongActiveChrome", "DataClient collapses profile chrome during songs")
+    expectSourceContains(dataClientSource, "actionBar.Visible = not profileSongActive", "DataClient hides top action bar during songs")
+    expectSourceContains(dataClientSource, "arrow.Visible = not profileSongActive", "DataClient hides stage arrow during songs")
+    expectSourceContains(dataClientSource, "welcome.Visible = not profileSongActive and not welcomeDismissed", "DataClient hides welcome card during songs")
+end
+
+local function testAudienceZoneCompatibilitySourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping audience zone compatibility source contract (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    local audienceServiceSource = getScriptSource(services, "AudienceService", "ModuleScript")
+    expectSourceContains(audienceServiceSource, "zonePart:IsA(\"ObjectValue\")", "AudienceService dereferences WorldV2 compatibility ObjectValue zones")
+    expectSourceContains(audienceServiceSource, "zonePart:IsA(\"BasePart\")", "AudienceService validates the resolved audience zone before CFrame math")
+
+    local starterPlayerScripts = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
+    local audienceClientSource = getScriptSource(starterPlayerScripts, "AudienceClient", "LocalScript")
+    expectSourceContains(audienceClientSource, "zone:IsA(\"ObjectValue\")", "AudienceClient dereferences WorldV2 compatibility ObjectValue zones")
+    expectSourceContains(audienceClientSource, "zone:IsA(\"BasePart\")", "AudienceClient validates the resolved audience zone before CFrame math")
+    expectSourceContains(audienceClientSource, "setPanelVisible", "AudienceClient centralizes audience panel visibility")
+    expectSourceContains(audienceClientSource, "not songActive and (forcedOpen or lastZone)", "AudienceClient hides audience panel during rhythm songs")
+    expectSourceContains(audienceClientSource, "child:IsA(\"ScreenGui\")", "AudienceClient ignores duplicate RhythmGui folders")
+end
+
+local function testRoomPortalBuilderSourceContract(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping room portal builder source contract (not on server)")
+        return
+    end
+    local ServerScriptService = game:GetService("ServerScriptService")
+    local services = ServerScriptService:FindFirstChild("Services")
+    local builderScript = services and services:FindFirstChild("WorldV2Builder")
+    expect(builderScript ~= nil and builderScript:IsA("ModuleScript"), "WorldV2Builder ModuleScript exists")
+    local source = builderScript and builderScript.Source or ""
+    expectSourceContains(source, "buildRoomPortalRing", "WorldV2Builder creates room portal ring")
+    expectSourceContains(source, "RoomPortalRing", "WorldV2Builder targets RoomPortalRing")
+    expectSourceContains(source, "RoomQueuePrompt", "WorldV2Builder creates room queue prompts")
+    expectSourceContains(source, "RoomId", "WorldV2Builder tags room portal prompts with RoomId")
+    expectSourceContains(source, "RoomMinPlayers", "WorldV2Builder tags portal min players")
+    expectSourceContains(source, "RoomFillSeconds", "WorldV2Builder tags portal fill seconds")
+    expectSourceContains(source, "RoomTeamMode", "WorldV2Builder tags portal team mode")
+    expectSourceContains(source, "RoomReadableSign", "WorldV2Builder creates readable room signs")
+    expectSourceContains(source, "RoomAssetVisualStatus", "WorldV2Builder tags portal art readiness")
+    expectSourceContains(source, "RoomInspectedAssetCount", "WorldV2Builder tags inspected asset count")
+    expectSourceContains(source, "PaletteAssetCount", "WorldV2Builder tags committed palette asset counts")
+    expectSourceContains(source, "MissingPublishPermissionCount", "WorldV2Builder tags publish-permission gaps")
+    expectSourceContains(source, "buildThemedRoomSpaces", "WorldV2Builder creates themed room spaces")
+    expectSourceContains(source, "ThemedRoomSpaces", "WorldV2Builder targets ThemedRoomSpaces")
+    expectSourceContains(source, "RoomPlayableFloor", "WorldV2Builder creates playable floors for themed rooms")
+    expectSourceContains(source, "StructuralThemeCues", "WorldV2Builder adds structural theme readability cues")
+    expectSourceContains(source, "RoomTitleBeacon", "WorldV2Builder adds overhead room identity beacons")
+    expectSourceContains(source, "RoomBackdropPanel_", "WorldV2Builder adds visible room backdrop panels")
+    expectSourceContains(source, "RoomObjectiveStations", "WorldV2Builder creates room objective stations")
+    expectSourceContains(source, "RoomObjectivePrompt", "WorldV2Builder creates interactive room objective prompts")
+    expectSourceContains(source, "RoomObjectiveEffect", "WorldV2Builder tags objective effects")
+    expectSourceContains(source, "RoomObjectiveCooldown", "WorldV2Builder tags objective cooldowns")
+    expectSourceContains(source, "RoomObjectivePlayerAngleScale", "WorldV2Builder records compact objective station scale")
+    expectSourceContains(source, "compact encounter objective", "WorldV2Builder keeps objective stations compact for player-angle views")
+    expectSourceContains(source, "Use Objective", "WorldV2Builder labels objective interactions")
+    expectSourceContains(source, "RoomHazardLanes", "WorldV2Builder creates room hazard lanes")
+    expectSourceContains(source, "RoomHelperNPCs", "WorldV2Builder creates visible helper NPC groups")
+    expectSourceContains(source, "RoomEncounterHazardCue", "WorldV2Builder tags room encounter hazard cues")
+    expectSourceContains(source, "HelperActionLane_", "WorldV2Builder gives helper NPCs action lanes")
+    expectSourceContains(source, "NpcMovementPattern", "WorldV2Builder marks helper NPC movement intent")
+    expectSourceContains(source, "AssetAnchorPads", "WorldV2Builder creates asset-search anchor pads")
+    expectSourceContains(source, "palette_committed_pending_permission_and_fragment", "WorldV2Builder marks committed palette art as not yet fragment-merged/release-ready")
+    expectSourceContains(source, "RoomWall_", "WorldV2Builder creates invisible room boundary walls")
+    expectSourceContains(source, "PlayableSpaceBoundary", "WorldV2Builder tags room walls as playable-space boundaries")
 end
 
 function UnitTests.Run(): { passed: number, failed: number, failures: { string } }
@@ -657,7 +1328,15 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testHordeServiceMovementPayloadSource,
         testScoreServiceFocusRecoveryBehavior,
         testHordeAudienceAssistBehavior,
+        testHordeHelperNpcBehavior,
+        testHordeRoomSpecificMechanics,
         testCreatorMenuExpansionBuilderSource,
+        testRoomConfigThemedMultiplayerRooms,
+        testEconomyRoomProgressRewards,
+        testRoomServiceSourceContract,
+        testRoomSessionPropagationSourceContract,
+        testAudienceZoneCompatibilitySourceContract,
+        testRoomPortalBuilderSourceContract,
     }
     local failures = {}
     for _, test in ipairs(tests) do

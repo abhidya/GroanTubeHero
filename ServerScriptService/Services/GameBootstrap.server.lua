@@ -55,6 +55,7 @@ local function loadServices(context)
         "UpgradeService",
         "StoreService",
         "EconomyService",
+        "RoomService",
         "SongSessionService",
         "HordeService",
         "AudienceService",
@@ -104,6 +105,16 @@ local function wireRemotes(context)
     if context.Remotes.ClaimMission then
         context.Remotes.ClaimMission.OnServerEvent:Connect(function(player, payload)
             context.Services.MissionService:ClaimMission(player, payload and payload.missionId)
+        end)
+    end
+    if context.Remotes.JoinRoomRequest then
+        context.Remotes.JoinRoomRequest.OnServerEvent:Connect(function(player, payload)
+            context.Services.RoomService:JoinRoom(player, payload or {})
+        end)
+    end
+    if context.Remotes.LeaveRoomRequest then
+        context.Remotes.LeaveRoomRequest.OnServerEvent:Connect(function(player)
+            context.Services.RoomService:LeaveRoom(player)
         end)
     end
 end
@@ -220,6 +231,9 @@ local function onPlayerAdded(player)
         context.Services.MissionService:ResetIfNeeded(profile)
         context.Remotes.DataSnapshot:FireClient(player, context.Services.DataService:GetSnapshot(player))
     end
+    if context.Services.RoomService then
+        context.Services.RoomService:PlayerAdded(player)
+    end
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -228,6 +242,9 @@ for _, player in ipairs(Players:GetPlayers()) do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+    if context.Services.RoomService then
+        context.Services.RoomService:PlayerRemoving(player)
+    end
     context.Services.DataService:PlayerRemoving(player)
     context.Services.AntiExploitService:Clear(player)
     if context.Services.HordeService then
@@ -244,6 +261,7 @@ startWorldV2Atmosphere()
 
 RunService.Heartbeat:Connect(function(dt)
     context.Services.SongSessionService:Update(dt)
+    if context.Services.RoomService then context.Services.RoomService:Update(dt) end
     if context.Services.HordeService then context.Services.HordeService:Update(dt) end
     for _, player in ipairs(Players:GetPlayers()) do
         context.Services.AudienceService:RefreshWatcher(player)

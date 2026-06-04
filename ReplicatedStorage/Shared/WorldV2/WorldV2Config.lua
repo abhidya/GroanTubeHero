@@ -15,6 +15,8 @@ WorldV2Config.RootFolders = {
     "ArenaCore",
     "StageCircle",
     "InnerPlayerRing",
+    "RoomPortalRing",
+    "ThemedRoomSpaces",
     "VendorRing",
     "FenceRing",
     "HordeRing",

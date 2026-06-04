@@ -10,6 +10,13 @@ local function adjustMultiplier(state)
     state.multiplier = Scoring.GetMultiplier(state.combo)
 end
 
+local function now()
+    if workspace.GetServerTimeNow then
+        return workspace:GetServerTimeNow()
+    end
+    return os.clock()
+end
+
 function ScoreService:Init(runtimeContext)
     self.context = runtimeContext
 end
@@ -165,6 +172,14 @@ function ScoreService:ApplyJudgement(session, note, judgement, profile)
         else
             state.combo = 0
         end
+    end
+
+    if judgement ~= "Miss" and session.modifiers and session.modifiers.roomObjectiveBoostUntil and now() < session.modifiers.roomObjectiveBoostUntil then
+        state.score = state.score + (judgement == "Perfect" and 20 or 10)
+        state.hype = math.min(100, state.hype + 1)
+        state.lastRoomObjectiveBoost = true
+    else
+        state.lastRoomObjectiveBoost = false
     end
 
     if state.combo > state.maxCombo then

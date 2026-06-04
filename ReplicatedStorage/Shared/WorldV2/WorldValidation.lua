@@ -4,7 +4,7 @@ local Workspace = game:GetService("Workspace")
 
 local WorldValidation = {}
 
-local REQUIRED_ROOTS = { "ArenaCore", "StageCircle", "InnerPlayerRing", "VendorRing", "FenceRing", "HordeRing", "AudienceRing", "VolcanoOuterRing", "OuterVolcanoRing", "LightingAnchors", "InvisibleGameplayHitboxes", "CompatibilityAdapters" }
+local REQUIRED_ROOTS = { "ArenaCore", "StageCircle", "InnerPlayerRing", "RoomPortalRing", "ThemedRoomSpaces", "VendorRing", "FenceRing", "HordeRing", "AudienceRing", "VolcanoOuterRing", "OuterVolcanoRing", "LightingAnchors", "InvisibleGameplayHitboxes", "CompatibilityAdapters" }
 local REQUIRED_VENDORS = { "DJ_GroanMaster", "Vendor_Store", "Vendor_UpgradeEngineer", "MissionOfficer", "SecurityManager", "TutorialGuide" }
 local REQUIRED_SECTORS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local REQUIRED_SECTOR_CHILDREN = { "FenceSegment", "FenceDamageVFX", "SecurityLight", "SirenLight", "HordeCluster", "HordePressureMeter", "WeakPointMarker" }
@@ -13,6 +13,8 @@ local REQUIRED_ART_ASSETS = { "WorldV2_SafeProceduralKit" }
 local PLACEMENT_MINIMUMS = {
     stageCore = 60,
     lightingAndTrusses = 80,
+    roomPortals = 70,
+    themedRoomSpaces = 80,
     vendorRing = 60,
     fenceRing = 64,
     hordeRing = 160,
@@ -56,6 +58,8 @@ local function placementCategory(world, inst)
         InnerPlayerRing = "stageCore",
         LightingAnchors = "lightingAndTrusses",
         VendorRing = "vendorRing",
+        RoomPortalRing = "roomPortals",
+        ThemedRoomSpaces = "themedRoomSpaces",
         FenceRing = "fenceRing",
         HordeRing = "hordeRing",
         AudienceRing = "audienceRing",
@@ -124,6 +128,8 @@ local function countActive(world)
         activePlacedArtInstances = 0,
         stageCore = 0,
         lightingAndTrusses = 0,
+        roomPortals = 0,
+        themedRoomSpaces = 0,
         vendorRing = 0,
         fenceRing = 0,
         hordeRing = 0,
@@ -264,6 +270,75 @@ function WorldValidation.Run()
         local audience = world:FindFirstChild("AudienceRing") and world.AudienceRing:FindFirstChild("AudienceHypeManager")
         add(errors, audience ~= nil, "AudienceHypeManager exists")
         add(errors, audience and audience:FindFirstChildWhichIsA("ProximityPrompt", true) ~= nil, "AudienceHypeManager prompt exists")
+        local roomPortalRing = world:FindFirstChild("RoomPortalRing")
+        add(errors, roomPortalRing ~= nil, "RoomPortalRing exists")
+        if roomPortalRing then
+            for _, portal in ipairs(roomPortalRing:GetChildren()) do
+                if portal:IsA("Model") and tostring(portal.Name):match("^RoomPortal_") then
+                    add(errors, portal:GetAttribute("RoomId") ~= nil, "Room portal missing RoomId: " .. portal.Name)
+                    add(errors, portal:FindFirstChildWhichIsA("ProximityPrompt", true) ~= nil, "Room portal prompt missing: " .. portal.Name)
+                end
+            end
+        end
+        local themedRoomSpaces = world:FindFirstChild("ThemedRoomSpaces")
+        local invisibleHitboxes = world:FindFirstChild("InvisibleGameplayHitboxes")
+        add(errors, themedRoomSpaces ~= nil, "ThemedRoomSpaces exists")
+        if themedRoomSpaces then
+            for _, roomSpace in ipairs(themedRoomSpaces:GetChildren()) do
+                if roomSpace:IsA("Model") and tostring(roomSpace.Name):match("^RoomSpace_") then
+                    local roomId = roomSpace:GetAttribute("RoomId")
+                    add(errors, roomSpace:GetAttribute("RoomId") ~= nil, "Room space missing RoomId: " .. roomSpace.Name)
+                    add(errors, roomSpace:FindFirstChild("RoomPlayableFloor") ~= nil, "Room space floor missing: " .. roomSpace.Name)
+                    add(errors, roomSpace:FindFirstChild("RoomEntrySign") ~= nil, "Room space sign missing: " .. roomSpace.Name)
+                    add(errors, roomSpace:FindFirstChild("StructuralThemeCues") ~= nil, "Room space structural theme cues missing: " .. roomSpace.Name)
+                    local objectiveStations = roomSpace:FindFirstChild("RoomObjectiveStations")
+                    add(errors, objectiveStations ~= nil, "Room space objective stations missing: " .. roomSpace.Name)
+                    if objectiveStations then
+                        local promptCount = 0
+                        local effectCount = 0
+                        local oversizedObjectiveParts = 0
+                        for _, objectiveDesc in ipairs(objectiveStations:GetDescendants()) do
+                            if objectiveDesc:IsA("ProximityPrompt") and objectiveDesc.Name == "RoomObjectivePrompt" then
+                                promptCount += 1
+                                add(errors, objectiveDesc:GetAttribute("RoomId") == roomId, "Room objective prompt RoomId mismatch: " .. objectiveDesc:GetFullName())
+                                add(errors, objectiveDesc:GetAttribute("RoomObjectiveId") ~= nil, "Room objective prompt missing id: " .. objectiveDesc:GetFullName())
+                                add(errors, objectiveDesc:GetAttribute("RoomObjectiveCooldown") ~= nil, "Room objective prompt missing cooldown: " .. objectiveDesc:GetFullName())
+                                if objectiveDesc:GetAttribute("RoomObjectiveEffect") ~= nil then
+                                    effectCount += 1
+                                end
+                            elseif objectiveDesc:IsA("BasePart") and tostring(objectiveDesc.Name):match("^Objective") then
+                                local size = objectiveDesc.Size
+                                if math.max(size.X, size.Y, size.Z) > 5 then
+                                    oversizedObjectiveParts += 1
+                                end
+                            end
+                        end
+                        add(errors, promptCount >= 4, "Room objective prompt count too low: " .. roomSpace.Name)
+                        add(errors, effectCount >= 4, "Room objective effect count too low: " .. roomSpace.Name)
+                        add(errors, oversizedObjectiveParts == 0, "Room objective compact player-angle gate failed: " .. roomSpace.Name)
+                    end
+                    add(errors, roomSpace:FindFirstChild("RoomHazardLanes") ~= nil, "Room space hazard lanes missing: " .. roomSpace.Name)
+                    local helperFolder = roomSpace:FindFirstChild("RoomHelperNPCs")
+                    add(errors, helperFolder ~= nil, "Room space helper NPCs missing: " .. roomSpace.Name)
+                    if helperFolder then
+                        local helperCount = 0
+                        for _, helper in ipairs(helperFolder:GetChildren()) do
+                            if helper:IsA("Model") and helper:GetAttribute("HelperNpcId") ~= nil then
+                                helperCount += 1
+                            end
+                        end
+                        add(errors, helperCount >= 1, "Room space helper NPC count too low: " .. roomSpace.Name)
+                    end
+                    add(errors, roomSpace:FindFirstChild("AssetAnchorPads") ~= nil, "Room space asset anchors missing: " .. roomSpace.Name)
+                    if invisibleHitboxes and type(roomId) == "string" then
+                        for _, direction in ipairs({ "N", "S", "E", "W" }) do
+                            local wall = invisibleHitboxes:FindFirstChild("InvisibleHitbox_RoomWall_" .. direction .. "_" .. roomId)
+                            add(errors, wall ~= nil and wall:IsA("BasePart") and wall.CanCollide == true, "Room boundary wall missing or non-colliding: " .. roomId .. " " .. direction)
+                        end
+                    end
+                end
+            end
+        end
         local artAssets = ReplicatedStorage:FindFirstChild("ArtAssets")
         add(errors, artAssets ~= nil, "ReplicatedStorage.ArtAssets exists")
         if artAssets then
@@ -327,6 +402,8 @@ function WorldValidation.Run()
     print("[AssetPlacementValidation] activePlacedArtInstances = " .. tostring(counts.activePlacedArtInstances))
     print("[AssetPlacementValidation] stageCore = " .. tostring(counts.stageCore))
     print("[AssetPlacementValidation] lightingAndTrusses = " .. tostring(counts.lightingAndTrusses))
+    print("[AssetPlacementValidation] roomPortals = " .. tostring(counts.roomPortals))
+    print("[AssetPlacementValidation] themedRoomSpaces = " .. tostring(counts.themedRoomSpaces))
     print("[AssetPlacementValidation] vendorRing = " .. tostring(counts.vendorRing))
     print("[AssetPlacementValidation] fenceRing = " .. tostring(counts.fenceRing))
     print("[AssetPlacementValidation] hordeRing = " .. tostring(counts.hordeRing))

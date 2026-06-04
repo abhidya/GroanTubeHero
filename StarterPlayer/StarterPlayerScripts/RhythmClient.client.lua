@@ -513,6 +513,73 @@ local function applyResultsResponsiveLayout()
 end
 applyResultsResponsiveLayout()
 
+local function appendLimitedList(lines, label, values, maxCount)
+    if type(values) ~= "table" or #values <= 0 then
+        return
+    end
+    local shown = {}
+    local limit = math.min(#values, maxCount or 4)
+    for index = 1, limit do
+        table.insert(shown, tostring(values[index]))
+    end
+    if #values > limit then
+        table.insert(shown, string.format("+%d more", #values - limit))
+    end
+    table.insert(lines, string.format("%s: %s", label, table.concat(shown, ", ")))
+end
+
+local function formatHelperAffinity(gains)
+    if type(gains) ~= "table" or #gains <= 0 then
+        return ""
+    end
+    local shown = {}
+    local limit = math.min(#gains, 3)
+    for index = 1, limit do
+        local gain = gains[index]
+        if type(gain) == "table" then
+            local helperId = tostring(gain.helperId or "Helper")
+            table.insert(shown, string.format("%s +%d", helperId, tonumber(gain.gain) or 0))
+        end
+    end
+    if #gains > limit then
+        table.insert(shown, string.format("+%d more", #gains - limit))
+    end
+    return table.concat(shown, ", ")
+end
+
+local function formatRoomUnlockSummary(room, rewards)
+    rewards = type(rewards) == "table" and rewards or {}
+    local unlocks = type(rewards.RoomUnlocks) == "table" and rewards.RoomUnlocks or nil
+    local roomData = type(room) == "table" and room or {}
+    local roomName = unlocks and unlocks.roomName or roomData.name or rewards.RoomName
+    local groanTokens = tonumber(rewards.GroanTokens) or 0
+    if not roomName and not unlocks and groanTokens <= 0 then
+        return ""
+    end
+
+    local lines = { "Room Unlocks" }
+    if roomName then
+        local firstClearText = unlocks and unlocks.firstRoomClear and " first clear!" or ""
+        table.insert(lines, tostring(roomName) .. firstClearText)
+    end
+    if unlocks and unlocks.difficulty then
+        table.insert(lines, "Difficulty clear: " .. tostring(unlocks.difficulty))
+    end
+    if groanTokens > 0 then
+        table.insert(lines, string.format("GroanTokens +%d", groanTokens))
+    end
+    if unlocks then
+        appendLimitedList(lines, "Awards", unlocks.newAwards, 4)
+        appendLimitedList(lines, "Skins", unlocks.newSkins, 4)
+        appendLimitedList(lines, "Boosts", unlocks.newBoosts, 4)
+        local affinity = formatHelperAffinity(unlocks.helperAffinityGains)
+        if affinity ~= "" then
+            table.insert(lines, "Helper affinity: " .. affinity)
+        end
+    end
+    return table.concat(lines, "\n")
+end
+
 local state = {
     active = false,
     sessionId = nil,
@@ -1022,8 +1089,9 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
     local summary = payload.summary or {}
     local rewards = payload.rewards or {}
     local newBest = rewards.NewBest or rewards.LevelUp or summary.grade == "S"
+    local roomUnlockSummary = formatRoomUnlockSummary(payload.room, rewards)
     resultsText.Text = string.format(
-        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nHorde %s %d%%   %s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n\n%s",
+        "%s\n%s • %s • %s\nGrade %s%s   Stability %d%%\nHorde %s %d%%   %s\nScore %d   Accuracy %.1f%%\nPerfect %d   Good %d   Miss %d\nMax Combo %d   Final Hype %d\nMultipliers: Difficulty x%.2f • Segment x%.2f\nVenue Fee -%d Fans\n\nRewards\nFans +%d   Coins +%d\nXP +%d   Tickets +%d\n%s%s",
         payload.song and payload.song.Title or "Song Complete",
         summary.difficulty or state.lastDifficulty or "Easy",
         summary.segmentLabel or state.lastSegment or "30s",
@@ -1048,6 +1116,7 @@ remotes.SongFinished.OnClientEvent:Connect(function(payload)
         rewards.Coins or 0,
         rewards.XP or 0,
         rewards.Tickets or 0,
+        roomUnlockSummary ~= "" and "\n\n" .. roomUnlockSummary .. "\n\n" or "\n\n",
         "Next: Claim mission rewards, buy Timing, or upgrade the Tour Bus."
     )
     applyResultsResponsiveLayout()

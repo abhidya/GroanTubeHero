@@ -7,12 +7,15 @@ local Config = require(ReplicatedStorage.Shared.WorldV2.WorldV2Config)
 local PolarLayout = require(ReplicatedStorage.Shared.WorldV2.PolarLayout)
 local Vendors = require(ReplicatedStorage.Shared.WorldV2.VendorDefinitions)
 local Sectors = require(ReplicatedStorage.Shared.WorldV2.HordeSectorDefinitions)
+local RoomConfig = require(ReplicatedStorage.Shared.WorldV2.RoomConfig)
+local AssetRegistry = require(ReplicatedStorage.Shared.WorldV2.AssetRegistry)
 local AssetAuditService = require(script.Parent.AssetAuditService)
 
 local WorldV2Builder = {}
 local READABLE_ASSET_SOURCE = "ProjectOwned/ReadableWorldV2Art"
 local prompt
 local prepAuditedClone
+local clearChildren
 
 local function ensureFolder(parent, name)
     local folder = parent:FindFirstChild(name)
@@ -91,12 +94,14 @@ local function invisible(parent, name, size, cframe, canCollide)
 end
 
 local function surfaceLabel(target, text, face)
-    local gui = target:FindFirstChild("SurfaceLabel") or Instance.new("SurfaceGui")
-    gui.Name = "SurfaceLabel"
+    face = face or Enum.NormalId.Front
+    local guiName = "SurfaceLabel_" .. tostring(face):gsub("Enum.NormalId.", "")
+    local gui = target:FindFirstChild(guiName) or Instance.new("SurfaceGui")
+    gui.Name = guiName
     gui.AlwaysOnTop = false
     gui.LightInfluence = 0.15
-    gui.PixelsPerStud = 56
-    gui.Face = face or Enum.NormalId.Front
+    gui.PixelsPerStud = 72
+    gui.Face = face
     gui.Parent = target
     local label = gui:FindFirstChild("Text") or Instance.new("TextLabel")
     label.Name = "Text"
@@ -240,7 +245,493 @@ local function buildTourBusSpawnPath(world)
     end
 end
 
-local function clearChildren(inst)
+local function buildRoomPortalRing(roots)
+    local parent = roots.RoomPortalRing
+    if not parent then return end
+    for index, room in ipairs(RoomConfig.GetRooms()) do
+        local row = math.floor((index - 1) / 5)
+        local col = ((index - 1) % 5) - 2
+        local x = col * 18
+        local z = -92 - row * 18
+        local y = 2.4
+        local palette = room.Palette or {}
+        local primary = palette.Primary or Color3.fromRGB(120, 240, 255)
+        local secondary = palette.Secondary or Color3.fromRGB(45, 45, 70)
+        local accent = palette.Accent or Color3.fromRGB(255, 230, 90)
+        local readiness = AssetRegistry.GetRoomAssetReadiness(room.Id)
+        local model = ensureModel(parent, string.format("RoomPortal_%02d_%s", room.Index or index, room.Id))
+        clearChildren(model)
+        model:SetAttribute("RoomId", room.Id)
+        model:SetAttribute("RoomName", room.Name)
+        model:SetAttribute("RoomStatus", room.Status)
+        model:SetAttribute("RoomCapacity", room.Capacity or 4)
+        model:SetAttribute("RoomMinPlayers", room.MinPlayers or 1)
+        model:SetAttribute("RoomFillSeconds", room.FillSeconds or 20)
+        model:SetAttribute("RoomTeamMode", room.TeamMode or "Crew")
+        model:SetAttribute("RoomMinLevel", room.MinLevel or 1)
+        model:SetAttribute("ReviewSpaceId", room.ReviewSpaceId)
+        model:SetAttribute("RoomAssetVisualStatus", readiness.visualStatus)
+        model:SetAttribute("RoomInspectedAssetCount", readiness.inspectedCount)
+        model:SetAttribute("RoomPassAssetCount", readiness.passCount)
+        model:SetAttribute("RoomFixAssetCount", readiness.fixCount)
+        model:SetAttribute("RoomRejectAssetCount", readiness.rejectCount)
+        model:SetAttribute("PaletteCommitted", readiness.paletteCommitted)
+        model:SetAttribute("PaletteAssetCount", readiness.paletteAssetCount)
+        model:SetAttribute("PublishPermission", readiness.publishPermission)
+        model:SetAttribute("CreatorStorePlacementStatus", readiness.placementStatus or "palette_committed_pending_permission_and_fragment")
+
+        local baseCf = CFrame.new(x, y, z) * CFrame.Angles(0, math.rad(180), 0)
+        local pad = artPart(model, "RoomQueuePad", Vector3.new(12, 0.55, 8), baseCf, secondary, Enum.Material.Metal, "roomPortals", room.Name .. " queue pad")
+        pad.CanCollide = true
+        local leftPost = artPart(model, "PortalPostLeft", Vector3.new(0.9, 8.2, 0.9), baseCf * CFrame.new(-4.2, 4.2, -1.6), primary, Enum.Material.Neon, "roomPortals", room.Name .. " portal frame")
+        leftPost.CanCollide = false
+        local rightPost = artPart(model, "PortalPostRight", Vector3.new(0.9, 8.2, 0.9), baseCf * CFrame.new(4.2, 4.2, -1.6), primary, Enum.Material.Neon, "roomPortals", room.Name .. " portal frame")
+        rightPost.CanCollide = false
+        local header = artPart(model, "PortalHeader", Vector3.new(9.4, 0.9, 1.0), baseCf * CFrame.new(0, 8.2, -1.6), accent, Enum.Material.Neon, "roomPortals", room.Name .. " portal header")
+        header.CanCollide = false
+        local core = artPart(model, "PortalCoreGlow", Vector3.new(6.8, 5.6, 0.45), baseCf * CFrame.new(0, 4.3, -1.85), primary:Lerp(secondary, 0.45), Enum.Material.SmoothPlastic, "roomPortals", room.Name .. " portal energy")
+        core.Transparency = room.Status == "open" and 0.62 or 0.78
+        core.CanCollide = false
+        local sign = artPart(model, "RoomReadableSign", Vector3.new(11.8, 5.2, 0.35), baseCf * CFrame.new(0, 5.9, 3.4), secondary:Lerp(Color3.fromRGB(4, 6, 14), 0.65), Enum.Material.Metal, "roomPortals", room.Name .. " readable room sign")
+        local difficultyCodes = {}
+        local codeByDifficulty = { Easy = "E", Hard = "H", Extreme = "X", Brainrot = "B" }
+        for _, difficultyName in ipairs(room.DifficultyOrder or {}) do
+            table.insert(difficultyCodes, codeByDifficulty[difficultyName] or tostring(difficultyName):sub(1, 1))
+        end
+        local signText = string.format("ROOM %d\n%s\n%s\n%.2fX", room.Index or index, room.ShortName or room.Name, table.concat(difficultyCodes, "/"), room.RewardMultiplier or 1)
+        surfaceLabel(sign, signText, Enum.NormalId.Front)
+        surfaceLabel(sign, signText, Enum.NormalId.Back)
+        sign.CanCollide = false
+        local signGlow = artPart(model, "RoomSignUnderlight", Vector3.new(10.8, 0.22, 0.4), baseCf * CFrame.new(0, 3.25, 3.1), accent, Enum.Material.Neon, "roomPortals", room.Name .. " readable sign underlight")
+        signGlow.CanCollide = false
+
+        local helper = artPart(model, "HelperNPCBeacon", Vector3.new(1.8, 4.2, 1.2), baseCf * CFrame.new(-5.2, 2.6, 1.3), accent, Enum.Material.SmoothPlastic, "roomPortals", room.Name .. " helper NPC beacon")
+        helper.CanCollide = false
+        artPart(model, "HelperNPCHeadGlow", Vector3.new(1.25, 1.25, 1.25), baseCf * CFrame.new(-5.2, 5.2, 1.3), primary, Enum.Material.Neon, "roomPortals", room.Name .. " helper NPC head", Enum.PartType.Ball).CanCollide = false
+
+        local anchor = invisible(model, "RoomPromptAnchor", Vector3.new(10, 8, 8), baseCf * CFrame.new(0, 4, 0), false)
+        local promptText = room.Status == "open" and "Join Room" or "Preview Room"
+        local pr = prompt(anchor, promptText, room.ShortName or room.Name, "RoomQueue", room.Theme, "Queue " .. (room.ShortName or room.Name))
+        pr.Name = "RoomQueuePrompt"
+        pr.MaxActivationDistance = 24
+        pr:SetAttribute("RoomId", room.Id)
+        pr:SetAttribute("RoomName", room.Name)
+        pr:SetAttribute("RoomStatus", room.Status)
+        pr:SetAttribute("RoomCapacity", room.Capacity or 4)
+        pr:SetAttribute("RoomMinPlayers", room.MinPlayers or 1)
+        pr:SetAttribute("RoomFillSeconds", room.FillSeconds or 20)
+        pr:SetAttribute("RoomTeamMode", room.TeamMode or "Crew")
+        pr:SetAttribute("RoomMinLevel", room.MinLevel or 1)
+        pr:SetAttribute("RoomAssetVisualStatus", readiness.visualStatus)
+        pr:SetAttribute("RoomInspectedAssetCount", readiness.inspectedCount)
+        pr:SetAttribute("RoomPassAssetCount", readiness.passCount)
+        pr:SetAttribute("RoomFixAssetCount", readiness.fixCount)
+        pr:SetAttribute("RoomRejectAssetCount", readiness.rejectCount)
+        model.PrimaryPart = pad
+    end
+end
+
+local function truncateLabel(value, maxLength)
+    value = tostring(value or "")
+    maxLength = maxLength or 28
+    if #value <= maxLength then
+        return value
+    end
+    return value:sub(1, maxLength - 3) .. "..."
+end
+
+local ROOM_ENCOUNTER_HINTS = {
+    brainrot_volcano_horde_rave = {
+        hazardCue = "LavaSurge",
+        objectiveLabels = { "DEFEND STAGE", "REPAIR FENCE", "HYPE PUSHBACK", "SURVIVE HORDE" },
+        hazardLabels = { "LAVA WAVE", "HORDE PUSH", "SPEAKER HEAT", "ENCORE BLAST" },
+    },
+    cyber_arcade_overclock = {
+        hazardCue = "GlitchSurge",
+        objectiveLabels = { "REPAIR CRT", "CLEAR FAKEOUT", "CHARGE CACHE", "COMBO TERMINAL" },
+        hazardLabels = { "GLITCH LANE", "PIXEL SURGE", "CRT CRASH", "INPUT JAM" },
+    },
+    subway_meme_tunnel = {
+        hazardCue = "TrainSurge",
+        objectiveLabels = { "HOLD PLATFORM", "SWITCH SIGNAL", "BUSKER TIMING", "TRACK WARNING" },
+        hazardLabels = { "TRAIN SURGE", "TRACK SHOCK", "TUNNEL ECHO", "FARE RUSH" },
+    },
+    haunted_karaoke_theater = {
+        hazardCue = "CurtainSlam",
+        objectiveLabels = { "PROTECT SPEAKER", "LYRIC CALL", "GHOST BACKUP", "CURTAIN LEVER" },
+        hazardLabels = { "CURTAIN SLAM", "STAGE FRIGHT", "ECHO HEX", "GHOST WAVE" },
+    },
+    cloudback_idol_arena = {
+        hazardCue = "CloudDrift",
+        objectiveLabels = { "LOCK PLATFORM", "IDOL CHORUS", "SOFT LANDING", "CROWD VOTE" },
+        hazardLabels = { "CLOUD DRIFT", "SKY SPLIT", "CHORUS GUST", "PLINTH DROP" },
+    },
+    aquarium_bass_drop = {
+        hazardCue = "FloodSurge",
+        objectiveLabels = { "BUBBLE PUMP", "OXYGEN BEAT", "REEF MEDIC", "BASS VALVE" },
+        hazardLabels = { "FLOOD SURGE", "BASS RIPPLE", "TANK WAVE", "PUMP FAIL" },
+    },
+    junkyard_autotune_pit = {
+        hazardCue = "ScrapStorm",
+        objectiveLabels = { "REBUILD SPEAKER", "SCRAP SHIELD", "CRANE PUSH", "AUTO-TUNE RIG" },
+        hazardLabels = { "SCRAP STORM", "MAGNET SWEEP", "GARAGE SPARK", "SPEAKER BREAK" },
+    },
+    neon_food_court_freestyle = {
+        hazardCue = "OrderRush",
+        objectiveLabels = { "DELIVER BEAT", "SNACK SHIELD", "ORDER COUNTER", "MALL COP STUN" },
+        hazardLabels = { "ORDER RUSH", "SPILL ZONE", "TRAY SWEEP", "LINE SURGE" },
+    },
+    moonbase_echo_dome = {
+        hazardCue = "GravitySlip",
+        objectiveLabels = { "OXYGEN RELAY", "ORBIT STABLE", "ECHO COPY", "AIRLOCK BEAT" },
+        hazardLabels = { "GRAVITY SLIP", "MOON BOUNCE", "OXYGEN DIP", "ECHO JAM" },
+    },
+    pirate_radio_shipyard = {
+        hazardCue = "SignalJam",
+        objectiveLabels = { "TUNE TOWER", "CREW SHARE", "CANNON PUSH", "DOCK SIGNAL" },
+        hazardLabels = { "SIGNAL JAM", "STORM FOG", "DECK SWEEP", "RADIO STATIC" },
+    },
+    doomscroll_data_center = {
+        hazardCue = "HeatOverload",
+        objectiveLabels = { "COOL RACK", "PURGE PANEL", "FIREWALL FREEZE", "CACHE RECOVER" },
+        hazardLabels = { "HEAT OVERLOAD", "VIRAL PANEL", "POPUP FLOOD", "CACHE JAM" },
+    },
+}
+
+local function roomEncounterHint(room)
+    local hint = ROOM_ENCOUNTER_HINTS[room.Id] or {}
+    local fallbackObjectives = {
+        room.TeamMode or "CREW",
+        (room.Boosts and room.Boosts[1]) or "BOOST",
+        (room.HelperNPCs and room.HelperNPCs[1] and room.HelperNPCs[1].Role) or "HELPER",
+        room.DefaultDifficulty or "DIFFICULTY",
+    }
+    return {
+        hazardCue = hint.hazardCue or "PressureWave",
+        objectiveLabels = hint.objectiveLabels or fallbackObjectives,
+        hazardLabels = hint.hazardLabels or { "PRESSURE", "WARNING", "PUSHBACK", "RECOVERY" },
+    }
+end
+
+local function buildRoomObjectiveStations(model, room, center, size, primary, secondary, accent, encounter)
+    local folder = ensureFolder(model, "RoomObjectiveStations")
+    local effects = { "Repair", "Pushback", "Boost", "Encore" }
+    local offsets = {
+        Vector3.new(-size.X * 0.34, 2.55, -size.Z * 0.16),
+        Vector3.new(size.X * 0.34, 2.55, -size.Z * 0.16),
+        Vector3.new(-size.X * 0.34, 2.55, size.Z * 0.18),
+        Vector3.new(size.X * 0.34, 2.55, size.Z * 0.18),
+    }
+    for index, offset in ipairs(offsets) do
+        local labelText = encounter.objectiveLabels[((index - 1) % #encounter.objectiveLabels) + 1]
+        local effect = effects[((index - 1) % #effects) + 1]
+        local station = ensureModel(folder, "ObjectiveStation_" .. index)
+        clearChildren(station)
+        station:SetAttribute("RoomId", room.Id)
+        station:SetAttribute("RoomObjectiveStation", true)
+        station:SetAttribute("RoomObjectiveId", room.Id .. "_objective_" .. index)
+        station:SetAttribute("RoomObjectiveEffect", effect)
+        station:SetAttribute("ObjectiveLabel", labelText)
+        station:SetAttribute("TeamMode", room.TeamMode or "Crew")
+        station:SetAttribute("RoomObjectivePlayerAngleScale", "compact")
+        local cf = CFrame.lookAt(center + offset, center)
+        local pad = artPart(station, "ObjectiveStationPad", Vector3.new(4.6, 0.32, 3.25), cf, secondary:Lerp(accent, 0.28), Enum.Material.Metal, "themedRoomSpaces", room.Name .. " compact encounter objective pad")
+        pad.CanCollide = false
+        pad:SetAttribute("RoomId", room.Id)
+        pad:SetAttribute("RoomEncounterRole", "objective_station")
+        local console = artPart(station, "ObjectiveStationConsole", Vector3.new(2.45, 1.35, 0.52), cf * CFrame.new(0, 1.05, -1.18), primary:Lerp(Color3.fromRGB(8, 10, 22), 0.25), Enum.Material.Neon, "themedRoomSpaces", room.Name .. " compact encounter objective console")
+        console.CanCollide = false
+        console:SetAttribute("RoomId", room.Id)
+        console:SetAttribute("RoomEncounterRole", "objective_console")
+        console:SetAttribute("RoomObjectiveId", room.Id .. "_objective_" .. index)
+        console:SetAttribute("RoomObjectiveEffect", effect)
+        surfaceLabel(console, truncateLabel(labelText, 22), Enum.NormalId.Front)
+        local objectivePrompt = prompt(console, "Use Objective", truncateLabel(labelText, 18), "RoomObjective", room.Name .. " objective station", "Trigger room objective")
+        objectivePrompt.Name = "RoomObjectivePrompt"
+        objectivePrompt.MaxActivationDistance = 16
+        objectivePrompt:SetAttribute("RoomId", room.Id)
+        objectivePrompt:SetAttribute("RoomName", room.Name)
+        objectivePrompt:SetAttribute("RoomObjectiveId", room.Id .. "_objective_" .. index)
+        objectivePrompt:SetAttribute("RoomObjectiveIndex", index)
+        objectivePrompt:SetAttribute("RoomObjectiveLabel", labelText)
+        objectivePrompt:SetAttribute("RoomObjectiveEffect", effect)
+        objectivePrompt:SetAttribute("RoomObjectiveCooldown", 7)
+        objectivePrompt:SetAttribute("RoomTeamMode", room.TeamMode or "Crew")
+        local status = artPart(station, "ObjectiveStatusLight", Vector3.new(0.72, 0.72, 0.72), cf * CFrame.new(0, 2.0, -1.18), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " compact objective status light", Enum.PartType.Ball)
+        status.CanCollide = false
+        status:SetAttribute("RoomId", room.Id)
+        status:SetAttribute("RoomEncounterRole", "objective_status")
+        status:SetAttribute("RoomObjectiveEffect", effect)
+    end
+end
+
+local function buildRoomHazardLanes(model, room, center, size, primary, accent, encounter)
+    local folder = ensureFolder(model, "RoomHazardLanes")
+    local hazardColor = Color3.fromRGB(255, 70, 55):Lerp(primary, 0.22)
+    local laneSpecs = {
+        { angle = 0, offset = Vector3.new(0, 0, -size.Z * 0.18) },
+        { angle = 90, offset = Vector3.new(size.X * 0.18, 0, 0) },
+        { angle = 180, offset = Vector3.new(0, 0, size.Z * 0.18) },
+        { angle = 270, offset = Vector3.new(-size.X * 0.18, 0, 0) },
+    }
+    for index, spec in ipairs(laneSpecs) do
+        local labelText = encounter.hazardLabels[((index - 1) % #encounter.hazardLabels) + 1]
+        local lane = artPart(folder, "HazardLane_" .. index, Vector3.new(5.4, 0.26, size.Z * 0.58), CFrame.new(center + Vector3.new(spec.offset.X, 2.22, spec.offset.Z)) * CFrame.Angles(0, math.rad(spec.angle), 0), hazardColor, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " encounter hazard lane")
+        lane.CanCollide = false
+        lane.Transparency = 0.34
+        lane:SetAttribute("RoomId", room.Id)
+        lane:SetAttribute("RoomEncounterRole", "hazard_lane")
+        lane:SetAttribute("HazardCue", encounter.hazardCue)
+        lane:SetAttribute("HazardLabel", labelText)
+        lane:SetAttribute("ReadableHazardLabel", truncateLabel(labelText, 18))
+        local warning = artPart(folder, "HazardWarning_" .. index, Vector3.new(4.4, 1.0, 0.45), CFrame.lookAt(center + Vector3.new(spec.offset.X, 3.2, spec.offset.Z), center), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " encounter hazard warning")
+        warning.CanCollide = false
+        warning:SetAttribute("RoomId", room.Id)
+        warning:SetAttribute("RoomEncounterRole", "hazard_warning")
+        warning:SetAttribute("HazardCue", encounter.hazardCue)
+        surfaceLabel(warning, truncateLabel(encounter.hazardCue, 18), Enum.NormalId.Front)
+    end
+end
+
+local function buildRoomHelperNPCs(model, room, center, size, primary, secondary, accent)
+    local folder = ensureFolder(model, "RoomHelperNPCs")
+    local helpers = room.HelperNPCs or {}
+    local radius = math.min(size.X, size.Z) * 0.34
+    for index, helper in ipairs(helpers) do
+        local helperId = tostring(helper.Id or ("Helper" .. index))
+        local helperModel = ensureModel(folder, "RoomHelperNPC_" .. helperId)
+        clearChildren(helperModel)
+        helperModel:SetAttribute("RoomId", room.Id)
+        helperModel:SetAttribute("HelperNpcId", helperId)
+        helperModel:SetAttribute("HelperRole", helper.Role or "support")
+        helperModel:SetAttribute("HelperAction", helper.Action or "supports the room")
+        helperModel:SetAttribute("NpcMovementPattern", "room_orbit_callout")
+        helperModel:SetAttribute("RoomEncounterRole", "helper_npc")
+        local angle = ((index - 1) / math.max(1, #helpers)) * math.pi * 2 + math.rad(35)
+        local position = center + Vector3.new(math.cos(angle) * radius, 3.6, math.sin(angle) * radius)
+        local cf = CFrame.lookAt(position, center)
+        local bodyColor = index % 2 == 0 and primary:Lerp(accent, 0.35) or accent:Lerp(secondary, 0.2)
+        local torso = artPart(helperModel, "HelperTorso_" .. helperId, Vector3.new(2.2, 3.4, 1.2), cf, bodyColor, Enum.Material.SmoothPlastic, "themedRoomSpaces", room.Name .. " helper NPC body")
+        torso.CanCollide = false
+        torso:SetAttribute("RoomId", room.Id)
+        torso:SetAttribute("HelperNpcId", helperId)
+        local head = artPart(helperModel, "HelperHeadGlow_" .. helperId, Vector3.new(1.45, 1.45, 1.45), cf * CFrame.new(0, 2.45, 0), primary:Lerp(Color3.fromRGB(255, 255, 255), 0.2), Enum.Material.Neon, "themedRoomSpaces", room.Name .. " helper NPC head", Enum.PartType.Ball)
+        head.CanCollide = false
+        head:SetAttribute("RoomId", room.Id)
+        head:SetAttribute("HelperNpcId", helperId)
+        local hat = artPart(helperModel, "HelperRoleHat_" .. helperId, Vector3.new(2.0, 0.42, 2.0), cf * CFrame.new(0, 3.35, 0), accent, Enum.Material.Metal, "themedRoomSpaces", room.Name .. " helper NPC role marker", Enum.PartType.Cylinder)
+        hat.CanCollide = false
+        local sign = artPart(helperModel, "HelperActionSign_" .. helperId, Vector3.new(5.8, 1.55, 0.4), cf * CFrame.new(0, 1.0, -1.25), secondary:Lerp(Color3.fromRGB(4, 6, 14), 0.35), Enum.Material.Metal, "themedRoomSpaces", room.Name .. " helper NPC action sign")
+        sign.CanCollide = false
+        sign:SetAttribute("RoomId", room.Id)
+        sign:SetAttribute("HelperNpcId", helperId)
+        surfaceLabel(sign, string.format("%s\n%s", truncateLabel(helperId, 18), truncateLabel(helper.Role or "support", 18)), Enum.NormalId.Front)
+        local callout = artPart(helperModel, "HelperActionLane_" .. helperId, Vector3.new(0.7, 0.26, 10.0), CFrame.lookAt((position + center) / 2 + Vector3.new(0, 0.25, 0), center), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " helper NPC action lane")
+        callout.CanCollide = false
+        callout.Transparency = 0.28
+        callout:SetAttribute("RoomId", room.Id)
+        callout:SetAttribute("HelperNpcId", helperId)
+        helperModel.PrimaryPart = torso
+    end
+end
+
+local function buildRoomEncounterDressing(model, room, center, size, primary, secondary, accent)
+    local encounter = roomEncounterHint(room)
+    model:SetAttribute("RoomEncounterHazardCue", encounter.hazardCue)
+    model:SetAttribute("RoomEncounterObjectiveCount", #encounter.objectiveLabels)
+    model:SetAttribute("RoomEncounterHelperCount", #(room.HelperNPCs or {}))
+    buildRoomObjectiveStations(model, room, center, size, primary, secondary, accent, encounter)
+    buildRoomHazardLanes(model, room, center, size, primary, accent, encounter)
+    buildRoomHelperNPCs(model, room, center, size, primary, secondary, accent)
+end
+
+local function buildThemedRoomSpaces(roots)
+    local parent = roots.ThemedRoomSpaces
+    if not parent then return end
+    for _, room in ipairs(RoomConfig.GetRooms()) do
+        local space = RoomConfig.GetRoomSpace(room.Id)
+        local center = space.Center
+        local size = space.Size
+        local palette = room.Palette or {}
+        local primary = palette.Primary or Color3.fromRGB(120, 240, 255)
+        local secondary = palette.Secondary or Color3.fromRGB(42, 48, 70)
+        local accent = palette.Accent or Color3.fromRGB(255, 230, 90)
+        local roomDarkBase = secondary:Lerp(Color3.fromRGB(8, 10, 18), 0.74)
+        local roomFloorColor = roomDarkBase:Lerp(primary, 0.18)
+        local roomBackdropColor = roomDarkBase:Lerp(primary, 0.16)
+        local roomRailColor = primary:Lerp(Color3.fromRGB(255, 255, 255), 0.06)
+        local readiness = AssetRegistry.GetRoomAssetReadiness(room.Id)
+        local model = ensureModel(parent, string.format("RoomSpace_%02d_%s", room.Index or 0, room.Id))
+        clearChildren(model)
+        model:SetAttribute("RoomId", room.Id)
+        model:SetAttribute("RoomName", room.Name)
+        model:SetAttribute("ReviewSpaceId", room.ReviewSpaceId)
+        model:SetAttribute("RoomSpaceStructuralOnly", true)
+        model:SetAttribute("HeadlessAssemblyTarget", true)
+        model:SetAttribute("CreatorStorePlacementStatus", readiness.placementStatus or "palette_committed_pending_permission_and_fragment")
+        model:SetAttribute("PaletteCommitted", readiness.paletteCommitted)
+        model:SetAttribute("PaletteAssetCount", readiness.paletteAssetCount)
+        model:SetAttribute("PublishPermission", readiness.publishPermission)
+        model:SetAttribute("MissingPublishPermissionCount", readiness.missingPublishPermissionCount)
+        model:SetAttribute("RoomAssetVisualStatus", readiness.visualStatus)
+        model:SetAttribute("RoomInspectedAssetCount", readiness.inspectedCount)
+        model:SetAttribute("RoomPassAssetCount", readiness.passCount)
+        model:SetAttribute("RoomFixAssetCount", readiness.fixCount)
+        model:SetAttribute("RoomRejectAssetCount", readiness.rejectCount)
+        model:SetAttribute("RoomCenter", center)
+        model:SetAttribute("RoomEntry", space.Entry)
+
+        local floor = artPart(model, "RoomPlayableFloor", Vector3.new(size.X, 0.6, size.Z), CFrame.new(center.X, 1.55, center.Z), roomFloorColor, Enum.Material.Metal, "themedRoomSpaces", room.Name .. " structural playable floor")
+        floor.CanCollide = true
+        floor:SetAttribute("RoomId", room.Id)
+        floor:SetAttribute("ReviewSpaceId", room.ReviewSpaceId)
+        local stageDisc = artPart(model, "RoomPerformanceDisc", Vector3.new(18, 0.35, 18), CFrame.new(center.X, 2.02, center.Z), primary, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " performance center", Enum.PartType.Cylinder)
+        stageDisc.CanCollide = false
+        buildRoomEncounterDressing(model, room, center, size, primary, secondary, accent)
+
+        local railSpecs = {
+            { name = "North", size = Vector3.new(size.X, 3, 1.2), offset = Vector3.new(0, 2.9, -size.Z / 2) },
+            { name = "South", size = Vector3.new(size.X, 3, 1.2), offset = Vector3.new(0, 2.9, size.Z / 2) },
+            { name = "East", size = Vector3.new(1.2, 3, size.Z), offset = Vector3.new(size.X / 2, 2.9, 0) },
+            { name = "West", size = Vector3.new(1.2, 3, size.Z), offset = Vector3.new(-size.X / 2, 2.9, 0) },
+        }
+        for _, spec in ipairs(railSpecs) do
+            local rail = artPart(model, "RoomBoundaryRail_" .. spec.name, spec.size, CFrame.new(center + spec.offset), roomRailColor, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " visible room boundary")
+            rail.CanCollide = false
+            rail.Transparency = 0.5
+        end
+
+        local cueFolder = ensureFolder(model, "StructuralThemeCues")
+        local cueOffsets = {
+            NW = Vector3.new(-size.X / 2 + 6, 8, -size.Z / 2 + 6),
+            NE = Vector3.new(size.X / 2 - 6, 8, -size.Z / 2 + 6),
+            SW = Vector3.new(-size.X / 2 + 6, 8, size.Z / 2 - 6),
+            SE = Vector3.new(size.X / 2 - 6, 8, size.Z / 2 - 6),
+        }
+        for cueId, cueOffset in pairs(cueOffsets) do
+            local pillar = artPart(cueFolder, "RoomThemePillar_" .. cueId, Vector3.new(2.2, 12, 2.2), CFrame.new(center + cueOffset), primary, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " structural theme pillar")
+            pillar.CanCollide = false
+            local banner = artPart(cueFolder, "RoomThemeBanner_" .. cueId, Vector3.new(8, 1.1, 0.45), CFrame.lookAt(center + cueOffset + Vector3.new(0, 4.8, 0), center), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " theme-readability banner")
+            banner.CanCollide = false
+            surfaceLabel(banner, truncateLabel(room.ShortName or room.Name, 18), Enum.NormalId.Front)
+        end
+        local glowSpecs = {
+            { name = "North", size = Vector3.new(size.X - 12, 0.55, 0.65), offset = Vector3.new(0, 6.2, -size.Z / 2 + 1.8) },
+            { name = "South", size = Vector3.new(size.X - 12, 0.55, 0.65), offset = Vector3.new(0, 6.2, size.Z / 2 - 1.8) },
+            { name = "East", size = Vector3.new(0.65, 0.55, size.Z - 12), offset = Vector3.new(size.X / 2 - 1.8, 6.2, 0) },
+            { name = "West", size = Vector3.new(0.65, 0.55, size.Z - 12), offset = Vector3.new(-size.X / 2 + 1.8, 6.2, 0) },
+        }
+        for _, glowSpec in ipairs(glowSpecs) do
+            local glow = artPart(cueFolder, "RoomWallGlow_" .. glowSpec.name, glowSpec.size, CFrame.new(center + glowSpec.offset), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " wall glow navigation cue")
+            glow.CanCollide = false
+        end
+        local backdropSpecs = {
+            { name = "North", size = Vector3.new(size.X - 4, size.Y, 0.75), offset = Vector3.new(0, center.Y + size.Y / 2 - 1.5, -size.Z / 2 + 0.7) },
+            { name = "South", size = Vector3.new(size.X - 4, size.Y, 0.75), offset = Vector3.new(0, center.Y + size.Y / 2 - 1.5, size.Z / 2 - 0.7) },
+            { name = "East", size = Vector3.new(0.75, size.Y, size.Z - 4), offset = Vector3.new(size.X / 2 - 0.7, center.Y + size.Y / 2 - 1.5, 0) },
+            { name = "West", size = Vector3.new(0.75, size.Y, size.Z - 4), offset = Vector3.new(-size.X / 2 + 0.7, center.Y + size.Y / 2 - 1.5, 0) },
+        }
+        for _, backdropSpec in ipairs(backdropSpecs) do
+            local backdrop = artPart(cueFolder, "RoomBackdropPanel_" .. backdropSpec.name, backdropSpec.size, CFrame.new(center + backdropSpec.offset), roomBackdropColor, Enum.Material.SmoothPlastic, "themedRoomSpaces", room.Name .. " visible room backdrop panel")
+            backdrop.CanCollide = false
+            backdrop.Transparency = 0.18
+        end
+        local titleBeacon = artPart(cueFolder, "RoomTitleBeacon", Vector3.new(22, 3.2, 0.5), CFrame.lookAt(center + Vector3.new(0, 10.5, -size.Z / 2 + 4), center), primary:Lerp(accent, 0.45), Enum.Material.Neon, "themedRoomSpaces", room.Name .. " overhead room identity beacon")
+        titleBeacon.CanCollide = false
+        surfaceLabel(titleBeacon, string.format("%s\n%s", room.ShortName or room.Name, truncateLabel(room.Theme, 34)), Enum.NormalId.Front)
+
+        local entrySign = artPart(model, "RoomEntrySign", Vector3.new(18, 4.2, 0.4), CFrame.lookAt(space.Entry + Vector3.new(0, 4, 0), center), secondary:Lerp(Color3.fromRGB(4, 6, 14), 0.45), Enum.Material.Metal, "themedRoomSpaces", room.Name .. " room entry sign")
+        entrySign.CanCollide = false
+        surfaceLabel(entrySign, string.format("%s\n%s\n%d-%d players", room.ShortName or room.Name, room.TeamMode or "Crew", room.MinPlayers or 1, room.Capacity or 4), Enum.NormalId.Front)
+        surfaceLabel(entrySign, string.format("%s\nASSET ANCHORS", room.ShortName or room.Name), Enum.NormalId.Back)
+
+        local difficultyText = table.concat(room.DifficultyOrder or {}, " / ")
+        local rulesSign = artPart(model, "RoomRulesSign", Vector3.new(18, 4.2, 0.4), CFrame.lookAt(center + Vector3.new(0, 4.2, size.Z / 2 - 6), center), accent:Lerp(Color3.fromRGB(4, 6, 14), 0.35), Enum.Material.Metal, "themedRoomSpaces", room.Name .. " rules sign")
+        rulesSign.CanCollide = false
+        surfaceLabel(rulesSign, string.format("%.2fX rewards\n%s\n%s", room.RewardMultiplier or 1, truncateLabel(difficultyText, 34), truncateLabel(room.Theme, 44)), Enum.NormalId.Front)
+
+        local quadrantFolder = ensureFolder(model, "ReviewQuadrantMarkers")
+        local quadrantOffsets = {
+            NW = Vector3.new(-size.X * 0.28, 2.28, -size.Z * 0.28),
+            NE = Vector3.new(size.X * 0.28, 2.28, -size.Z * 0.28),
+            SW = Vector3.new(-size.X * 0.28, 2.28, size.Z * 0.28),
+            SE = Vector3.new(size.X * 0.28, 2.28, size.Z * 0.28),
+        }
+        for quadrant, offset in pairs(quadrantOffsets) do
+            local marker = artPart(quadrantFolder, "ReviewMarker_" .. quadrant, Vector3.new(4.8, 0.24, 4.8), CFrame.new(center + offset), accent, Enum.Material.Neon, "themedRoomSpaces", room.Name .. " player-height screenshot marker", Enum.PartType.Cylinder)
+            marker.CanCollide = false
+            marker:SetAttribute("Quadrant", quadrant)
+            marker:SetAttribute("ReviewSpaceId", room.ReviewSpaceId)
+            surfaceLabel(marker, quadrant, Enum.NormalId.Top)
+        end
+
+        local helperBase = artPart(model, "RoomHelperBeacon", Vector3.new(2.4, 4.5, 1.4), CFrame.lookAt(center + Vector3.new(-size.X / 2 + 8, 4.2, -size.Z / 2 + 8), center), accent, Enum.Material.SmoothPlastic, "themedRoomSpaces", room.Name .. " helper NPC anchor")
+        helperBase.CanCollide = false
+        local helperNames = {}
+        for _, helper in ipairs(room.HelperNPCs or {}) do
+            table.insert(helperNames, helper.Id)
+        end
+        surfaceLabel(helperBase, "HELPERS\n" .. truncateLabel(table.concat(helperNames, "\n"), 36), Enum.NormalId.Front)
+
+        local assetAnchorFolder = ensureFolder(model, "AssetAnchorPads")
+        local inspectedAssets = AssetRegistry.GetInspectedRoomAssets(room.Id)
+        local anchorOffsets = {
+            Vector3.new(-size.X * 0.30, 2.25, 0),
+            Vector3.new(size.X * 0.30, 2.25, 0),
+            Vector3.new(0, 2.25, -size.Z * 0.30),
+            Vector3.new(0, 2.25, size.Z * 0.30),
+        }
+        local anchorCount = 0
+        for _, inspected in ipairs(inspectedAssets) do
+            if inspected.verdict ~= "reject" and anchorCount < #anchorOffsets then
+                anchorCount += 1
+                local anchor = artPart(assetAnchorFolder, "InspectedAssetAnchor_" .. tostring(inspected.assetId), Vector3.new(5.8, 0.35, 4.2), CFrame.new(center + anchorOffsets[anchorCount]), primary:Lerp(accent, 0.35), Enum.Material.Neon, "themedRoomSpaces", room.Name .. " inspected Creator Store asset anchor")
+                anchor.CanCollide = false
+                anchor:SetAttribute("CreatorStoreAssetId", tostring(inspected.assetId))
+                anchor:SetAttribute("AssetSlot", inspected.slot)
+                anchor:SetAttribute("AssetVerdict", inspected.verdict)
+                anchor:SetAttribute("VisualRiskScore", tonumber(inspected.visualRiskScore) or 0)
+                anchor:SetAttribute("PlacementStatus", "anchor_only_requires_fragment_merge")
+                anchor:SetAttribute("RoomId", room.Id)
+                surfaceLabel(anchor, string.format("ASSET\n%s\n%s", tostring(inspected.assetId), tostring(inspected.verdict)), Enum.NormalId.Top)
+            end
+        end
+        model:SetAttribute("InspectedAssetAnchorCount", anchorCount)
+
+        local slotFolder = ensureFolder(model, "AssetSearchSlotMarkers")
+        for index, query in ipairs(room.AssetSearchSlots or {}) do
+            local offsetIndex = ((index - 1) % #anchorOffsets) + 1
+            local ring = 1 + math.floor((index - 1) / #anchorOffsets)
+            local baseOffset = anchorOffsets[offsetIndex] + Vector3.new(0, 0.1 * ring, ring * 5)
+            local marker = artPart(slotFolder, "AssetSearchSlot_" .. index, Vector3.new(4.2, 0.22, 3.2), CFrame.new(center + baseOffset), secondary:Lerp(accent, 0.45), Enum.Material.SmoothPlastic, "themedRoomSpaces", room.Name .. " asset-search slot marker")
+            marker.CanCollide = false
+            marker:SetAttribute("SearchQuery", query)
+            marker:SetAttribute("RoomId", room.Id)
+            marker:SetAttribute("PlacementStatus", "search_slot_needs_claimed_asset")
+            surfaceLabel(marker, "SEARCH\n" .. truncateLabel(query, 26), Enum.NormalId.Top)
+        end
+
+        invisible(roots.InvisibleGameplayHitboxes, "RoomBounds_" .. room.Id, Vector3.new(size.X, size.Y, size.Z), CFrame.new(center.X, center.Y + size.Y / 2, center.Z), false)
+        invisible(roots.InvisibleGameplayHitboxes, "RoomEntry_" .. room.Id, Vector3.new(14, 8, 10), CFrame.lookAt(space.Entry, center), false)
+        local wallHeight = 18
+        local wallY = center.Y + wallHeight / 2
+        local boundaryWalls = {
+            { id = "N", size = Vector3.new(size.X + 2, wallHeight, 2), offset = Vector3.new(0, 0, -size.Z / 2) },
+            { id = "S", size = Vector3.new(size.X + 2, wallHeight, 2), offset = Vector3.new(0, 0, size.Z / 2) },
+            { id = "E", size = Vector3.new(2, wallHeight, size.Z + 2), offset = Vector3.new(size.X / 2, 0, 0) },
+            { id = "W", size = Vector3.new(2, wallHeight, size.Z + 2), offset = Vector3.new(-size.X / 2, 0, 0) },
+        }
+        for _, wallSpec in ipairs(boundaryWalls) do
+            local wall = invisible(roots.InvisibleGameplayHitboxes, "RoomWall_" .. wallSpec.id .. "_" .. room.Id, wallSpec.size, CFrame.new(center.X + wallSpec.offset.X, wallY, center.Z + wallSpec.offset.Z), true)
+            wall:SetAttribute("RoomId", room.Id)
+            wall:SetAttribute("ReviewSpaceId", room.ReviewSpaceId)
+            wall:SetAttribute("PlayableSpaceBoundary", true)
+        end
+        model.PrimaryPart = floor
+    end
+end
+
+function clearChildren(inst)
     for _, child in ipairs(inst:GetChildren()) do
         child:Destroy()
     end
@@ -625,8 +1116,8 @@ local function buildCreatorMenuExpansionPlacements(roots)
 
     -- Keep the audited Creator expansion at the required distribution instead of
     -- flooding the client with 1,100+ decorative clones that can starve input/audio.
-    -- These are active placements cloned from audited Creator Store sources, not
-    -- 1,000 distinct source asset IDs. Validation tracks source family count separately.
+    -- These are active placements cloned from audited Creator Store sources, not 1,000 distinct source asset IDs.
+    -- Validation tracks source family count separately.
     placeMany("stageCore", "StageTruss", 60, 24, 5, 0, 0.22)
     placeMany("lightingAndTrusses", "ConcertLights", 40, 32, 8, 2, 0.035)
     placeMany("lightingAndTrusses", "StageTruss", 40, 34, 7, 5, 0.24)
@@ -834,6 +1325,8 @@ function WorldV2Builder.Build()
     invisible(roots.InvisibleGameplayHitboxes, "AntiFallBarrier_W", Vector3.new(4, 60, 220), CFrame.new(-160, 25, 0), true)
 
     buildTourBusSpawnPath(world)
+    buildRoomPortalRing(roots)
+    buildThemedRoomSpaces(roots)
 
     for _, point in ipairs(PolarLayout.distribute(32, 54, 3.2, 0)) do
         artPart(roots.FenceRing, "FenceArcSegment_" .. point.index, Vector3.new(7, 5, 0.8), point.cframeFacingCenter, Color3.fromRGB(95, 255, 120), Enum.Material.Metal, "fenceRing", "circular security fence")

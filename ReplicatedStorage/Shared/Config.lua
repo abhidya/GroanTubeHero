@@ -116,6 +116,10 @@ Config.RemoteNames = {
     "OpenSongSelect",
     "NPCDialogue",
     "HordeUpdate",
+    "JoinRoomRequest",
+    "LeaveRoomRequest",
+    "RoomUpdate",
+    "RoomActionResult",
 }
 
 Config.DefaultProfile = {
@@ -173,6 +177,7 @@ Config.DefaultProfile = {
         Career = {},
         Pure = {},
     },
+    RoomProgress = {},
 }
 
 function Config.Clamp(value, minValue, maxValue)

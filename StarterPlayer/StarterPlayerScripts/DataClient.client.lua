@@ -86,6 +86,8 @@ welcome.Parent = screenGui
 local welcomeScale = Instance.new("UIScale")
 welcomeScale.Name = "ResponsiveScale"
 welcomeScale.Parent = welcome
+local welcomeDismissed = false
+local profileSongActive = false
 corner(welcome, 18)
 stroke(welcome, Color3.fromRGB(255, 230, 120))
 
@@ -110,7 +112,10 @@ closeWelcome.TextScaled = true
 closeWelcome.BackgroundColor3 = Color3.fromRGB(255, 95, 95)
 closeWelcome.Parent = welcome
 corner(closeWelcome, 10)
-closeWelcome.Activated:Connect(function() welcome.Visible = false end)
+closeWelcome.Activated:Connect(function()
+    welcomeDismissed = true
+    welcome.Visible = false
+end)
 
 local body = Instance.new("TextLabel")
 body.BackgroundTransparency = 1
@@ -213,6 +218,7 @@ local function openSongs()
         local modal = rg:FindFirstChild("Root") and rg.Root:FindFirstChild("SongSelectModal")
         if modal then modal.Visible = true end
     end
+    welcomeDismissed = true
     welcome.Visible = false
 end
 
@@ -224,7 +230,10 @@ actionButton("Watch", "Watch", function()
     local ag = playerGui:FindFirstChild("AudienceGui")
     if ag then ag:SetAttribute("Open", true) end
 end)
-actionButton("Help", "Help", function() welcome.Visible = true end)
+actionButton("Help", "Help", function()
+    welcomeDismissed = false
+    welcome.Visible = not profileSongActive
+end)
 
 local arrow = Instance.new("TextLabel")
 arrow.Name = "StageArrow"
@@ -237,6 +246,49 @@ arrow.Font = Enum.Font.GothamBlack
 arrow.TextScaled = true
 arrow.Parent = screenGui
 TweenService:Create(arrow, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextTransparency = 0.35 }):Play()
+
+local boundRhythmGui = nil
+local songActiveConnection = nil
+
+local function findRhythmScreenGui()
+    for _, child in ipairs(playerGui:GetChildren()) do
+        if child.Name == "RhythmGui" and child:IsA("ScreenGui") then
+            return child
+        end
+    end
+    return nil
+end
+
+local function refreshSongActiveChrome()
+    local rhythmGui = boundRhythmGui or findRhythmScreenGui()
+    profileSongActive = rhythmGui and rhythmGui:GetAttribute("SongActive") == true or false
+    actionBar.Visible = not profileSongActive
+    arrow.Visible = not profileSongActive
+    welcome.Visible = not profileSongActive and not welcomeDismissed
+end
+
+local function bindRhythmGui(rhythmGui)
+    if not rhythmGui or boundRhythmGui == rhythmGui then
+        refreshSongActiveChrome()
+        return
+    end
+    if songActiveConnection then
+        songActiveConnection:Disconnect()
+    end
+    boundRhythmGui = rhythmGui
+    songActiveConnection = rhythmGui:GetAttributeChangedSignal("SongActive"):Connect(refreshSongActiveChrome)
+    refreshSongActiveChrome()
+end
+
+task.defer(function()
+    bindRhythmGui(findRhythmScreenGui())
+end)
+
+playerGui.ChildAdded:Connect(function(child)
+    if child.Name == "RhythmGui" and child:IsA("ScreenGui") then
+        bindRhythmGui(child)
+    end
+end)
 
 RunService.RenderStepped:Connect(function()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
