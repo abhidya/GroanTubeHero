@@ -34,6 +34,18 @@ For source-tree review, use Rojo with `default.project.json` and keep generated
 Studio save artifacts out of commits unless they are intentionally exported
 evidence files listed in `.gitignore`.
 
+## Hardware-free repository smoke
+
+Before opening Studio, run the deterministic offline smoke check:
+
+```bash
+python3 tools/smoke_offline_demo.py
+```
+
+It validates the Rojo tree, remote contract, local chart modules, and checked-in
+groan sound bank without calling Roblox services or importing marketplace
+assets.
+
 ## Notes
 - Placeholder AudioIds are used intentionally.
 - The game still runs visually if audio fails to load.
