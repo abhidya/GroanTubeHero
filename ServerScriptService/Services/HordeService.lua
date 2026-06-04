@@ -95,6 +95,7 @@ function HordeService:_payload(session, horde, lastJudgement)
         activeSectorPressure = horde.sectorPressure and activeSectorId and horde.sectorPressure[activeSectorId] or 0,
         sectorAngles = horde.sectorAngles,
         warningSectorId = horde.warningSectorId,
+        audienceAssist = horde.audienceAssist,
         movementCue = horde.movementCue,
         movementEventId = horde.movementEventId or 0,
     }
@@ -152,6 +153,7 @@ function HordeService:StartSession(session)
         step = 0,
         eventSerial = 0,
         movementCue = "Start",
+        audienceAssist = nil,
     }
     session.hordeDistance = 100
     session.hordeState = "Far"
@@ -197,10 +199,15 @@ function HordeService:ApplyJudgement(session, judgement)
         self:StartSession(session)
         horde = self.sessions[session.id]
     end
+    horde.audienceAssist = nil
     local delta = ACTIONS[judgement] or 0
     if judgement == "Miss" then
         local diff = session.difficultyConfig or Config.Difficulties[session.difficulty or "Easy"] or Config.Difficulties.Easy
         delta = -(diff.hordeMissAdvance or diff.hpDamageMiss or 8)
+        local focusLevel = session.modifiers and tonumber(session.modifiers.focusReduction) or 0
+        if focusLevel > 0 then
+            delta = math.ceil(delta * (1 - math.min(0.25, focusLevel * 0.04)))
+        end
     end
     horde.distance = clampDistance((horde.distance or 100) + delta)
     horde.lastJudgement = judgement
@@ -220,9 +227,26 @@ function HordeService:ApplyAudienceSupport(session, amount, action)
         self:StartSession(session)
         horde = self.sessions[session.id]
     end
+    local assistSectorId = horde.warningSectorId or weakestSector(horde.sectorHealths)
     horde.distance = clampDistance((horde.distance or 100) + (amount or ACTIONS.Audience))
     horde.lastJudgement = action or "Audience"
     self:_applySectorJudgement(session, horde, "Audience", amount or ACTIONS.Audience)
+    if action == "Support" or action == "Encore" then
+        local sectorId = assistSectorId
+        local relief = math.max(3, amount or ACTIONS.Audience)
+        horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + relief)
+        horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - (12 + relief * 2))
+        horde.activeSectorId = sectorId
+        horde.warningSectorId = weakestSector(horde.sectorHealths)
+        horde.audienceAssist = {
+            action = action,
+            sectorId = sectorId,
+            relief = relief,
+        }
+        self:_setMovementCue(horde, action == "Encore" and "AudienceEncore" or "AudienceSupport", sectorId, math.clamp(relief / 3, 0.9, 2.5))
+    else
+        horde.audienceAssist = nil
+    end
     session.hordeDistance = horde.distance
     session.hordeState = stateFor(horde.distance)
     self:_broadcast(session, action or "Audience")
@@ -245,6 +269,7 @@ function HordeService:Update(dt)
                     horde.sectorPressure[sectorId] = math.clamp((horde.sectorPressure[sectorId] or 0) + math.max(8, horde.passiveBank * 2.5), 0, 100)
                     self:_setMovementCue(horde, "PassiveCreep", sectorId, 1.15)
                     horde.passiveBank = 0
+                    horde.audienceAssist = nil
                     session.hordeDistance = horde.distance
                     session.hordeState = stateFor(horde.distance)
                     session.disasterMode = horde.distance <= 0
@@ -258,6 +283,7 @@ end
 function HordeService:FinishSession(session)
     if session and self.sessions[session.id] then
         local horde = self.sessions[session.id]
+        horde.audienceAssist = nil
         horde.distance = clampDistance((horde.distance or 100) + 12)
         for _, sector in ipairs(SECTORS) do
             horde.sectorHealths[sector.id] = clampHealth((horde.sectorHealths[sector.id] or 100) + 8)
@@ -276,6 +302,7 @@ function HordeService:RepairSector(player, sectorId, amount)
     local session = player and self.context and self.context.Services and self.context.Services.SongSessionService:GetSession(player)
     local horde = session and self.sessions[session.id]
     if horde and horde.sectorHealths and horde.sectorHealths[sectorId] ~= nil then
+        horde.audienceAssist = nil
         horde.sectorHealths[sectorId] = clampHealth((horde.sectorHealths[sectorId] or 100) + amount)
         horde.sectorPressure[sectorId] = math.max(0, (horde.sectorPressure[sectorId] or 0) - amount)
         horde.activeSectorId = sectorId

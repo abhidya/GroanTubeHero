@@ -91,6 +91,8 @@ local function colorForCue(cue)
         return Color3.fromRGB(255, 65, 45)
     elseif cueName == "Repair" then
         return Color3.fromRGB(80, 255, 140)
+    elseif cueName == "AudienceSupport" or cueName == "AudienceEncore" then
+        return Color3.fromRGB(120, 255, 190)
     elseif cueName == "Finish" then
         return Color3.fromRGB(120, 255, 255)
     elseif cueName == "Perfect" then
@@ -114,7 +116,8 @@ end
 local function cueRadiusOffset(cueName, strength)
     local scale = strength or 1
     if cueName == "Miss" or cueName == "PassiveCreep" then return -14 * scale end
-    if cueName == "Repair" then return 10 * scale end
+    if cueName == "Repair" or cueName == "AudienceSupport" then return 10 * scale end
+    if cueName == "AudienceEncore" then return 16 * scale end
     if cueName == "Finish" then return 24 * scale end
     if cueName == "Perfect" then return 12 * scale end
     if cueName == "Good" or cueName == "Audience" then return 7 * scale end
@@ -201,7 +204,7 @@ local function updateSectorVisuals(payload)
             if fence and fence:IsA("BasePart") then
                 local t = math.clamp((health or 100) / 100, 0, 1)
                 if active then
-                    fence.Color = colorForCue(payload.lastJudgement or payload.movementCue)
+                    fence.Color = colorForCue(payload.movementCue or payload.lastJudgement)
                 elseif warning then
                     fence.Color = Color3.fromRGB(255, 45, 75)
                 else
@@ -278,10 +281,12 @@ if remotes:FindFirstChild("HordeUpdate") then
         local sectorId = payload.activeSectorId or "N"
         local warningSectorId = payload.warningSectorId or sectorId
         local pressure = tonumber(payload.activeSectorPressure) or (payload.sectorPressure and payload.sectorPressure[sectorId]) or 0
-        label.Text = string.format("Brainrot Horde: %s  %d%%  Sector %s  Weak %s", state, math.floor(distance + 0.5), sectorId, warningSectorId)
+        local assist = type(payload.audienceAssist) == "table" and payload.audienceAssist or nil
+        label.Text = assist and string.format("Brainrot Horde: %s  %d%%  Audience repaired %s", state, math.floor(distance + 0.5), tostring(assist.sectorId))
+            or string.format("Brainrot Horde: %s  %d%%  Sector %s  Weak %s", state, math.floor(distance + 0.5), sectorId, warningSectorId)
         fill.Size = UDim2.fromScale(1 - math.clamp(distance / 100, 0, 1), 1)
         fill.BackgroundColor3 = payload.disasterMode and Color3.fromRGB(255, 45, 75) or pressure > 55 and Color3.fromRGB(255, 120, 55) or Color3.fromRGB(255, 80, 80)
-        stroke.Color = colorForCue(payload.lastJudgement or payload.movementCue)
+        stroke.Color = colorForCue(payload.movementCue or payload.lastJudgement)
         updateSectorVisuals(payload)
         local sector = getSector(sectorId)
         local judgement = cueType(payload)
@@ -300,7 +305,7 @@ if remotes:FindFirstChild("HordeUpdate") then
             pulse(Color3.fromRGB(120, 25, 35))
         elseif judgement == "Perfect" or judgement == "Repair" or judgement == "Finish" then
             pulse(Color3.fromRGB(25, 120, 70))
-        elseif payload.lastJudgement == "Good" or payload.lastJudgement == "Audience" then
+        elseif judgement == "Good" or judgement == "Audience" or judgement == "AudienceSupport" or judgement == "AudienceEncore" then
             pulse(Color3.fromRGB(30, 75, 120))
         end
     end)

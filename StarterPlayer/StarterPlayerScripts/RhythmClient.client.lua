@@ -151,6 +151,22 @@ local function routeMenu(menuName, fallback)
         fallback()
     end
 end
+local function closeMenu(menuName, fallback)
+    local controller = _G.GTH_UIUXMenuController
+    if controller and controller.closeMenu then
+        controller.closeMenu(menuName)
+    elseif fallback then
+        fallback()
+    end
+end
+local function restoreLobby(fallback)
+    local controller = _G.GTH_UIUXMenuController
+    if controller and controller.restoreLobbyState then
+        controller.restoreLobbyState()
+    elseif fallback then
+        fallback()
+    end
+end
 
 local laneColors = {
     Color3.fromRGB(80, 210, 255),
@@ -321,13 +337,20 @@ stroke(songSelect, Color3.fromRGB(80, 225, 255), 3)
 makeLabel(songSelect, "Title", "Choose a Song", UDim2.new(1, -176, 0, 42), UDim2.new(0, 20, 0, 12), Color3.fromRGB(255, 255, 255), Enum.Font.GothamBlack)
 local closeSongSelect = makeButton(songSelect, "CloseSongSelect", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeSongSelect.Activated:Connect(function()
-    songSelect.Visible = false
-    touchMenu.Visible = true
+    closeMenu("SongSelect", function()
+        songSelect.Visible = false
+        touchMenu.Visible = true
+    end)
 end)
 local backSongSelect = makeButton(songSelect, "BackSongSelect", "Back", UDim2.new(0, 86, 0, 40), UDim2.new(1, -158, 0, 17), Color3.fromRGB(90, 110, 145))
 backSongSelect.Activated:Connect(function()
-    songSelect.Visible = false
-    touchMenu.Visible = true
+    local controller = _G.GTH_UIUXMenuController
+    if controller and controller.back then
+        controller.back()
+    else
+        songSelect.Visible = false
+        touchMenu.Visible = true
+    end
 end)
 makeLabel(songSelect, "Subtitle", "Choose song, difficulty, and segment. Demo-safe Groan Tube Hero charts.", UDim2.new(1, -40, 0, 42), UDim2.new(0, 20, 0, 56), Color3.fromRGB(180, 220, 255), Enum.Font.GothamBold)
 local selectedDifficulty = "Easy"
@@ -418,7 +441,9 @@ resultsSize.MaxSize = Vector2.new(620, 520)
 resultsSize.Parent = results
 local closeResults = makeButton(results, "CloseResults", "X", UDim2.new(0, 50, 0, 46), UDim2.new(1, -64, 0, 14), Color3.fromRGB(255, 95, 95))
 closeResults.Activated:Connect(function()
-    results.Visible = false
+    closeMenu("Results", function()
+        results.Visible = false
+    end)
 end)
 local resultsScroll = Instance.new("ScrollingFrame")
 resultsScroll.Name = "ResultsScroll"
@@ -780,7 +805,10 @@ screenGui:GetAttributeChangedSignal("OpenSongSelect"):Connect(consumeOpenSongSel
 consumeOpenSongSelectAttribute()
 if remotes:FindFirstChild("OpenSongSelect") then
     remotes.OpenSongSelect.OnClientEvent:Connect(function()
-        openSongSelect()
+        local controller = _G.GTH_UIUXMenuController
+        if not (controller and controller.openMenu) then
+            openSongSelect()
+        end
     end)
 end
 
@@ -789,48 +817,54 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt)
     local name = prompt.Parent.Name
     local stationName = prompt.Parent.Parent and prompt.Parent.Parent.Name or name
     if name == "StartPrompt" or name == "Sign_Start" or name == "GlowingStageMicPrompt" or stationName == "DJ_GroanMaster" then
-        openSongSelect()
+        routeMenu("SongSelect", openSongSelect)
     elseif name == "StoreKiosk" or name == "Sign_Store" or stationName == "Vendor_Store" then
-        openStore("Tube Sounds")
+        routeMenu("Store", function() openStore("Tube Sounds") end)
     elseif name == "UpgradeKiosk" or name == "Sign_Upgrades" or stationName == "Vendor_UpgradeEngineer" then
-        openStore("Upgrades")
+        routeMenu("Upgrades", function() openStore("Upgrades") end)
     elseif name == "MissionBoard" or name == "Sign_Missions" or stationName == "MissionOfficer" then
-        openStore("Missions")
+        routeMenu("Missions", function() openStore("Missions") end)
     elseif stationName == "SecurityManager" then
-        openStore("Security")
+        routeMenu("Security", function() openStore("Security") end)
     elseif stationName == "TutorialGuide" then
-        openStore("Tutorial")
+        routeMenu("Tutorial", function() openStore("Tutorial") end)
     elseif name == "BusBody" or name == "TourBus" or name == "Sign_TourBus" then
-        openStore("Tour Bus")
+        routeMenu("TourBus", function() openStore("Tour Bus") end)
     elseif name == "AudienceZone" or name == "AudienceSign" or name == "Sign_Audience" or stationName == "AudienceHypeManager" then
-        local audienceGui = playerGui:FindFirstChild("AudienceGui")
-        if audienceGui then
-            audienceGui:SetAttribute("Open", true)
-        end
+        routeMenu("Hype", function()
+            local audienceGui = playerGui:FindFirstChild("AudienceGui")
+            if audienceGui then
+                audienceGui:SetAttribute("Open", true)
+            end
+        end)
     end
 end)
 
 replayButton.Activated:Connect(function()
-    results.Visible = false
-    touchMenu.Visible = true
+    restoreLobby(function()
+        results.Visible = false
+        touchMenu.Visible = true
+    end)
 end)
 backToLobbyButton.Activated:Connect(function()
-    results.Visible = false
-    touchMenu.Visible = true
+    restoreLobby(function()
+        results.Visible = false
+        touchMenu.Visible = true
+    end)
 end)
-chooseButton.Activated:Connect(openSongSelect)
-hudChooseButton.Activated:Connect(openSongSelect)
+chooseButton.Activated:Connect(function() routeMenu("SongSelect", openSongSelect) end)
+hudChooseButton.Activated:Connect(function() routeMenu("SongSelect", openSongSelect) end)
 upgradeButton.Activated:Connect(function()
-    openStore("Upgrades")
+    routeMenu("Upgrades", function() openStore("Upgrades") end)
 end)
 missionsButton.Activated:Connect(function()
-    openStore("Missions")
+    routeMenu("Missions", function() openStore("Missions") end)
 end)
 storeButton.Activated:Connect(function()
-    openStore("Tube Sounds")
+    routeMenu("Store", function() openStore("Tube Sounds") end)
 end)
 busButton.Activated:Connect(function()
-    openStore("Hype")
+    routeMenu("Hype", function() openStore("Hype") end)
 end)
 
 inputBus.Event:Connect(function(payload)

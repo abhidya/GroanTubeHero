@@ -81,16 +81,22 @@ function ScoreService:GetMissDamage(profile, session)
     local diff = session and session.difficultyConfig
     local damage = (diff and diff.hpDamageMiss) or 8
     local upgrades = profile.Upgrades or {}
+    local focusLevel = (session and session.modifiers and session.modifiers.focusReduction) or upgrades.Focus or 0
     local levelReduction = math.min(0.15, math.max(0, ((profile.Level or 1) - 1) * 0.005))
     damage = damage * (1 - math.min(0.5, (upgrades.Recovery or 0) * 0.10))
+    if focusLevel > 0 then
+        local currentHp = session and session.stateData and (session.stateData.hp or 100) or 100
+        local focusCap = currentHp <= 45 and 0.25 or 0.12
+        damage = damage * (1 - math.min(focusCap, focusLevel * 0.04))
+    end
     damage = damage * (1 - levelReduction)
-    if session.modifiers and session.modifiers.recoveryShield then
+    if session and session.modifiers and session.modifiers.recoveryShield then
         damage = damage * 0.75
     end
-    if session.modifiers and session.modifiers.voiceCrack then
+    if session and session.modifiers and session.modifiers.voiceCrack then
         damage = damage * 1.25
     end
-    if session.mode == Config.Modes.Battle then
+    if session and session.mode == Config.Modes.Battle then
         damage = damage * 1.15
     end
     return math.max(1, math.floor(damage + 0.5))
@@ -99,7 +105,12 @@ end
 function ScoreService:GetMissPenalty(profile, session)
     local penalty = 6
     penalty = math.max(2, penalty - (profile.Upgrades.Recovery or 0))
-    if session.modifiers and session.modifiers.recoveryShield then
+    local focusLevel = (session and session.modifiers and session.modifiers.focusReduction) or (profile.Upgrades and profile.Upgrades.Focus) or 0
+    local currentHp = session and session.stateData and (session.stateData.hp or 100) or 100
+    if focusLevel > 0 and currentHp <= 45 then
+        penalty = math.max(1, penalty - math.min(2, math.ceil(focusLevel / 2)))
+    end
+    if session and session.modifiers and session.modifiers.recoveryShield then
         penalty = math.max(1, penalty - 2)
     end
     return penalty

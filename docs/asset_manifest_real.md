@@ -176,3 +176,19 @@ This batch used Roblox Studio MCP Creator Store search/insert into `Workspace.As
 | Creator Store `18849541324` | `neon signs` / `Workspace.AssetInbox.CS_NeonSigns` | `ReplicatedStorage.ArtAssets.Props.Clean_Creator_CS_NeonSigns` | `FenceRing.CreatorMenuExpansion_fenceRing`, `HordeRing.CreatorMenuExpansion_hordeRing`, `AudienceRing.CreatorMenuExpansion_audienceRing`, `TourBusAndSpawnDressing.CreatorMenuExpansion_tourBusAndSpawn` | included in batch total | Signs and readable ring dressing |
 
 Batch total: 396 imported `Script`/`LocalScript`/`ModuleScript` descendants quarantined to `ServerStorage.AssetQuarantine`; active `Workspace.GTH_WorldV2` placement script count stayed at 0 in the placement pass.
+
+## 2026-05-31 asset-search candidate backlog
+
+These IDs came from `eggBreakers/tools/roblox_search_direct.js search_assets`.
+They are not runtime dependencies and are not trusted until imported through
+`Workspace.AssetInbox`, sanitized, and promoted into `ReplicatedStorage.ArtAssets`.
+
+| Candidate bucket | Query | Candidate IDs | Intended use |
+| --- | --- | --- | --- |
+| `StageConcertPack` | `concert stage lights speakers` | `88635163003664`, `104914864697053`, `81538308011761` | Better stage/lights/speaker dressing |
+| `DJBooth` | `cartoon dj booth npc music` | `5152105414`, `80617112899558`, `79768676992019` | More readable DJ station personality |
+| `NeonArrowSigns` | `neon music ui icon arrows` | `74716477504276`, `130850560922663`, `85317983953668` | Audited arrow/sign dressing for lanes and wayfinding |
+
+The same buckets are mirrored in
+`ReplicatedStorage/Shared/WorldV2/AssetRegistry.lua` as search candidates so
+future Studio import work can stay tied to validation and manifest source names.

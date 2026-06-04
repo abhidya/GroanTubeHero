@@ -4,22 +4,24 @@ local VendorDefinitions = require(ReplicatedStorage.Shared.WorldV2.VendorDefinit
 
 local VendorPromptService = {}
 
-local function getDialogue(menuName, fallbackText)
+local function getVendorDef(menuName)
     for _, def in ipairs(VendorDefinitions) do
         if def.Menu == menuName or def.Id == menuName then
-            return def.Dialogue or fallbackText
+            return def
         end
     end
-    return fallbackText
+    return nil
 end
 
 local function fireDialogue(context, player, menuName, fallbackText, preferFallback)
     local remote = context and context.Remotes and context.Remotes.NPCDialogue
     if not (remote and player) then return end
-    local text = (preferFallback and fallbackText) or getDialogue(menuName, fallbackText) or "Crew: Keep the stage alive."
+    local def = getVendorDef(menuName)
+    local text = (preferFallback and fallbackText) or (def and def.Dialogue) or fallbackText or "Crew: Keep the stage alive."
     remote:FireClient(player, {
         menu = menuName,
-        speaker = menuName or "Crew",
+        speaker = (def and def.ObjectText) or menuName or "Crew",
+        actionPrompt = (def and def.ActionPrompt) or fallbackText,
         text = text,
     })
 end

@@ -39,6 +39,7 @@ scale.Parent = toast
 
 local lastComboToast = 0
 local lastHordeWarning = 0
+local lastAudienceAssistToast = 0
 local function show(text, color)
     toast.Text = text
     toast.TextColor3 = color or Color3.fromRGB(255, 255, 255)
@@ -74,6 +75,13 @@ end)
 remotes.HordeUpdate.OnClientEvent:Connect(function(payload)
     if type(payload) ~= "table" then return end
     local t = os.clock()
+    local assist = type(payload.audienceAssist) == "table" and payload.audienceAssist or nil
+    if assist and assist.sectorId then
+        if t - lastAudienceAssistToast < 0.7 then return end
+        lastAudienceAssistToast = t
+        show("Audience support repaired sector " .. tostring(assist.sectorId), Color3.fromRGB(120, 255, 190))
+        return
+    end
     if t - lastHordeWarning < 1.2 then return end
     if payload.disasterMode then
         lastHordeWarning = t

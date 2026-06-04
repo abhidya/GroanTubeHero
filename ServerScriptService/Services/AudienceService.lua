@@ -111,7 +111,7 @@ function AudienceService:ApplyAudienceAction(player, payload)
     self.context.Services.DataService:Award(player, { Fans = rewardFans, XP = rewardXP })
     performer.stateData.hype = math.min(100, math.max(0, performer.stateData.hype + hypeBoost))
     if self.context.Services.HordeService and (action == "Clap" or action == "Cheer" or action == "Support" or action == "Encore") then
-        self.context.Services.HordeService:ApplyAudienceSupport(performer, math.max(1, hypeBoost), "Audience")
+        self.context.Services.HordeService:ApplyAudienceSupport(performer, math.max(1, hypeBoost), action)
     end
     self.context.Services.MissionService:RecordEvent(self.context.Services.DataService:GetProfile(player), "AudienceHelp", 1, { player = player })
     if action == "Cheer" then

@@ -38,9 +38,14 @@ local scale = Instance.new("UIScale")
 scale.Name = "ResponsiveScale"
 scale.Parent = panel
 
+local PANEL_SIZE = Vector2.new(800, 520)
+local VIEWPORT_PADDING = 28
+
 local function updateScale()
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    scale.Scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.48, 1.15)
+    local fitScale = math.min((viewport.X - VIEWPORT_PADDING) / PANEL_SIZE.X, (viewport.Y - VIEWPORT_PADDING) / PANEL_SIZE.Y)
+    local comfortScale = math.clamp(math.min(viewport.X / 1180, viewport.Y / 680), 0.60, 1.15)
+    scale.Scale = math.clamp(math.min(comfortScale, fitScale), 0.25, 1.15)
 end
 RunService.RenderStepped:Connect(updateScale)
 updateScale()
@@ -63,7 +68,7 @@ local items={
     ["Audience"]={{"BasicCrowd","Confused Parents","Supportive but worried.",0,"Coins","AudiencePacks"},{"NeonFans","Hyper Kids","Maximum cheering chaos.",140,"Fans","AudiencePacks"},{"MallRegulars","Mall Food Court Crowd","They came for pretzels.",110,"Coins","AudiencePacks"}},
     ["Themes"]={{"SchoolBackdrop","School Stage","Beginner venue identity.",0,"Coins","StageThemes"},{"NeonArenaTheme","Neon Arena","Bright, loud, unforgettable.",150,"Fans","StageThemes"},{"WeddingGlow","Wedding Hall","Awkward romantic lighting.",130,"Coins","StageThemes"}},
 }
-local upgrades={{"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended",6},{"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended",10},{"Recovery","Recovery","Miss streaks hurt less.",150,"",5},{"Stagecraft","Stagecraft","Better effects and more Fans.",170,"",10},{"Chaos","Chaos","Battle-ready crowd-control style upgrade.",180,"Coming Soon",5},{"Focus","Focus","Resist battle distractions.",180,"",5},{"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended",10},{"AudiencePower","Audience Power","Audience support gives more Hype.",160,"",8}}
+local upgrades={{"Timing","Timing","Makes Good hits slightly easier.",120,"Recommended",6},{"HypeGain","Hype Gain","Build Hype faster from clean hits.",150,"Recommended",10},{"Recovery","Recovery","Miss streaks hurt less.",150,"",5},{"Stagecraft","Stagecraft","Better effects and more Fans.",170,"",10},{"Chaos","Chaos","Battle-ready crowd-control style upgrade.",180,"Coming Soon",5},{"Focus","Focus","Softens late-run miss damage and horde surges.",180,"Recovery",5},{"CoinBonus","Coin Bonus","Earn more Coins per song.",160,"Recommended",10},{"AudiencePower","Audience Power","Audience support gives more Hype.",160,"",8}}
 local busUpgrades={{"BiggerSpeakers","Bigger Speakers","+Hype gain during performances.",120,"Coins",5},{"SnackStand","Snack Stand","Small bonus Fans after completed songs.",140,"Coins",5},{"PracticeSeat","Practice Seat","+XP from retries and replays.",130,"Coins",5},{"MerchBox","Merch Box","+Fans from audience participation.",150,"Fans",5},{"RoadCrew","Road Crew","Reduces venue fees.",180,"Coins",5},{"NeonWrap","Neon Wrap","Cosmetic Tour Bus flex.",100,"Fans",3}}
 local outcomeCards={
     Security={

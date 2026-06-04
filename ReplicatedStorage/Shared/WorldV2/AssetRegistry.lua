@@ -1,5 +1,23 @@
 local AssetRegistry = {}
 
+AssetRegistry.SearchCandidates = {
+    StageConcertPack = {
+        query = "concert stage lights speakers",
+        assetIds = { "88635163003664", "104914864697053", "81538308011761" },
+        purpose = "audited replacement candidates for stage, lights, and speaker dressing",
+    },
+    DJBooth = {
+        query = "cartoon dj booth npc music",
+        assetIds = { "5152105414", "80617112899558", "79768676992019" },
+        purpose = "audited DJ station/NPC personality candidate",
+    },
+    NeonArrowSigns = {
+        query = "neon music ui icon arrows",
+        assetIds = { "74716477504276", "130850560922663", "85317983953668" },
+        purpose = "audited arrow/sign dressing candidates for rhythm lanes and world navigation",
+    },
+}
+
 AssetRegistry.Entries = {
     StagePlatform = { PreferredPaths = { "ReplicatedStorage.ArtAssets.Stage.StagePlatform", "Workspace.Stage.StagePlatform" }, Required = false, FallbackAllowed = false, CloneCount = 1, Purpose = "central performance deck" },
     Truss = { PreferredPaths = { "ReplicatedStorage.ArtAssets.Stage.Truss" }, Required = false, FallbackAllowed = false, CloneCount = 8, Purpose = "concert truss decoration" },
@@ -56,6 +74,10 @@ function AssetRegistry.MissingRequired()
     end
     table.sort(missing)
     return missing
+end
+
+function AssetRegistry.GetSearchCandidates(name)
+    return AssetRegistry.SearchCandidates[name]
 end
 
 return AssetRegistry

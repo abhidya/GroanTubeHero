@@ -39,6 +39,27 @@ local function expect(condition: boolean, label: string): ()
     end
 end
 
+local function requireServerServiceClone(serviceName: string): any
+    if not RunService:IsServer() then
+        fail("server service clone requested on client: " .. serviceName)
+    end
+    local serverScriptService = game:GetService("ServerScriptService")
+    local services = serverScriptService:FindFirstChild("Services")
+    local moduleScript = services and services:FindFirstChild(serviceName)
+    if not (moduleScript and moduleScript:IsA("ModuleScript")) then
+        fail("missing server service ModuleScript: " .. serviceName)
+    end
+    local clone = moduleScript:Clone()
+    clone.Name = serviceName .. "_UnitTestClone"
+    clone.Parent = services
+    local ok, result = pcall(require, clone)
+    clone:Destroy()
+    if not ok then
+        fail("failed to require service clone " .. serviceName .. ": " .. tostring(result))
+    end
+    return result
+end
+
 local function makeSong()
     local notes = {}
     for index = 1, 12 do
@@ -111,8 +132,8 @@ local function testCatalogTitles(): ()
 end
 
 local function testSongCounts(): ()
-    -- SongCatalog valid count is 21
-    expectEqual(#SongCatalog.LocalTest, 21, "21 playable local test songs in catalog")
+    -- SongCatalog valid count is 22
+    expectEqual(#SongCatalog.LocalTest, 22, "22 playable local test songs in catalog")
 
     -- UkedCharts count is 18
     local ukedFolder = Shared:FindFirstChild("UkedCharts")
@@ -154,6 +175,9 @@ local function testAssetRegistryMissingBehavior(): ()
     local unknown, unknownReason = AssetRegistry.Resolve("DoesNotExist")
     expect(unknown == nil, "unknown registry entry returns nil")
     expectEqual(unknownReason, "UnknownAssetRegistryEntry", "unknown registry reason")
+    local stageCandidates = AssetRegistry.GetSearchCandidates("StageConcertPack")
+    expect(stageCandidates and stageCandidates.query == "concert stage lights speakers", "asset search candidate query recorded")
+    expect(type(stageCandidates.assetIds) == "table" and #stageCandidates.assetIds >= 3, "asset search candidate ids recorded")
 end
 
 local function testWorldValidationPlaceholderDetection(): ()
@@ -491,6 +515,8 @@ local function testHordeClientMovementSource(): ()
     expect(hordeClient ~= nil and hordeClient:IsA("LocalScript"), "HordeClient LocalScript exists")
     local source = hordeClient and hordeClient.Source or ""
     expect(source:find("local function colorForCue", 1, true) ~= nil, "HordeClient defines colorForCue before HordeUpdate uses it")
+    expect(source:find("colorForCue(payload.movementCue or payload.lastJudgement)", 1, true) ~= nil, "HordeClient prefers movement cue color over action label")
+    expect(source:find("payload.lastJudgement or payload.movementCue", 1, true) == nil, "HordeClient never prefers action labels over movement cues")
     expect(source:find("tweenCluster(cluster, distance, sectorId, payload)", 1, true) ~= nil, "HordeClient HordeUpdate calls tweenCluster")
     expect(source:find("RunService.Heartbeat:Connect", 1, true) ~= nil, "HordeClient has idle horde motion heartbeat")
 end
@@ -506,8 +532,88 @@ local function testHordeServiceMovementPayloadSource(): ()
     expect(hordeService ~= nil and hordeService:IsA("ModuleScript"), "HordeService ModuleScript exists")
     local source = hordeService and hordeService.Source or ""
     expect(source:find("activeSectorPressure", 1, true) ~= nil, "HordeService payload includes activeSectorPressure")
+    expect(source:find("audienceAssist = horde.audienceAssist", 1, true) ~= nil, "HordeService payload includes audience assist feedback")
+    expect(source:find("focusReduction", 1, true) ~= nil, "HordeService applies Focus recovery to miss horde surge")
     expect(source:find("movementCue = horde.movementCue", 1, true) ~= nil, "HordeService payload preserves movementCue table")
     expect(source:find("horde.movementCue = lastJudgement", 1, true) == nil, "HordeService broadcast does not overwrite movementCue table")
+end
+
+local function testScoreServiceFocusRecoveryBehavior(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping ScoreService focus behavior test (not on server)")
+        return
+    end
+    local ScoreService = requireServerServiceClone("ScoreService")
+    local profile = { Level = 1, Upgrades = { Recovery = 0, Focus = 0 } }
+    local baseSession = {
+        difficultyConfig = { hpDamageMiss = 10 },
+        mode = Config.Modes.Career,
+        stateData = { hp = 80 },
+        modifiers = {},
+    }
+    local focusedHighHp = {
+        difficultyConfig = { hpDamageMiss = 10 },
+        mode = Config.Modes.Career,
+        stateData = { hp = 80 },
+        modifiers = { focusReduction = 3 },
+    }
+    local focusedLowHp = {
+        difficultyConfig = { hpDamageMiss = 10 },
+        mode = Config.Modes.Career,
+        stateData = { hp = 40 },
+        modifiers = { focusReduction = 5 },
+    }
+    expectEqual(ScoreService:GetMissDamage(profile, baseSession), 10, "baseline miss damage")
+    expectEqual(ScoreService:GetMissDamage(profile, focusedHighHp), 9, "Focus reduces high-hp miss damage within cap")
+    expectEqual(ScoreService:GetMissDamage(profile, focusedLowHp), 8, "Focus gives stronger low-hp miss damage recovery")
+    expectEqual(ScoreService:GetMissPenalty(profile, focusedLowHp), 4, "Focus softens low-hp hype penalty")
+end
+
+local function testHordeAudienceAssistBehavior(): ()
+    if not RunService:IsServer() then
+        print("[UnitTests] Skipping HordeService audience assist behavior test (not on server)")
+        return
+    end
+    local HordeService = requireServerServiceClone("HordeService")
+    local fired = {}
+    local fakeRemote = {
+        FireAllClients = function(_, payload)
+            table.insert(fired, payload)
+        end,
+    }
+    HordeService:Init({
+        Remotes = { HordeUpdate = fakeRemote },
+        Services = {},
+    })
+    local session = {
+        id = "UnitHordeAssist",
+        playerId = 123,
+        difficulty = "Easy",
+        difficultyConfig = { hordeMissAdvance = 10, hpDamageMiss = 10 },
+        stateData = { hp = 40 },
+        modifiers = { focusReduction = 5 },
+    }
+    HordeService:StartSession(session)
+    local horde = HordeService.sessions[session.id]
+    horde.distance = 50
+    horde.warningSectorId = "N"
+    horde.sectorHealths.N = 40
+    horde.sectorPressure.N = 80
+
+    HordeService:ApplyAudienceSupport(session, 4, "Support")
+    local supportPayload = fired[#fired]
+    expect(type(supportPayload.audienceAssist) == "table", "Support emits audienceAssist payload")
+    expectEqual(supportPayload.audienceAssist.sectorId, "N", "Support repairs pre-existing warning sector")
+    expect(horde.sectorHealths.N > 40, "Support increases weak sector health")
+    expect(horde.sectorPressure.N < 80, "Support lowers weak sector pressure")
+
+    HordeService:ApplyJudgement(session, "Perfect")
+    local nextPayload = fired[#fired]
+    expect(nextPayload.audienceAssist == nil, "regular judgement clears one-shot audienceAssist payload")
+
+    horde.distance = 50
+    HordeService:ApplyJudgement(session, "Miss")
+    expectEqual(horde.distance, 42, "Focus reduces horde miss surge from 10 to 8")
 end
 
 local function testCreatorMenuExpansionBuilderSource(): ()
@@ -549,6 +655,8 @@ function UnitTests.Run(): { passed: number, failed: number, failures: { string }
         testWorldV2Validation,
         testHordeClientMovementSource,
         testHordeServiceMovementPayloadSource,
+        testScoreServiceFocusRecoveryBehavior,
+        testHordeAudienceAssistBehavior,
         testCreatorMenuExpansionBuilderSource,
     }
     local failures = {}
