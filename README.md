@@ -22,6 +22,30 @@ You can open either:
 5. Watch the countdown, note highway, judgement text, score, combo, hype, and end screen.
 6. Try the store, upgrade kiosk, mission board, and audience zone.
 
+## Reviewer smoke path
+
+For a fast demo, open `GroanTubeHero.rbxlx`, press **Play**, choose the local
+test chart, and verify four signals: countdown starts, notes scroll on the
+highway, score/combo/hype updates on input, and the end screen grants rewards.
+This path does not require external modules, HTTP, marketplace imports, or
+working placeholder audio.
+
+For source-tree review, use Rojo with `default.project.json` and keep generated
+Studio save artifacts out of commits unless they are intentionally exported
+evidence files listed in `.gitignore`.
+
+## Hardware-free repository smoke
+
+Before opening Studio, run the deterministic offline smoke check:
+
+```bash
+python3 tools/smoke_offline_demo.py
+```
+
+It validates the Rojo tree, remote contract, local chart modules, and checked-in
+groan sound bank without calling Roblox services or importing marketplace
+assets.
+
 ## Notes
 - Placeholder AudioIds are used intentionally.
 - The game still runs visually if audio fails to load.
